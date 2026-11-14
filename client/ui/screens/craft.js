@@ -73,48 +73,62 @@
     </div>`;
   }
 
+  /* Sách lật: mỗi lần mở là một cặp trang; Trước/Sau lật trang. */
+  function book(xs, perPage, renderItem, title, empty_) {
+    const per = perPage * 2, max = Math.max(1, Math.ceil(xs.length / per));
+    UI.view.page = clamp(UI.view.page, 0, max - 1);
+    const page = UI.view.page, from = page * per;
+    const dir = UI.view.bookSeen == null || UI.view.bookSeen === page ? '' : (page > UI.view.bookSeen ? ' turn-next' : ' turn-prev');
+    UI.view.bookSeen = page;
+    const half = i => `<div class="book-page ${i ? 'right' : 'left'}"><div class="book-page-body">${xs.slice(from + i * perPage, from + (i + 1) * perPage).map(renderItem).join('')}</div><i class="book-no">${from + i * perPage + 1}–${Math.min(xs.length, from + (i + 1) * perPage)}</i></div>`;
+    if (!xs.length) return empty_;
+    return `<div class="book-wrap"><div class="book${dir}"><div class="book-title">${esc(title)}</div><div class="book-spread">${half(0)}${half(1)}</div></div>
+      <div class="pagination book-nav">${btn('‹ Lật trước', 'prev', '', page === 0, 'btn-outline')}<span>${xs.length} mục · Trang ${page + 1}/${max}</span>${btn('Lật sau ›', 'next', '', page >= max - 1, 'btn-outline')}</div></div>`;
+  }
+
   function recipes() {
     const s = UI.s(), g = UI.g();
     if (!H.SECT_BOOKS.some(b => b.id === s.borrowedBook && b.kind === 'PILL')) return `<p class="info-note">Chưa mượn sách luyện đan. Đến Tàng Kinh Các trong Tông môn để chọn sách bằng điểm lịch luyện.</p><button class="btn btn-gold" data-go="sect:library">Đến Tàng Kinh Các</button>`;
     const all = H.ITEMS.filter(x => x.kind === 'PILL' && g.hasCraftRecipe(x.code) && x.tier <= s.realm + 1 && lists.matches(x));
     const recipeOf = new Map(all.map(x => [x.code, g.recipe(x.code)]));
     const canMake = r => Object.entries(r.herbs).every(([k, n]) => g.ingredientCount(k) >= n) && s.stone >= r.stone;
+    const mix = UI.view.furnaceMix || (UI.view.furnaceMix = {});
+    const keys = [...new Set(all.flatMap(x => Object.keys(recipeOf.get(x.code).herbs)))].filter(k => g.ingredientCount(k) > 0);
+    const chips = keys.map(k => `<span class="mix-chip"><button class="btn btn-outline" data-act="mixDec" data-key="${esc(k)}" ${mix[k] ? '' : 'disabled'} aria-label="Bớt">−</button>${img(k, 'mini-img')}<em>${esc(H.item(k).name)} ${mix[k] || 0}/${g.ingredientCount(k)}</em><button class="btn btn-outline" data-act="mixInc" data-key="${esc(k)}" ${(mix[k] || 0) >= g.ingredientCount(k) ? 'disabled' : ''} aria-label="Thêm">+</button></span>`).join('');
+    const total = Object.values(mix).reduce((a, n) => a + n, 0);
+    const mixCard = card('Lò luyện thủ công', `<p class="info-note">Sách đan phương chỉ để tham khảo. Hãy tự bỏ đúng nguyên liệu vào lò rồi bấm luyện; sai công thức thì lò không thành đan.</p>
+      <div class="mix-row">${chips || empty('Chưa có nguyên liệu phù hợp trong túi.')}</div>
+      <div class="action-group">${btn('Luyện đan', 'mixCraft', '', total < 1 || !!root.HU_COMMANDS?.activityConflict(s, 'craft'))}${btn('Đổ ra', 'mixClear', '', total < 1, 'btn-outline')}</div>`, { eyebrow: 'THỦ CÔNG' });
     const xs = UI.view.onlyReady ? all.filter(x => canMake(recipeOf.get(x.code))) : all;
-    const cards = lists.slice(xs).map(x => {
+    const cardOf = x => {
       const r = recipeOf.get(x.code), ok = canMake(r);
-      const available = Math.max(0, Math.min(3 - s.craftQueue.length,
-        Math.floor(s.stone / r.stone), ...Object.entries(r.herbs).map(([key, n]) => Math.floor(g.ingredientCount(key) / n))));
-      const disabled = !ok || available < 1 || !!root.HU_COMMANDS?.activityConflict(s, 'craft');
-      return `<section class="card recipe ${ok ? 'ready' : ''}">
+      return `<section class="recipe ${ok ? 'ready' : ''}">
         <div class="row-wrap">${img(x.code, 'recipe-img')}<div><h3>${UI.kit.itemName(x)}</h3><small class="muted">${x.realm} · ${x.grade}</small></div></div>
         <p>${esc(x.description)}</p>
         ${Object.entries(r.herbs).map(([key, n]) => row(esc(H.item(key).name), `<span class="${g.ingredientCount(key) >= n ? 'green-text' : 'danger-text'}">${g.ingredientCount(key)} / ${n}</span>`)).join('')}
         ${row('Chi phí', moneyHTML(r.stone))}${row('Thời gian', duration(r.time))}${row('Thành công', pct(g.craftChance(x.tier)))}
-        <div class="action-group">${btn('Xếp 1 mẻ', 'craft', codeAttr(x.code) + ' data-count="1"', disabled)}
-        ${available > 1 ? btn('Xếp ' + available + ' mẻ', 'craft', codeAttr(x.code) + ` data-count="${available}"`, disabled, 'btn-outline') : ''}</div>
       </section>`;
-    }).join('');
+    };
     return `${root.HU_COMMANDS?.activityConflict(s, 'craft') ? '<p class="info-note">' + esc(root.HU_COMMANDS.activityConflict(s, 'craft')) + '</p>' : ''}<div class="list-head">${lists.controls({ categories: ['Tất cả'], placeholder: 'Tên đan hoặc mã' })}
         <button class="btn ${UI.view.onlyReady ? 'btn-gold' : 'btn-outline'}" data-act="onlyReady" aria-pressed="${!!UI.view.onlyReady}">Chỉ đan đủ nguyên liệu</button></div>
-      ${lists.pager(xs.length)}
-      <div class="recipe-grid">${cards || empty('Không có đan phương phù hợp.')}</div>`;
+      ${mixCard}${book(xs, 1, cardOf, 'Đan phương (tham khảo)', empty('Không có đan phương phù hợp.'))}`;
   }
 
   function forge() {
     const s = UI.s(), g = UI.g();
     if (!H.SECT_BOOKS.some(b => b.id === s.borrowedBook && ['EQ','TAL'].includes(b.kind))) return `<p class="info-note">Chưa mượn sách luyện khí hoặc chế phù. Đến Tàng Kinh Các trong Tông môn để chọn sách bằng điểm lịch luyện.</p><button class="btn btn-gold" data-go="sect:library">Đến Tàng Kinh Các</button>`;
     const xs = H.ITEMS.filter(x => ['EQ', 'TAL'].includes(x.kind) && g.hasCraftRecipe(x.code) && x.tier <= s.realm && lists.matches(x));
-    const rows = lists.slice(xs).map(x => {
+    const rowOf = x => {
       const r=g.forgeRecipe(x.code),mat=H.item(r.herb),haveMat=mat?g.ingredientCount(mat.code):0;
       const manualOk=!r.manual||Object.keys(s.learned).some(k=>H.item(k)?.code===r.manual);
       const ok=mat&&haveMat>=r.count&&(!r.ink||g.ingredientCount(r.ink)>0)&&manualOk&&s.stone>=r.stone;
       return `<article class="shop-item">${img(x.code)}<div><h3>${UI.kit.itemName(x)}</h3><p>${x.realm} · ${F.SUBPHAM[x.sub]}</p>
         <p>${r.count} ${esc(mat?.name || 'linh tài')} <span class="${haveMat >= r.count ? 'green-text' : 'danger-text'}">(${haveMat})</span>${r.ink ? ` · 1 ${esc(H.item(r.ink)?.name || 'mực')} <span class="${g.ingredientCount(r.ink) ? 'green-text' : 'danger-text'}">(${g.ingredientCount(r.ink)})</span>` : ''}${r.manual?` · ${esc(H.item(r.manual).name)} (${manualOk?'đã học':'chưa học'})`:''} · ${moneyHTML(r.stone)}</p></div>
         ${btn('Chế tạo', 'forge', codeAttr(x.code), !ok)}</article>`;
-    }).join('');
+    };
     return `<p class="screen-lead">Công thức từ sách đang mượn. Một số công thức cần bí tịch riêng; phí 10% giá trị, chỉ chế vật cùng hoặc dưới cảnh giới.</p>
-      ${lists.controls({ categories: ['Tất cả', 'Pháp bảo', 'Phù lục'] })}${lists.pager(xs.length)}
-      <div class="shop-list">${rows || empty('Chưa có vật phẩm để chế tạo ở cảnh giới này.')}</div>`;
+      ${lists.controls({ categories: ['Tất cả', 'Pháp bảo', 'Phù lục'] })}
+      ${book(xs, 3, rowOf, 'Luyện khí · Chế phù', empty('Chưa có vật phẩm để chế tạo ở cảnh giới này.'))}`;
   }
 
   function plotArt(p, now) {
@@ -212,6 +226,24 @@
     const msg = await UI.command('forge', { code: d.code });
     UI.toast(msg + '.', { type: 'success', title: 'Luyện khí' });
     UI.vfx?.stage({ kind: 'chien_dau', variant: 'linh_phu', fps: 12, size: 'clamp(110px,17vw,180px)', style: { left: '50%', bottom: '24%', transform: 'translateX(-50%)' } });
+  });
+  UI.action('mixInc', async (el, d) => { const m = UI.view.furnaceMix || (UI.view.furnaceMix = {}); m[d.key] = (m[d.key] || 0) + 1; });
+  UI.action('mixDec', async (el, d) => { const m = UI.view.furnaceMix || {}; if ((m[d.key] || 0) > 0 && !--m[d.key]) delete m[d.key]; });
+  UI.action('mixClear', async () => { UI.view.furnaceMix = {}; });
+  UI.action('mixCraft', async () => {
+    const s = UI.s(), g = UI.g(), mix = { ...(UI.view.furnaceMix || {}) }, keys = Object.keys(mix);
+    UI.view.furnaceMix = {};
+    for (const x of H.ITEMS) {
+      if (x.kind !== 'PILL' || !g.hasCraftRecipe(x.code) || x.tier > s.realm + 1) continue;
+      const r = g.recipe(x.code), rk = Object.keys(r.herbs);
+      if (rk.length !== keys.length || !rk.every(k => mix[k] && mix[k] % r.herbs[k] === 0)) continue;
+      const n = mix[rk[0]] / r.herbs[rk[0]];
+      if (!rk.every(k => mix[k] / r.herbs[k] === n)) continue;
+      const res = await UI.command('craft', { code: x.code, count: n });
+      UI.toast('Lò đã nhóm lửa · ' + x.name + ' ×' + n + ' mẻ', { type: 'info' });
+      return res;
+    }
+    UI.toast('Nguyên liệu không hợp nhau, lò không thành đan. Nguyên liệu được trả lại.', { type: 'warn' });
   });
   UI.action('onlyReady', async () => { UI.view.onlyReady = !UI.view.onlyReady; UI.view.page = 0; });
   UI.action('gardenAct', async (el, d) => {
