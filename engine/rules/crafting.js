@@ -104,7 +104,13 @@
         if (s.craftQueue.length >= 3) throw Error('Lò đang đầy, chưa thể thử công thức mới.');
         for (const c of keys) this.takeIngredient(c, mix[c]);
         if (this.rng() < .4) {
-          const maxHp = this.stats(now).HP, loss = Math.min(Math.max(0, s.hp - 1), maxHp * .2);
+          // Nổ lò: có thể né theo tỷ lệ né tránh của đạo thân (nền 10%, tối đa 70%).
+          const st = this.stats(now), dodge = Math.min(.7, .1 + (st.DODGE || 0));
+          if (this.rng() < dodge) {
+            this.log('Lò nổ nhưng bạn kịp né; nguyên liệu hóa tro, đạo thân vô sự.');
+            return { outcome: 'dodge', dodge };
+          }
+          const loss = Math.min(Math.max(0, s.hp - 1), st.HP * .2);
           s.hp -= loss;
           this.log('Nổ lò! Nguyên liệu hóa tro, đạo thân bị thương.');
           return { outcome: 'explode', hpLoss: Math.round(loss) };
