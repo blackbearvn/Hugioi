@@ -194,7 +194,7 @@
     else if(d?.group==='linh thảo')detail=row('Cách dùng',esc(d['cách dùng']))+row('Hiệu quả',esc(d['hiệu quả']));
     const quality = F.SUBPHAM[x.sub];
     const qualityHtml = L ? L.span(quality, 'quality', quality) : esc(quality);
-    return `<p>${esc(x.description)}</p>${row('Cảnh giới',esc(x.realm))}${row('Phẩm chất',esc((x.grade || x.quality || '') + ' · ') + qualityHtml)}${x.age ? row('Tuổi dược liệu', esc(x.age)) : ''}${row('Nguồn gốc', 'Chưa có dữ liệu nguồn nhận')}${detail}`;
+    return `<p>${esc(x.description)}</p>${x.lore ? `<p class="item-tip-lore">${esc(x.lore)}</p>` : ''}${row('Cảnh giới',esc(x.realm))}${row('Phẩm chất',esc((x.grade || x.quality || '') + ' · ') + qualityHtml)}${x.age ? row('Tuổi dược liệu', esc(x.age)) : ''}${row('Nguồn gốc', 'Chưa có dữ liệu nguồn nhận')}${detail}`;
   }
 
   /* ---------- Cửa sổ nổi: trang bị, công pháp, chi tiết vật phẩm ---------- */

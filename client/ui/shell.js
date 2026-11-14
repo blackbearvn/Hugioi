@@ -1412,7 +1412,7 @@
     const price = moneyHTML(F.shop_sell_price(g.price(key)));
     const v = A.itemImg(x);
     tip.innerHTML = `<div class="item-tip-head"><img src="${v.src}"${v.style ? ` style="${esc(v.style)}"` : ''} alt="" decoding="async"><div><b>${esc(x.name)}</b><span>${esc(quality)}</span></div></div>` +
-      `<p class="item-tip-desc">${esc(x.description || 'Không có mô tả.')}</p>` +
+      `<p class="item-tip-desc">${esc(x.description || 'Không có mô tả.')}</p>` + (x.lore ? `<p class="item-tip-lore">${esc(x.lore)}</p>` : '') +
       `<div class="item-tip-meta"><span>Cảnh giới <b>${esc(x.realm || '—')}</b></span><span>Số lượng <b>×${num(count)}</b></span><span>Giá bán <b>${price}</b></span></div>`;
     tip.hidden = false;
     tip.setAttribute('aria-hidden', 'false');

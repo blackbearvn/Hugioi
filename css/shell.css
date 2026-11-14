@@ -676,3 +676,4 @@ img[data-q="3"]{background:radial-gradient(circle at 20% 22%,#ff4d6dcc 0,transpa
   img[data-q="3"]{animation:q-rainbow 4.5s ease-in-out infinite}
   @keyframes q-rainbow{50%{box-shadow:inset 0 0 16px -2px #ffffffcc,4px 3px 16px -3px #ff4d6d,-4px 3px 16px -3px #ffd23d,-4px -4px 16px -3px #3df08c,4px -4px 16px -3px #b873ff}}
 }
+.item-tip-lore{margin:6px 0 0;font-size:.82em;font-style:italic;line-height:1.45;color:#b9ad8c;opacity:.9}
