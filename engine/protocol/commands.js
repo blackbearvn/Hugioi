@@ -35,6 +35,7 @@
     bid: { code },
     // crafting
     craft: { code, count: optional(integer(1, 3)) },
+    mixCraft: { mix: v => isObject(v) && Object.keys(v).length >= 1 && Object.keys(v).length <= 8 && Object.entries(v).every(([k, n]) => code(k) && integer(1, 24)(n)) },
     forge: { code },
     garden: { slot: integer(0, 3), action: oneOf(['water', 'soil', 'pest', 'harvest', 'terrain']), terrain: optional(oneOf(TERRAINS)) },
     // combat
@@ -77,7 +78,7 @@
 
   const types = Object.freeze(Object.keys(SCHEMAS));
 
-  const trainingActions = new Set(['absorb', 'upgrade', 'craft', 'forge', 'garden', 'startDungeon', 'enterDungeon',
+  const trainingActions = new Set(['absorb', 'upgrade', 'craft', 'mixCraft', 'forge', 'garden', 'startDungeon', 'enterDungeon',
     'startExploration', 'startSectMission', 'breakthrough', 'manualEncounter', 'setAuto', 'startRetreat']);
   const legacyEscape = new Set(['exploreChoice', 'abortDungeon', 'dungeonAct', 'abortSectMission', 'setPreference']);
   function activityConflict(state, type) {

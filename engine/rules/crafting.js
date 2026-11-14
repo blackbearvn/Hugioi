@@ -2,7 +2,7 @@
 (function (root) {
   'use strict';
   const domain = 'crafting';
-  const commands = Object.freeze(['craft', 'forge', 'garden']);
+  const commands = Object.freeze(['craft', 'mixCraft', 'forge', 'garden']);
 
   function install(API) {
     const H = API, F = H.F, { ITEMS, item, keyFor, DESIGN } = H;
@@ -79,6 +79,38 @@
           const start = Math.max(now, s.craftQueue.at(-1)?.end || 0);
           s.craftQueue.push({ code, end: start + r.time * 1000, success, quality: F.craft_quality(x.tier, skill, this.rng) });
         }
+      },
+      /* Luyện thủ công: người chơi tự bỏ nguyên liệu vào lò. Đúng đan phương thì xếp mẻ như craft;
+         sai thì nguyên liệu mất, lò nổ (mất sinh lực) hoặc ra phế đan (chỉ mất nguyên liệu và phí). */
+      mixCraft(payload, now) {
+        now = at(this, now);
+        const s = this.s, mix = {};
+        for (const [c, n] of Object.entries(payload.mix)) {
+          const base = item(c);
+          if (base?.kind !== 'HERB') throw Error('Chỉ bỏ linh thảo vào lò.');
+          mix[base.code] = (mix[base.code] || 0) + n;
+        }
+        const keys = Object.keys(mix);
+        for (const c of keys) if (this.ingredientCount(c) < mix[c]) throw Error('Thiếu ' + item(c).name);
+        for (const x of ITEMS) {
+          if (x.kind !== 'PILL' || !this.hasCraftRecipe(x.code) || x.tier > s.realm + 1) continue;
+          const r = this.recipe(x.code), rk = Object.keys(r.herbs);
+          if (rk.length !== keys.length || !rk.every(k => mix[k] && mix[k] % r.herbs[k] === 0)) continue;
+          const n = mix[rk[0]] / r.herbs[rk[0]];
+          if (n > 3 || !rk.every(k => mix[k] / r.herbs[k] === n)) continue;
+          this.craft({ code: x.code, count: n }, now);
+          return { outcome: 'brew', code: x.code, count: n };
+        }
+        if (s.craftQueue.length >= 3) throw Error('Lò đang đầy, chưa thể thử công thức mới.');
+        for (const c of keys) this.takeIngredient(c, mix[c]);
+        if (this.rng() < .4) {
+          const maxHp = this.stats(now).HP, loss = Math.min(Math.max(0, s.hp - 1), maxHp * .2);
+          s.hp -= loss;
+          this.log('Nổ lò! Nguyên liệu hóa tro, đạo thân bị thương.');
+          return { outcome: 'explode', hpLoss: Math.round(loss) };
+        }
+        this.log('Phế đan: nguyên liệu không hợp nhau, lò chỉ còn tro đen.');
+        return { outcome: 'waste' };
       },
       finishJobs(now, offline = false) {
         const s = this.s;

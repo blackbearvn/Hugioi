@@ -96,7 +96,7 @@
     const keys = [...new Set(all.flatMap(x => Object.keys(recipeOf.get(x.code).herbs)))].filter(k => g.ingredientCount(k) > 0);
     const chips = keys.map(k => `<span class="mix-chip"><button class="btn btn-outline" data-act="mixDec" data-key="${esc(k)}" ${mix[k] ? '' : 'disabled'} aria-label="Bớt">−</button>${img(k, 'mini-img')}<em>${esc(H.item(k).name)} ${mix[k] || 0}/${g.ingredientCount(k)}</em><button class="btn btn-outline" data-act="mixInc" data-key="${esc(k)}" ${(mix[k] || 0) >= g.ingredientCount(k) ? 'disabled' : ''} aria-label="Thêm">+</button></span>`).join('');
     const total = Object.values(mix).reduce((a, n) => a + n, 0);
-    const mixCard = card('Lò luyện thủ công', `<p class="info-note">Sách đan phương chỉ để tham khảo. Hãy tự bỏ đúng nguyên liệu vào lò rồi bấm luyện; sai công thức thì lò không thành đan.</p>
+    const mixCard = card('Lò luyện thủ công', `<p class="info-note">Sách đan phương chỉ để tham khảo. Hãy tự bỏ đúng nguyên liệu vào lò rồi bấm luyện; sai công thức thì nổ lò hoặc phế đan, mất nguyên liệu.</p>
       <div class="mix-row">${chips || empty('Chưa có nguyên liệu phù hợp trong túi.')}</div>
       <div class="action-group">${btn('Luyện đan', 'mixCraft', '', total < 1 || !!root.HU_COMMANDS?.activityConflict(s, 'craft'))}${btn('Đổ ra', 'mixClear', '', total < 1, 'btn-outline')}</div>`, { eyebrow: 'THỦ CÔNG' });
     const xs = UI.view.onlyReady ? all.filter(x => canMake(recipeOf.get(x.code))) : all;
@@ -231,19 +231,14 @@
   UI.action('mixDec', async (el, d) => { const m = UI.view.furnaceMix || {}; if ((m[d.key] || 0) > 0 && !--m[d.key]) delete m[d.key]; });
   UI.action('mixClear', async () => { UI.view.furnaceMix = {}; });
   UI.action('mixCraft', async () => {
-    const s = UI.s(), g = UI.g(), mix = { ...(UI.view.furnaceMix || {}) }, keys = Object.keys(mix);
+    const mix = { ...(UI.view.furnaceMix || {}) };
     UI.view.furnaceMix = {};
-    for (const x of H.ITEMS) {
-      if (x.kind !== 'PILL' || !g.hasCraftRecipe(x.code) || x.tier > s.realm + 1) continue;
-      const r = g.recipe(x.code), rk = Object.keys(r.herbs);
-      if (rk.length !== keys.length || !rk.every(k => mix[k] && mix[k] % r.herbs[k] === 0)) continue;
-      const n = mix[rk[0]] / r.herbs[rk[0]];
-      if (!rk.every(k => mix[k] / r.herbs[k] === n)) continue;
-      const res = await UI.command('craft', { code: x.code, count: n });
-      UI.toast('Lò đã nhóm lửa · ' + x.name + ' ×' + n + ' mẻ', { type: 'info' });
-      return res;
-    }
-    UI.toast('Nguyên liệu không hợp nhau, lò không thành đan. Nguyên liệu được trả lại.', { type: 'warn' });
+    const res = await UI.command('mixCraft', { mix });
+    const r = res?.result || res || {};
+    if (r.outcome === 'brew') UI.toast('Lò đã nhóm lửa · ' + H.item(r.code).name + ' ×' + r.count + ' mẻ', { type: 'info' });
+    else if (r.outcome === 'explode') UI.toast('Nổ lò! Nguyên liệu hóa tro, đạo thân mất ' + r.hpLoss + ' sinh lực.', { type: 'error' });
+    else if (r.outcome === 'waste') UI.toast('Phế đan: nguyên liệu không hợp nhau, lò chỉ còn tro đen.', { type: 'warn' });
+    return res;
   });
   UI.action('onlyReady', async () => { UI.view.onlyReady = !UI.view.onlyReady; UI.view.page = 0; });
   UI.action('gardenAct', async (el, d) => {
