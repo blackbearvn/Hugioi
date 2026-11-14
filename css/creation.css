@@ -10,20 +10,20 @@
 .field .field-main em{font-style:normal;font-weight:700;font-size:12.5px;color:#9fe2c0;margin-left:4px}
 #raceValue,#rootValue{flex-direction:column;gap:2px;text-align:center}
 .root-field{flex-wrap:nowrap}
-.chip{background:#0e1612}
+.chip{background:#0d0f14}
 .purity{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:1px}
 .purity b{font-size:12px;font-weight:700;color:#e6d4b4}
 
 /* Hộp thoại thông tin: chủng tộc, quy tắc linh căn, bảng kinh mạch */
 .race-list{display:grid;gap:6px;margin:8px 0}
-.race-row{padding:8px 10px;border:1px solid #3c5f4c;border-radius:10px;background:#121b16cc}
-.race-row.is-current{border-color:var(--gold);background:#1b2a26}
+.race-row{padding:8px 10px;border:1px solid #384258;border-radius:10px;background:#111319cc}
+.race-row.is-current{border-color:var(--gold);background:#191d27}
 .race-head{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
 .race-head b{font:700 15px var(--serif);color:#f1e6c8}
-.race-head span{font-size:12.5px;color:#a5b5aa}
+.race-head span{font-size:12.5px;color:#9a9fa7}
 .race-fx{font-size:13px;color:#9fe2c0;margin:1px 0}
 .root-rules{display:flex;flex-direction:column;gap:5px;margin:8px 0;padding-top:4px}
-.rule-line{display:grid;grid-template-columns:minmax(120px,.8fr) minmax(0,1.6fr);gap:10px;font-size:13px;line-height:1.5;color:#c0cbc4;padding:4px 0;border-bottom:1px dashed #314e3e}
+.rule-line{display:grid;grid-template-columns:minmax(120px,.8fr) minmax(0,1.6fr);gap:10px;font-size:13px;line-height:1.5;color:#b3b6bc;padding:4px 0;border-bottom:1px dashed #2e3649}
 .rule-line>span:first-child{color:#e3dbd2;font-weight:650}
 .rule-chips{display:flex;flex-wrap:wrap;gap:4px 8px}
 .rule-chips i{font-style:normal}
@@ -63,7 +63,7 @@
 .create-scene .scene-photo{position:absolute;inset:-7%;z-index:0;background:url('../media/assets/world/bg/ha_gioi/day/xuan.webp') center/cover no-repeat;
   animation:sceneDrift 46s ease-in-out infinite alternate;will-change:transform}
 .create-scene .scene-mist{position:absolute;z-index:1;left:-30%;width:160%;height:46%;pointer-events:none;opacity:.5;
-  background:radial-gradient(ellipse 38% 55% at 30% 50%,#f4ecdc55,transparent 70%),radial-gradient(ellipse 30% 45% at 70% 55%,#dfe9e044,transparent 70%);filter:blur(10px);will-change:transform}
+  background:radial-gradient(ellipse 38% 55% at 30% 50%,#f4ecdc55,transparent 70%),radial-gradient(ellipse 30% 45% at 70% 55%,#ced2da44,transparent 70%);filter:blur(10px);will-change:transform}
 .create-scene .scene-mist-a{top:30%;animation:mistDrift 52s linear infinite}
 .create-scene .scene-mist-b{top:58%;opacity:.38;animation:mistDrift 74s linear infinite reverse}
 .create-scene .scene-orbit{animation:orbitSpin 120s linear infinite,orbitGlow 7s ease-in-out infinite}
@@ -98,13 +98,13 @@ body.reduced-motion .scene-motes{display:none}
 
 /* Quầy Thiên Mệnh Các trong màn Khởi Nguyên — thu gọn thành một nút, mở hộp thoại shop. */
 .creation-shop-trigger{display:flex;align-items:center;gap:8px;width:100%;min-height:46px;padding:8px 10px;
-  border:1px solid #3a5849;border-radius:6px;background:#101a15;color:#d8e5dc;font:inherit;text-align:left;cursor:pointer;
+  border:1px solid #363e52;border-radius:6px;background:#0f1218;color:#c8cdd6;font:inherit;text-align:left;cursor:pointer;
   transition:border-color .2s,background .2s}
-.creation-shop-trigger:hover,.creation-shop-trigger:focus-visible{border-color:#b79354;background:#1a2821}
+.creation-shop-trigger:hover,.creation-shop-trigger:focus-visible{border-color:#b79354;background:#181c25}
 .creation-shop-trigger .creation-shop-step{flex:none;color:var(--ink-gold);font:700 12px var(--serif)}
 .creation-shop-trigger .creation-shop-title{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-  color:#b7c9bb;font-size:10px;font-weight:800;letter-spacing:.12em}
-.creation-shop-trigger i{height:1px;flex:1 1 20px;min-width:8px;background:linear-gradient(90deg,#728b7280,transparent)}
+  color:#abb0ba;font-size:10px;font-weight:800;letter-spacing:.12em}
+.creation-shop-trigger i{height:1px;flex:1 1 20px;min-width:8px;background:linear-gradient(90deg,#6a738180,transparent)}
 .creation-shop-trigger .creation-shop-summary{flex:none;color:#f2d48b;font-size:12px;font-weight:750;white-space:nowrap}
 .creation-shop-trigger .creation-shop-chevron{flex:none;color:#e6c67f;font-size:20px;line-height:1}
 .creation-shop-dialog{width:min(760px,calc(100vw - 24px));overscroll-behavior:contain}
@@ -122,15 +122,15 @@ body.reduced-motion .scene-motes{display:none}
 .creation-shop-wallet small{font-size:12px;color:#c9bca4;line-height:1.5}
 .creation-shop-section{display:grid;gap:7px}
 .creation-shop-section h3{margin:2px 0 0;color:#dcc28c;font:700 11px var(--serif);letter-spacing:.13em;text-transform:uppercase}
-.creation-shop-section>p{margin:0;color:#a9b8ab;font-size:12px;line-height:1.5}
+.creation-shop-section>p{margin:0;color:#9ea2aa;font-size:12px;line-height:1.5}
 .creation-shop-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .creation-shop-item{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0;
-  padding:10px;border:1px solid #3a5849;border-radius:9px;background:#0f1915}
+  padding:10px;border:1px solid #363e52;border-radius:9px;background:#0e1117}
 .creation-shop-item.is-owned{border-color:#8a6c3d;background:#191a12}
 .creation-shop-item>div{min-width:0}
 .creation-shop-item strong{display:block;font-size:13.5px;color:#ead4a4;line-height:1.4}
-.creation-shop-item p{margin:4px 0;color:#bbcac0;font-size:12px;line-height:1.45}
-.creation-shop-item small{font-size:11.5px;color:#a9b8ab}
+.creation-shop-item p{margin:4px 0;color:#aeb3bb;font-size:12px;line-height:1.45}
+.creation-shop-item small{font-size:11.5px;color:#9ea2aa}
 .creation-shop-item button{min-height:44px;min-width:102px;flex-shrink:0;font-size:12px;padding:8px}
 @media(max-width:900px){.creation-shop-grid{grid-template-columns:1fr}}
 @media(max-width:420px){.creation-shop-item{flex-wrap:wrap}.creation-shop-item button{width:100%}}

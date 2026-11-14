@@ -28,7 +28,7 @@ body.reduced-motion .vfx-sprite{display:none}
   100%{transform:translate3d(-20px,105vh,0) rotate(360deg);opacity:0}
 }
 .float-text{position:absolute;z-index:8;pointer-events:none;font:900 clamp(28px,3.4vmin,42px) var(--serif);letter-spacing:.01em;color:#ffe0d6;white-space:nowrap;-webkit-text-stroke:.7px #4a160d;text-shadow:0 2px 0 #2a0805,0 4px 12px #000,0 0 16px #ff6d4a,0 0 34px #ff4b2b88;animation:floatUp 1.05s ease-out forwards}
-.float-text.won{color:#b6ffd2;text-shadow:0 2px 0 #062b16,0 4px 12px #000,0 0 16px #55d98a,0 0 34px #39c97a88;font-size:clamp(30px,3.8vmin,46px)}
+.float-text.won{color:#b6ffd2;text-shadow:0 2px 0 #0e131f,0 4px 12px #000,0 0 16px #55d98a,0 0 34px #39c97a88;font-size:clamp(30px,3.8vmin,46px)}
 .float-text.skill{color:#fff1b8;text-shadow:0 2px 0 #3a2503,0 4px 12px #000,0 0 18px #ffd45c,0 0 38px #e5b13f99;font-size:clamp(32px,4.2vmin,50px)}
 .float-text.heal{color:#ede0ca;text-shadow:0 2px 0 #281c16,0 4px 12px #000,0 0 16px #d6b885,0 0 32px #3fa9d899;font-size:clamp(28px,3.4vmin,42px)}
 .float-text.cultivation-gain{font:750 clamp(17px,2.4vmin,25px) var(--font);color:#efe2ce;-webkit-text-stroke:0;text-shadow:0 2px 5px #1e1511,0 0 12px #d7ba88;animation:floatUp 1.6s ease-out forwards}
