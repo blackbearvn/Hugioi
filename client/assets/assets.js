@@ -145,6 +145,9 @@
     combatFallback: BG_BASE + 'bi_canh.png',
     forge: BG_BASE + 'room/luyen_khi.webp',
     talisman: BG_BASE + 'room/ve_phu.webp',
+    character: BG_BASE + 'room/character.webp',
+    ranking: BG_BASE + 'room/ranking.webp',
+    sect: BG_BASE + 'room/sect.webp',
     garden: BASE + 'ui/linh_dien/BG.webp',
     logo: BG_BASE + 'logo.webp'
   };

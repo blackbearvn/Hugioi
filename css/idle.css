@@ -134,12 +134,12 @@
 @media(max-width:420px){.win.page>header>b span{display:none}}
 
 /* Nghề phụ: toàn màn hình với nền riêng của từng nghề (đan phòng, luyện khí/chế phù, linh điền) */
-.win.page[data-window="craft"]{background:linear-gradient(180deg,#07090ccc 0%,#0c0e13b3 40%,#07090ce0 100%),var(--page-bg,linear-gradient(#0c0e13,#0c0e13)) center/cover no-repeat fixed}
-.win.page[data-window="craft"]>header{background:linear-gradient(180deg,#0d0f14dd,#0d0f1488)}
-.win.page[data-window="craft"] .card{background:#0e1014cc;border-color:#414d68;backdrop-filter:blur(5px)}
+.win.page[data-window="craft"],.win.page[data-window="character"],.win.page[data-window="ranking"],.win.page[data-window="sect"]{background:linear-gradient(180deg,#07090ccc 0%,#0c0e13b3 40%,#07090ce0 100%),var(--page-bg,linear-gradient(#0c0e13,#0c0e13)) center/cover no-repeat fixed}
+.win.page[data-window="craft"]>header,.win.page[data-window="character"]>header,.win.page[data-window="ranking"]>header,.win.page[data-window="sect"]>header{background:linear-gradient(180deg,#0d0f14dd,#0d0f1488)}
+.win.page[data-window="craft"] .card,.win.page[data-window="character"] .card,.win.page[data-window="ranking"] .card,.win.page[data-window="sect"] .card{background:#0e1014cc;border-color:#414d68;backdrop-filter:blur(5px)}
 .win.page[data-window="craft"] .workshop-banner{--art:none;min-height:0;background:#0e1014b3;backdrop-filter:blur(5px);padding:16px 20px}
 .win.page[data-window="craft"] .workshop-banner::after{display:none}
-.win.page[data-window="craft"] .tabbar{background:#0e101499;border-radius:12px;padding:0 6px}
+.win.page[data-window="craft"] .tabbar,.win.page[data-window="character"] .tabbar,.win.page[data-window="ranking"] .tabbar,.win.page[data-window="sect"] .tabbar{background:#0e101499;border-radius:12px;padding:0 6px}
 
 /* ===== MENU THU GỌN: ẩn cả thanh, chỉ còn icon ☰ nổi ===== */
 #menu .menu-toggle{order:-1;min-height:40px;border:1px solid #505e7e;border-radius:10px;background:#141820;color:#ece4d6}
@@ -165,3 +165,7 @@
   #status{padding:10px;gap:7px}
   .idle-deck{bottom:50px}
 }
+/* Nhân vật, Bảng xếp hạng, Tông môn: phủ mờ nhẹ hơn để thấy rõ tranh nền. */
+.win.page[data-window="character"],.win.page[data-window="ranking"],.win.page[data-window="sect"]{background:linear-gradient(180deg,#07090c8c 0%,#0c0e1347 45%,#07090cb0 100%),var(--page-bg,linear-gradient(#0c0e13,#0c0e13)) center/cover no-repeat fixed}
+.win.page[data-window="ranking"] .screen-body,.win.page[data-window="ranking"] .screen-title{text-shadow:0 1px 6px #000c}
+.win.page[data-window="ranking"]{background:linear-gradient(180deg,#07090cb3 0%,#0c0e1366 45%,#07090cc0 100%),var(--page-bg,linear-gradient(#0c0e13,#0c0e13)) center/cover no-repeat fixed}

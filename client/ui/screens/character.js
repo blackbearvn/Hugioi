@@ -294,6 +294,7 @@
   UI.register({
     id: 'character', label: 'Nhân vật', icon: 'ICON-MENU-003', eyebrow: 'ĐẠO THỂ',
     tabs: TABS,
+    pageBg: () => UI.kit.abs(root.HU_ASSETS.BG.character),
     render: tab => header() + tabs(TABS, tab) + `<div class="screen-body">${{ stats, skills, talents, roots, bag }[tab]()}</div>`,
     signature: () => {
       const s = UI.s();

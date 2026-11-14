@@ -162,6 +162,7 @@
 
   UI.register({
     id: 'ranking', label: 'Bảng xếp hạng', icon: '♛', eyebrow: 'THIÊN BẢNG',
+    pageBg: () => UI.kit.abs(root.HU_ASSETS.BG.ranking),
     render: () => '<header class="screen-title"><span class="eyebrow gold">THIÊN BẢNG</span><h2>Bảng xếp hạng</h2></header><div class="screen-body">' + ranking() + '</div>',
     mount: () => { void loadLeaderboard(); },
     signature: () => [leaderboardState.at,leaderboardState.mode,leaderboardState.owner].join('|')
