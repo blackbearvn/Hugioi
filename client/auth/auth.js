@@ -42,7 +42,13 @@
     $('authTabs').hidden = false;
     selectMode('login');
   }
+  /* Có phiên (tab hiện tại hoặc đã ghi nhớ 30 ngày): đang xác minh, đừng chớp trang đăng nhập. */
+  function resuming(on) {
+    document.body.toggleAttribute('data-resume', on);
+    $('authResume').hidden = !on;
+  }
   function present() {
+    root.HU_ROUTE?.go('login');
     account = null;
     $('authGate').hidden = false;
     $('welcome').hidden = true;
@@ -59,6 +65,7 @@
     notice('Đang tải tiến trình từ máy chủ…', true);
     try {
       await enterGame(account);
+      resuming(false);
       $('authGate').hidden = true;
       $('authForm').reset();
       notice('');
@@ -187,12 +194,14 @@
     $('authConsentContinue').addEventListener('click', acceptPending);
     $('authConsentLogout').addEventListener('click', logout);
     present();
+    if (SB?.hasSession?.()) resuming(true);
     if (root.location.protocol === 'file:' || typeof root.fetch !== 'function' || !SB) { notice('Vui lòng mở Hư Giới bằng địa chỉ website chính thức có kết nối bảo mật.'); return; }
     SB.user().then(next => {
-      if (account || pending || $('authGate').hidden) return;
-      if (next) return finish(next);
+      if (account || pending || $('authGate').hidden) return resuming(false);
+      if (next) return finish(next).finally(() => resuming(false));
+      resuming(false);
       if (root.HU_SUPABASE_EMAIL_CONFIRMED) notice('Email đã được xác nhận. Hãy đăng nhập để tiếp tục.', true);
-    }).catch(error => { notice(error.message || 'Không thể xác minh tài khoản.'); });
+    }).catch(error => { resuming(false); notice(error.message || 'Không thể xác minh tài khoản.'); });
   }
   root.HU_AUTH = { boot, logout, get account() { return account; } };
 })(typeof window !== 'undefined' ? window : globalThis);

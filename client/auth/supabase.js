@@ -316,5 +316,5 @@
     }
   }
   root.HU_SUPABASE = { user, signup, login, loginGoogle, accepted, accept, logout,
-    accessToken: token, validEmail, rememberOnThisDevice, isRemembered, publishableKey: KEY, VERSION };
+    accessToken: token, validEmail, rememberOnThisDevice, isRemembered, hasSession: () => !!current?.refresh_token, publishableKey: KEY, VERSION };
 })(typeof window !== 'undefined' ? window : globalThis);

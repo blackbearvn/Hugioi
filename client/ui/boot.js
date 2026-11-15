@@ -346,6 +346,7 @@
     $('welcomeRebirth').textContent = 'Khởi đầu mới · không giữ lại tài nguyên hoặc sức mạnh.';
     $('game').hidden = true; $('welcome').hidden = false;
     document.body.classList.remove('in-game');
+    root.HU_ROUTE?.go('create');
     try { root.history?.replaceState(null, '', root.location.pathname + root.location.search); } catch {}
     renderCreation();
     $('nameInput')?.focus({ preventScroll: true });
@@ -364,6 +365,7 @@
     $('continueGame').hidden = true;
     $('game').hidden = false;
     document.body.classList.add('in-game');
+    root.HU_ROUTE?.go('game');
     store.ready = true;
     // Snapshot đã được backend xác minh; không tính tiến trình khi quay lại.
     const r = null;
@@ -637,6 +639,7 @@
     $('continueGame').title = '';
     $('welcomeRebirth').textContent = 'Khai mở một đạo thân · đổi Thiên Tinh tại Thiên Mệnh Các trước khi nhập thế.';
     $('welcome').hidden = false;
+    root.HU_ROUTE?.go('create');
     renderCreation();
   }
   async function leaveAccount() {

@@ -131,3 +131,8 @@
 .root-elem-title{margin:10px 0 3px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#9b9fa8}
 .root-section-title{margin:16px 0 8px;font:700 16px var(--serif)}
 .root-section-title small{font:400 12px system-ui;color:#9b9fa8}
+/* Đang tiếp tục phiên đã lưu: ẩn biểu mẫu để không chớp trang đăng nhập. */
+.auth-resume{margin:1.4rem 0;font-size:1rem;letter-spacing:.06em;color:var(--gold,#e0b865);animation:authResume 1.6s ease-in-out infinite}
+body[data-resume] :is(#authForm,#authTabs,#authGoogle,#authRememberWrap,#authSubtitle,#authTitle){display:none!important}
+@keyframes authResume{50%{opacity:.45}}
+@media (prefers-reduced-motion:reduce){.auth-resume{animation:none}}
