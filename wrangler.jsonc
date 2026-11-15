@@ -1,12 +1,13 @@
 {
   // Worker chỉ phục vụ file trong dist/; không có Node, SQLite hoặc logic gameplay.
+  // /login, /create, /game đều trả index.html (single-page-application); client tự chọn trang theo phiên.
   // dist/_headers do Cloudflare Worker Static Assets áp CSP + connect-src Supabase.
   "$schema": "https://json.schemastore.org/wrangler.json",
   "name": "hugioi",
   "compatibility_date": "2026-11-01",
   "assets": {
     "directory": "./dist",
-    "not_found_handling": "404-page"
+    "not_found_handling": "single-page-application"
   },
   "build": {
     // Workers Builds có thể bỏ devDependencies (NODE_ENV=production).

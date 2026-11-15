@@ -155,7 +155,7 @@
     const loc = root.location;
     if (!loc || (loc.protocol !== 'https:' && !(loc.protocol === 'http:' && loc.hostname === 'localhost')))
       throw Error('Vui lòng mở Hư Giới từ địa chỉ website bảo mật để đăng nhập bằng Google.');
-    return loc.origin + loc.pathname;
+    return loc.origin + '/';
   }
 
   function randomVerifier() {
@@ -257,7 +257,7 @@
   async function signup(email, password, options) {
     if (!validEmail(email)) throw Error('Email không hợp lệ. Vui lòng nhập địa chỉ email đúng định dạng.');
     const redirect = root.location?.protocol === 'https:' || root.location?.hostname === 'localhost'
-      ? '?redirect_to=' + encodeURIComponent(root.location.origin + root.location.pathname)
+      ? '?redirect_to=' + encodeURIComponent(root.location.origin + '/')
       : '';
     const data = await request('/auth/v1/signup' + redirect, {
       method: 'POST', body: { email, password, data: { policy_notice_version: VERSION }, ...captchaBody(options) }

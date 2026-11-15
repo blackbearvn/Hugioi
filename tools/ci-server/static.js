@@ -37,7 +37,7 @@ function resolveAllowed(rawUrl) {
   let pathname;
   try { pathname = decodeURIComponent(new URL(rawUrl, 'http://x').pathname); } catch { return { status: 400 }; }
   if (pathname.includes('\0') || pathname.includes('\\')) return { status: 404 };
-  if (pathname === '/' || pathname.endsWith('/')) pathname = '/index.html';
+  if (pathname === '/' || pathname.endsWith('/') || ['/login', '/create', '/game'].includes(pathname)) pathname = '/index.html';
   if (pathname.split('/').includes('..')) return { status: 404 };
   if (!ALLOWED.test(pathname) || DENIED_PART.test(pathname) || DENIED_PATH.test(pathname)) return { status: 404 };
   let file;
