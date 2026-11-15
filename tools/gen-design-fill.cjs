@@ -86,7 +86,15 @@ for (const x of H.ITEMS.filter(y => y.kind === 'BT' && M.school(y) === 'ngoai'))
   rows[x.code] = r;
 }
 
-/* 3. Đan phương đã được ghi tường minh trong data/items.js (tools/migrate-pills.mjs); không sinh ở đây. */
+/* 3. Đan phương: bảng gốc có 5 đan trùng tỷ lệ nguyên liệu với đan khác (luyện thủ công không phân biệt được).
+   Đổi tỷ lệ cho các đan đến sau; sau đó chạy node tools/migrate-pills.mjs để ghi lại vào data/items.js. */
+Object.assign(recipes, {
+  'PILL-019': { 'HERB-024': 3, 'HERB-021': 1 },
+  'PILL-024': { 'HERB-025': 3, 'HERB-026': 1 },
+  'PILL-025': { 'HERB-030': 1, 'HERB-029': 3 },
+  'PILL-027': { 'HERB-029': 3, 'HERB-030': 2 },
+  'PILL-028': { 'HERB-029': 2, 'HERB-030': 4 }
+});
 
 /* 4. Rèn pháp bảo còn thiếu: nguyên liệu cùng bậc, cần bí tịch luyện pháp bảo. */
 const mats = H.ITEMS.filter(x => x.kind === 'MAT'), mpool = t => mats.filter(m => m.tier === t);
@@ -95,10 +103,16 @@ for (const x of eqs.filter(y => !H.DESIGN.forge[y.code])) {
   forge[x.code] = { manual: 'BT-900', herb: p[n % p.length].code, count: 3 + Math.floor(x.tier / 2) };
 }
 
+/* 5. Vẽ phù: nguyên liệu cùng bậc theo từng phù, mực theo cảnh giới, cần bí tịch vẽ phù. */
+for (const x of H.ITEMS.filter(y => y.kind === 'TAL' && !H.DESIGN.talisman[y.code])) {
+  const p = mpool(x.tier).length ? mpool(x.tier) : mpool(Math.max(0, x.tier - 1)), n = (x.sourceNumber || 1) - 1;
+  forge[x.code] = { manual: 'BT-901', herb: p[n % p.length].code, count: 2 + Math.floor(x.tier / 3), ink: 'INK-' + (x.tier < 5 ? 'HG' : x.tier < 9 ? 'LG' : 'TG') };
+}
+
 const out = `/* Dữ liệu thiết kế bổ sung (sinh bởi tools/gen-design-fill.cjs): pháp bảo, chiêu ngoại tu, rèn pháp bảo. */
 (function (root) {
   'use strict';
-  const API = ${JSON.stringify({ rows, forge, effects })};
+  const API = ${JSON.stringify({ rows, recipes, forge, effects })};
   root.HU_DESIGN_FILL = API;
   if (typeof module !== 'undefined' && module.exports) module.exports = API;
 })(typeof window !== 'undefined' ? window : globalThis);

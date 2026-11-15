@@ -24,3 +24,14 @@ test('mỗi ngoại tu có chiêu thức hợp lệ', () => {
     if (k.kind === 'guard' || k.kind === 'heal') assert.ok(k.value > 0);
   }
 });
+
+test('mỗi phù và đan có công thức riêng', () => {
+  for (const x of H.ITEMS.filter(y => y.kind === 'TAL')) assert.ok(H.DESIGN.forge[x.code]?.herb && H.DESIGN.forge[x.code]?.ink, x.code);
+  const gcd = (a, b) => b ? gcd(b, a % b) : a, seen = new Set();
+  for (const x of H.ITEMS.filter(y => y.kind === 'PILL')) {
+    const e = Object.entries(x.recipe.herbs), g = e.map(([, n]) => n).reduce(gcd);
+    const sig = e.map(([k, n]) => k + ':' + n / g).sort().join('+');
+    assert.ok(!seen.has(sig), x.code + ' trùng đan phương');
+    seen.add(sig);
+  }
+});
