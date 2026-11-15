@@ -80,3 +80,31 @@ test('DAN_TABLE trong balance.js khớp tuyệt đối 60 đan của items.js', 
   }
   assert.equal(new Set(B.DAN_TABLE.map(r => r[0])).size, 60);
 });
+
+const R = require('../data/items.js');
+const M = require('../data/manuals.js');
+const rawPills = R.filter(x => x.kind === 'PILL');
+
+test('cả 60 đan có number, gradeId, tags, useReq khớp quy tắc suy ra', () => {
+  assert.equal(rawPills.length, 60);
+  for (const p of rawPills) {
+    assert.equal(p.number, p.sourceNumber, p.code);
+    assert.equal(p.gradeId, S.gradeIdFor(p.grade), p.code);
+    assert.deepEqual(p.tags, S.tagsFor(p.effect, p.tier, M.isRarePill(p)), p.code);
+    assert.deepEqual(p.useReq, { realmMin: p.tier }, p.code);
+  }
+  const rare = rawPills.filter(M.isRarePill);
+  assert.ok(rare.length > 0 && rare.every(p => p.tags.includes('dan-hiem')));
+  assert.ok(rawPills.filter(p => !M.isRarePill(p)).every(p => !p.tags.includes('dan-hiem')));
+});
+
+test('migrate-pills idempotent: chạy lại trên dữ liệu đã chuẩn hóa không đổi gì', async () => {
+  const { migratePills } = await import('../tools/migrate-pills.mjs');
+  assert.deepEqual(migratePills(R), R);
+});
+
+test('CLI migrate-pills --check xác nhận data/items.js đã chuẩn hóa', () => {
+  const out = require('node:child_process').spawnSync(process.execPath, ['tools/migrate-pills.mjs', '--check'], { cwd: require('node:path').join(__dirname, '..'), encoding: 'utf8' });
+  assert.equal(out.status, 0, out.stderr || out.stdout);
+  assert.match(out.stdout, /60 đan đã chuẩn hóa/);
+});
