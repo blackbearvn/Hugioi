@@ -3,6 +3,7 @@
 'use strict';
 const node=typeof module!=='undefined'&&module.exports;
 const raw=node?require('./design-raw.js'):root.HU_DESIGN_RAW;
+const fill=node?(process.env.HU_NO_FILL?{}:require('./design-fill.js')):(root.HU_DESIGN_FILL||{});
 const categories=[['hạt giống','mã hạt'],['linh thảo','mã cây'],['đan dược','mã đan'],
  ['pháp bảo','mã PB'],['công pháp','mã CP'],['bí tịch','mã BT'],['phù lục','mã phù']];
 const byDesign={},byLegacy={};
@@ -14,9 +15,13 @@ for(const [group,key] of categories)for(const row of raw[group]){
 const byCode=key=>{const code=typeof key==='string'?key.split('@')[0]:'';return byLegacy[code]||null};
 const legacy=id=>byDesign[id]||null;
 const effects=Object.fromEntries(raw['hiệu ứng pháp bảo'].map(x=>[legacy(x['mã PB']),x]));
+Object.assign(effects,fill.effects||{});
+for(const [code,row] of Object.entries(fill.rows||{}))byLegacy[code]={...(byLegacy[code]||{}),...row};
 const seedsByHerb=Object.fromEntries(raw['hạt giống'].map(x=>[legacy(x['linh thảo thu được']),x]));
 const recipes={};for(const r of raw['đan phương']){const code=legacy(r['mã đan']);(recipes[code]??={})[legacy(r['mã linh thảo'])]=r['số lượng']}
 const forge=Object.fromEntries(raw['rèn pháp bảo'].map(x=>[legacy(x['mã PB']),{manual:legacy(x['mã bí tịch']),herb:legacy(x['mã linh thảo']),count:x['số lượng']}]));
+Object.assign(forge,fill.forge||{});
+Object.assign(recipes,fill.recipes||{});
 const talisman=Object.fromEntries(raw['vẽ phù'].map(x=>[legacy(x['mã phù']),{manual:legacy(x['mã bí tịch']),herb:legacy(x['mã linh thảo']),count:x['số lượng']}]));
 const npc=Object.fromEntries(raw.npc.map(x=>[x['mã NPC'],{...x,likes:legacy(x['thích (mã vật phẩm)']),dislikes:legacy(x['không thích (mã vật phẩm)']),offer:legacy(x['mã hàng/dạy/đan'])}]));
 const multiplier=text=>{const m=String(text||'').match(/(\d+(?:[.,]\d+)?)\s*%\s*ATK/i);return m?Number(m[1].replace(',','.'))/100:1};
