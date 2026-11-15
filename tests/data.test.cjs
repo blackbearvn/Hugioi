@@ -108,3 +108,72 @@ test('CLI migrate-pills --check xác nhận data/items.js đã chuẩn hóa', ()
   assert.equal(out.status, 0, out.stderr || out.stdout);
   assert.match(out.stdout, /60 đan đã chuẩn hóa/);
 });
+
+const DESIGN = require('../data/design.js');
+const byCode = new Map(C.ITEMS.map(x => [x.code, x]));
+
+test('25 đan có đan phương thiết kế thì dùng đúng công thức gốc', () => {
+  let count = 0;
+  for (const [code, herbs] of Object.entries(DESIGN.recipes)) {
+    const p = byCode.get(code);
+    assert.equal(p.kind, 'PILL', code);
+    assert.deepEqual(p.recipe, { herbs }, code);
+    count++;
+  }
+  assert.equal(count, 25);
+});
+
+test('35 đan còn lại giữ nguyên công thức fallback cũ, không đổi nguyên liệu', () => {
+  const expected = {
+    'PILL-029': { 'HERB-036': 2, 'HERB-037': 2 },
+    'PILL-030': { 'HERB-037': 2, 'HERB-038': 2 },
+    'PILL-031': { 'HERB-038': 2, 'HERB-039': 2 },
+    'PILL-032': { 'HERB-039': 2, 'HERB-040': 2 },
+    'PILL-033': { 'HERB-040': 2, 'HERB-031': 2 },
+    'PILL-034': { 'HERB-041': 2, 'HERB-042': 2 },
+    'PILL-035': { 'HERB-042': 2, 'HERB-041': 2 },
+    'PILL-036': { 'HERB-041': 2, 'HERB-042': 2 },
+    'PILL-037': { 'HERB-042': 2, 'HERB-041': 2 },
+    'PILL-038': { 'HERB-041': 2, 'HERB-042': 2 },
+    'PILL-026': { 'HERB-048': 2, 'HERB-043': 2 },
+    'PILL-039': { 'HERB-043': 2, 'HERB-044': 2 },
+    'PILL-040': { 'HERB-044': 2, 'HERB-045': 2 },
+    'PILL-041': { 'HERB-045': 2, 'HERB-046': 2 },
+    'PILL-042': { 'HERB-046': 2, 'HERB-047': 2 },
+    'PILL-015': { 'HERB-049': 2, 'HERB-050': 2 },
+    'PILL-008': { 'HERB-050': 2, 'HERB-049': 2 },
+    'PILL-043': { 'HERB-049': 2, 'HERB-050': 2 },
+    'PILL-044': { 'HERB-050': 2, 'HERB-049': 2 },
+    'PILL-045': { 'HERB-049': 2, 'HERB-050': 2 },
+    'PILL-046': { 'HERB-051': 2, 'HERB-052': 2 },
+    'PILL-047': { 'HERB-052': 2, 'HERB-053': 2 },
+    'PILL-048': { 'HERB-053': 2, 'HERB-051': 2 },
+    'PILL-049': { 'HERB-051': 2, 'HERB-052': 2 },
+    'PILL-050': { 'HERB-055': 2, 'HERB-056': 2 },
+    'PILL-051': { 'HERB-056': 2, 'HERB-054': 2 },
+    'PILL-052': { 'HERB-054': 2, 'HERB-055': 2 },
+    'PILL-053': { 'HERB-055': 2, 'HERB-056': 2 },
+    'PILL-054': { 'HERB-058': 2, 'HERB-059': 2 },
+    'PILL-055': { 'HERB-059': 2, 'HERB-060': 2 },
+    'PILL-056': { 'HERB-060': 2, 'HERB-057': 2 },
+    'PILL-057': { 'HERB-057': 2, 'HERB-058': 2 },
+    'PILL-058': { 'HERB-062': 2, 'HERB-063': 2 },
+    'PILL-059': { 'HERB-063': 2, 'HERB-064': 2 },
+    'PILL-060': { 'HERB-070': 2, 'HERB-065': 2 }
+  };
+  assert.equal(Object.keys(expected).length, 35);
+  for (const [code, herbs] of Object.entries(expected)) {
+    const p = byCode.get(code);
+    assert.ok(p, code);
+    assert.deepEqual(p.recipe, { herbs }, code);
+    for (const herb of Object.keys(herbs)) assert.equal(byCode.get(herb).kind, 'HERB', code + ' dùng ' + herb);
+  }
+  const withDesign = new Set(Object.keys(DESIGN.recipes));
+  for (const p of pills) assert.ok(withDesign.has(p.code) || expected[p.code], p.code + ' thiếu công thức');
+});
+
+test('CLI check-data --strict xanh khi cả 60 đan đã đủ trường', () => {
+  const out = require('node:child_process').spawnSync(process.execPath, ['tools/check-data.mjs', '--strict'], { cwd: require('node:path').join(__dirname, '..'), encoding: 'utf8' });
+  assert.equal(out.status, 0, out.stderr || out.stdout);
+  assert.match(out.stdout, /vật phẩm hợp lệ \(strict\)/);
+});

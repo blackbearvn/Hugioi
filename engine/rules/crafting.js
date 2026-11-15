@@ -36,16 +36,9 @@
       recipe(code) {
         const x = item(code);
         if (x?.kind !== 'PILL') throw Error('Đan phương không hợp lệ.');
-        const defined = DESIGN.recipes[x.code];
-        if (defined) return { code, herbs: { ...defined }, stone: F.price_ha(x.tier) * .1, time: F.craft_time(x.tier) };
-        const pool = ITEMS.filter(y => y.kind === 'HERB' && y.tier === x.tier);
-        const fallback = ITEMS.filter(y => y.kind === 'HERB' && y.tier <= x.tier).slice(-2);
-        const herbs = pool.length ? pool : fallback;
-        const a = herbs[(x.sourceNumber - 1) % herbs.length], b = herbs[x.sourceNumber % herbs.length];
-        const need = {};
-        need[a.code] = 2;
-        need[b.code] = (need[b.code] || 0) + 2;
-        return { code, herbs: need, stone: F.price_ha(x.tier) * .1, time: F.craft_time(x.tier) };
+        const herbs = x.recipe?.herbs;
+        if (!herbs || !Object.keys(herbs).length) throw Error('Đan này chưa có đan phương.');
+        return { code, herbs: { ...herbs }, stone: F.price_ha(x.tier) * .1, time: F.craft_time(x.tier) };
       },
       /* Đan hiếm cần bí tịch luyện đan đủ cấp; đan thường không đòi gì thêm. */
       pillGate(pillItem) {

@@ -27,3 +27,20 @@ test('luyện thủ công: sai công thức thì mất nguyên liệu và nổ l
   assert.equal((await t.state()).bag['HERB-001'], 4);
   await assert.rejects(t.cmd('mixCraft', { mix: { 'HERB-001': 9 } }), /Thiếu/);
 });
+
+test('engine đọc đan phương từ dữ liệu, không tự sinh theo sourceNumber', () => {
+  const H = require('../engine/game.js');
+  const NOW = 1800000000000;
+  const profile = { name: 'Lý Vô Thường', gender: 'nam', age: 18, race: 'nhan', roots: [72, 61, 45, 44, 33], rootType: 'Song', talent: { tuongMao: 2, phucDuyen: 2, canCot: 2, ngoTinh: 1, vanKhi: 1 }, destiny: 'exp' };
+  const game = new H.Game(H.createCharacter(profile, NOW, () => 0), () => 0);
+  const pills = H.ITEMS.filter(x => x.kind === 'PILL');
+  for (const p of pills) assert.deepEqual(game.recipe(p.code).herbs, p.recipe.herbs, p.code);
+  const fallbackPill = pills.find(x => x.code === 'PILL-029');
+  const saved = fallbackPill.recipe;
+  try {
+    delete fallbackPill.recipe;
+    assert.throws(() => game.recipe('PILL-029'), /chưa có đan phương/);
+  } finally {
+    fallbackPill.recipe = saved;
+  }
+});
