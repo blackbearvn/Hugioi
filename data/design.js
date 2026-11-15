@@ -3,7 +3,9 @@
 'use strict';
 const node=typeof module!=='undefined'&&module.exports;
 const raw=node?require('./design-raw.js'):root.HU_DESIGN_RAW;
-const fill=node?(process.env.HU_NO_FILL?{}:require('./design-fill.js')):(root.HU_DESIGN_FILL||{});
+// Deno chặn process.env khi thiếu --allow-env: coi như không đặt cờ.
+const noFill=()=>{try{return !!process.env.HU_NO_FILL;}catch{return false;}};
+const fill=node?(noFill()?{}:require('./design-fill.js')):(root.HU_DESIGN_FILL||{});
 const categories=[['hạt giống','mã hạt'],['linh thảo','mã cây'],['đan dược','mã đan'],
  ['pháp bảo','mã PB'],['công pháp','mã CP'],['bí tịch','mã BT'],['phù lục','mã phù']];
 const byDesign={},byLegacy={};
