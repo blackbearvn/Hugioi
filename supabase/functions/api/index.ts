@@ -110,7 +110,10 @@ async function requireNotBanned(userId: string): Promise<void> {
   } catch {
     throw new GameError('MAINTENANCE', 'Không kiểm tra được trạng thái tài khoản.');
   }
-  if (accountBans.size >= 2048) accountBans.delete(accountBans.keys().next().value);
+  if (accountBans.size >= 2048) {
+    const oldest = accountBans.keys().next();
+    if (!oldest.done) accountBans.delete(oldest.value);
+  }
   accountBans.set(userId, { banned, until: Date.now() + BAN_CACHE_MS });
   if (banned) throw new GameError('ACCOUNT_BANNED', 'Tài khoản đã bị tạm khóa. Hãy liên hệ hỗ trợ.');
 }
