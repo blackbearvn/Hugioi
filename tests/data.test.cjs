@@ -177,3 +177,36 @@ test('CLI check-data --strict xanh khi cả 60 đan đã đủ trường', () =>
   assert.equal(out.status, 0, out.stderr || out.stdout);
   assert.match(out.stdout, /vật phẩm hợp lệ \(strict\)/);
 });
+
+test('chỉ mục đan BY_TIER, BY_EFFECT, BY_TAG phủ đủ 60 viên và xếp theo number', () => {
+  assert.equal(C.pills().length, 60);
+  assert.deepEqual(C.pills().map(p => p.number), [...Array(60)].map((_, i) => i + 1));
+  assert.equal(Object.values(C.BY_TIER).reduce((n, list) => n + list.length, 0), 60);
+  assert.equal(Object.values(C.BY_EFFECT).reduce((n, list) => n + list.length, 0), 60);
+  assert.equal(Object.values(C.BY_TAG).reduce((n, list) => n + list.length, 0), 180);
+  for (const [tier, list] of Object.entries(C.BY_TIER))
+    for (const p of list) {
+      assert.equal(p.kind, 'PILL', p.code);
+      assert.equal(p.tier, Number(tier), p.code);
+    }
+  assert.deepEqual(Object.keys(C.BY_EFFECT).sort(), [...new Set(pills.map(p => p.effect))].sort());
+  for (const tag of Object.keys(C.BY_TAG)) assert.ok(Object.hasOwn(S.TAGS, tag), tag);
+  assert.equal(C.BY_TAG['dan-hiem'].length, 24);
+  assert.equal(C.BY_TAG['dan-thuong'].length, 36);
+});
+
+test('pills({tier, effect, tag}) lọc đúng và không đổi dữ liệu gốc', () => {
+  assert.deepEqual(C.pills({ tier: 0 }), C.BY_TIER[0]);
+  assert.ok(C.pills({ effect: 'KIEP' }).every(p => p.effect === 'KIEP'));
+  assert.equal(C.pills({ tag: 'dan-hiem' }).length, 24);
+  assert.deepEqual(
+    C.pills({ tier: 8, tag: 'dan-hiem' }).map(p => p.code),
+    C.BY_TIER[8].filter(p => p.tags.includes('dan-hiem')).map(p => p.code)
+  );
+  assert.deepEqual(C.pills({ tag: 'khong-co' }), []);
+  const first = C.pills()[0];
+  assert.equal(C.item(first.code).code, first.code);
+  assert.equal(C.keyFor(first.code, 0), first.code);
+  assert.equal(C.keyFor(first.code, 3), first.code + '@3');
+  assert.ok(C.BY_ID[first.code]);
+});

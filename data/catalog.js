@@ -15,6 +15,16 @@ const EXTRA=[
  design:d,designId:id,designOnly:true,imageCode};});
 const ITEMS=[...BASE.map(x=>{const d=DESIGN.byCode(x.code);return d?{...x,design:d,designId:d.designId,grade:d['độ hiếm']||x.grade}:x}),...EXTRA];
 const BY_ID=Object.fromEntries(ITEMS.map(x=>[x.code,x]));
+/* Chỉ mục đan dựng một lần khi load, dùng cho tra cứu và lọc giao diện.
+   PILLS xếp theo number để kết quả ổn định, không phụ thuộc thứ tự items.js. */
+const PILLS=ITEMS.filter(x=>x.kind==='PILL').sort((a,b)=>(a.number??0)-(b.number??0));
+const BY_TIER={},BY_EFFECT={},BY_TAG={};
+for(const x of PILLS){
+  (BY_TIER[x.tier]??=[]).push(x);
+  if(x.effect)(BY_EFFECT[x.effect]??=[]).push(x);
+  for(const tag of x.tags||[])(BY_TAG[tag]??=[]).push(x);
+}
+const pills=(filter={})=>{const {tier,effect,tag}=filter||{};return PILLS.filter(x=>(tier==null||x.tier===tier)&&(effect==null||x.effect===effect)&&(tag==null||(x.tags||[]).includes(tag)))};
 const item=key=>{if(typeof key!=='string')return null;const [code,q,...rest]=key.split('@'),base=Object.hasOwn(BY_ID,code)?BY_ID[code]:null;if(!base||rest.length||q!==undefined&&!/^[0-3]$/.test(q))return null;return {...base,key,sub:q===undefined?base.sub:Number(q)}};
 const keyFor=(code,sub)=>sub===BY_ID[code]?.sub?code:code+'@'+sub;
 const pill=n=>ITEMS.find(x=>x.kind==='PILL'&&x.sourceNumber===n).code;
@@ -47,6 +57,6 @@ const FEATURES={
  forge:{realm:2,label:'Rèn pháp bảo và vẽ phù'},
  social:{realm:3,label:'Giao du: kết bạn, luận kiếm, bảng xếp hạng'}
 };
-const API={ITEMS,BY_ID,item,keyFor,pill,ZONES,ENEMY_NAMES,QUESTS,NOVICE_QUESTS,DESIGN,FEATURES};
+const API={ITEMS,BY_ID,item,keyFor,pill,ZONES,ENEMY_NAMES,QUESTS,NOVICE_QUESTS,DESIGN,FEATURES,BY_TIER,BY_EFFECT,BY_TAG,pills};
 root.HU_CATALOG=API;if(node)module.exports=API;
 })(typeof window!=='undefined'?window:globalThis);
