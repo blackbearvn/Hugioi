@@ -19,3 +19,5 @@ Dữ liệu thiết kế và mô hình cân bằng. Thuần dữ liệu và hàm
 | `story.js` | Thiên Thư, 14 chương và hội thoại NPC; dữ liệu không tự cấp thưởng. |
 
 Quy ước: file này không `require` bất cứ thứ gì ngoài `data/`.
+
+`balance.js` giữ `DAN_TABLE` tĩnh vì `index.html` nạp `balance.js` trước `items.js`; `tests/data.test.cjs` so khớp tuyệt đối 60 dòng với `items.js` để không lệch.

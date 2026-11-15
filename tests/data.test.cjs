@@ -68,3 +68,15 @@ test('dan-hiem là tag tuỳ chọn, không tự gắn cho đan thường', () =
   assert.ok(!S.tagsFor('TU_VI', 0, false).includes('dan-hiem'));
   assert.ok(S.tagsFor('TU_VI', 0, true).includes('dan-hiem'));
 });
+
+test('DAN_TABLE trong balance.js khớp tuyệt đối 60 đan của items.js', () => {
+  assert.equal(B.DAN_TABLE.length, 60);
+  const byNumber = new Map(pills.map(p => [p.sourceNumber, p]));
+  for (const row of B.DAN_TABLE) {
+    const [n, name, tier, effect] = row;
+    const p = byNumber.get(n);
+    assert.ok(p, 'DAN_TABLE có số không ứng với đan nào: ' + n);
+    assert.deepEqual(row, [p.sourceNumber, p.name, p.tier, p.effect], p.code + ' lệch DAN_TABLE');
+  }
+  assert.equal(new Set(B.DAN_TABLE.map(r => r[0])).size, 60);
+});
