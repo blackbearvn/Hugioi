@@ -163,6 +163,22 @@ class PostgresPlayers extends PlayerRepository {
   async getPavilion(ownerId) {
     return this.connection(async c => pavilion(await one(c, 'SELECT * FROM game.pavilion_accounts WHERE owner_id = $1', [ownerId])));
   }
+  /* Khóa tài khoản do admin đặt trong game.account_bans; hết hạn thì tự hết hiệu lực.
+     Chỉ trả boolean, không trả lý do/người đặt cho client gameplay. */
+  async isAccountBanned(ownerId) {
+    try {
+      return !!(await this.connection(async c => await one(c,
+        `SELECT 1 AS banned FROM game.account_bans
+         WHERE owner_id = $1 AND (expires_at IS NULL OR expires_at > now()) LIMIT 1`,
+        [ownerId])));
+    } catch (err) {
+      /* Trước khi migration 20261115090000 được áp dụng thì chưa thể có bản ghi
+         khóa nào, nên coi như chưa khóa thay vì chặn toàn bộ gameplay. */
+      const sqlstate = err?.code || err?.cause?.code;
+      if (sqlstate === '42P01') return false;
+      throw err;
+    }
+  }
   async issueTicket(ownerId, preview, { now, ttlMs, dailyLimit, fresh = false }) {
     return this.transaction(async c => {
       await this.ownerLock(c, ownerId);

@@ -34,6 +34,14 @@ Game idle tu tiên tiếng Việt, chơi online trên trình duyệt. Mỗi tài
 
 Production: Cloudflare Workers phục vụ `dist/`; Supabase Auth + Edge Function + PostgreSQL (schema `game`). Test dùng kho in-memory (`tests/helpers/memory-players.js`) và PGlite.
 
+## Quản trị
+
+Dashboard quản trị là repo riêng, chỉ gọi RPC `public.hu_admin_*`; quyền admin nằm ở `game.admin_users` và mọi thao tác ghi `game.admin_audit_log`. Backend hỗ trợ phát thưởng qua hộp thư, khóa/bỏ khóa tài khoản và xóa tài khoản.
+
+- Áp dụng `20261115090000_admin_rewards_ban_delete.sql` và `20261115090100_admin_item_catalog.sql` trước khi deploy Edge Function có kiểm tra `game.account_bans`.
+- Catalog vật phẩm cho thư thưởng seed từ `data/catalog.js`; thêm vật phẩm mới thì thêm migration cập nhật `game.item_catalog`.
+- Tài khoản bị khóa vẫn xuất/xóa dữ liệu của mình được, nhưng mọi route gameplay trả `ACCOUNT_BANNED` (tối đa 30 giây sau khi khóa).
+
 ## Lệnh
 ```sh
 npm ci

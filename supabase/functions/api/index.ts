@@ -94,6 +94,26 @@ const publicApiKey = runtimeKey('SUPABASE_ANON_KEY', 'SUPABASE_PUBLISHABLE_KEYS'
 const accountAdmin = adminKey ? createAccountAdmin({ url: BASE, secretKey: adminKey }) : null;
 
 const consents = new Map();
+/* Trạng thái khóa tài khoản: cache ngắn để không thêm một query DB mỗi request.
+   30 giây cũng là độ trễ tối đa khi admin vừa khóa/mở khóa một tài khoản. */
+const accountBans = new Map<string, { banned: boolean; until: number }>();
+const BAN_CACHE_MS = 30000;
+async function requireNotBanned(userId: string): Promise<void> {
+  const cached = accountBans.get(userId);
+  if (cached && cached.until > Date.now()) {
+    if (cached.banned) throw new GameError('ACCOUNT_BANNED', 'Tài khoản đã bị tạm khóa. Hãy liên hệ hỗ trợ.');
+    return;
+  }
+  let banned: boolean;
+  try {
+    banned = await repo.isAccountBanned(userId);
+  } catch {
+    throw new GameError('MAINTENANCE', 'Không kiểm tra được trạng thái tài khoản.');
+  }
+  if (accountBans.size >= 2048) accountBans.delete(accountBans.keys().next().value);
+  accountBans.set(userId, { banned, until: Date.now() + BAN_CACHE_MS });
+  if (banned) throw new GameError('ACCOUNT_BANNED', 'Tài khoản đã bị tạm khóa. Hãy liên hệ hỗ trợ.');
+}
 // Supabase Edge giới hạn khoảng 100 log / 10 giây. Khi upstream lỗi hàng loạt,
 // chỉ phát tối đa 80 dòng JSON / 10 giây / isolate, không log token/state/SQL.
 let logWindowAt = Date.now(), logWindowCount = 0;
@@ -150,7 +170,11 @@ async function authenticate(req: Request, route: string): Promise<string> {
     throw new GameError('MAINTENANCE', 'Dịch vụ xác thực tạm thời không khả dụng.');
   }
   if (!userId) throw new GameError('UNAUTHENTICATED', 'Phiên đăng nhập không hợp lệ.');
-  if (!DATA_RIGHTS.has(route)) await requireConsent(userId);
+  // Tài khoản bị khóa vẫn xem/xóa dữ liệu của mình, nhưng không vào gameplay.
+  if (!DATA_RIGHTS.has(route)) {
+    await requireNotBanned(userId);
+    await requireConsent(userId);
+  }
   return userId;
 }
 function jsonReply(req: Request, status: number, data: unknown, requestId: string, extra: Record<string, string | number> = {}): Response {
