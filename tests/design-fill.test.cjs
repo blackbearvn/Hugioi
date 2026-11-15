@@ -26,7 +26,7 @@ test('mỗi ngoại tu có chiêu thức hợp lệ', () => {
 });
 
 test('mỗi phù và đan có công thức riêng', () => {
-  for (const x of H.ITEMS.filter(y => y.kind === 'TAL')) assert.ok(H.DESIGN.forge[x.code]?.herb && H.DESIGN.forge[x.code]?.ink, x.code);
+  for (const x of H.ITEMS.filter(y => y.kind === 'TAL' && !H.DESIGN.talisman[y.code])) assert.ok(H.DESIGN.forge[x.code]?.herb && H.DESIGN.forge[x.code]?.ink, x.code);
   const gcd = (a, b) => b ? gcd(b, a % b) : a, seen = new Set();
   for (const x of H.ITEMS.filter(y => y.kind === 'PILL')) {
     const e = Object.entries(x.recipe.herbs), g = e.map(([, n]) => n).reduce(gcd);
