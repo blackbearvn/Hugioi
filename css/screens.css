@@ -418,10 +418,10 @@ body.in-tribulation{overflow:hidden}
 
 /* Bản đồ chính ba giới: một ảnh duy nhất, kéo/cuộn/phóng to bằng cảm ứng và bàn phím. */
 .interactive-map{position:relative;display:block;width:100%;max-width:none;margin:0 0 16px;padding:0;border:1px solid #4a5877;border-radius:14px;background:#0a0d14;overflow:hidden}
-.interactive-map .map-viewport{height:clamp(280px,57vh,740px);width:100%;overflow:hidden;touch-action:none;cursor:grab;outline-offset:-4px}
+.interactive-map .map-viewport{position:relative;height:clamp(280px,57vh,740px);width:100%;overflow:hidden;touch-action:none;cursor:grab;outline-offset:-4px}
 .interactive-map .map-viewport.dragging{cursor:grabbing}
 .interactive-map .map-viewport:focus-visible{outline:3px solid #e7ce98}
-.interactive-map .map-image{display:block;width:100%;height:100%;object-fit:contain;object-position:center center;max-width:none;max-height:none;pointer-events:none;user-select:none;transform-origin:center center;will-change:transform}
+.interactive-map .map-image{position:absolute;left:50%;top:50%;display:block;width:100%;height:100%;object-fit:contain;object-position:center center;max-width:none;max-height:none;pointer-events:none;user-select:none;transform-origin:center center;will-change:transform}
 .interactive-map .map-toolbar{position:absolute;top:12px;left:12px;display:flex;align-items:center;gap:7px;padding:6px 9px;border:1px solid #bda26d66;border-radius:10px;background:#090c13e8;z-index:2}
 .interactive-map .map-toolbar button{width:38px;height:38px;border:1px solid #c6a978;border-radius:6px;background:#1d2436;color:#f4e4bb;font-size:22px;cursor:pointer}
 .interactive-map .map-toolbar button:hover{background:#29344e}
