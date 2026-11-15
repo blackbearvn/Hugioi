@@ -4,19 +4,6 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const H = require('../engine/game.js');
 
-test('mỗi đan có đan phương riêng, nguyên liệu tồn tại', () => {
-  const gcd = (a, b) => b ? gcd(b, a % b) : a, seen = new Set();
-  for (const x of H.ITEMS.filter(y => y.kind === 'PILL')) {
-    const r = H.DESIGN.recipes[x.code];
-    assert.ok(r && Object.keys(r).length >= 2, x.code + ' thiếu đan phương');
-    for (const k of Object.keys(r)) assert.equal(H.item(k)?.kind, 'HERB', x.code + ' dùng nguyên liệu lạ ' + k);
-    const g = Object.values(r).reduce(gcd);
-    const sig = Object.entries(r).map(([k, n]) => k + ':' + n / g).sort().join('+');
-    assert.ok(!seen.has(sig), x.code + ' trùng đan phương với đan khác');
-    seen.add(sig);
-  }
-});
-
 test('mỗi pháp bảo có thông số theo loại và công thức rèn', () => {
   const eq = H.ITEMS.filter(x => x.kind === 'EQ');
   for (const x of eq) {

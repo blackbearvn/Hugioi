@@ -21,7 +21,6 @@ const seedsByHerb=Object.fromEntries(raw['hạt giống'].map(x=>[legacy(x['linh
 const recipes={};for(const r of raw['đan phương']){const code=legacy(r['mã đan']);(recipes[code]??={})[legacy(r['mã linh thảo'])]=r['số lượng']}
 const forge=Object.fromEntries(raw['rèn pháp bảo'].map(x=>[legacy(x['mã PB']),{manual:legacy(x['mã bí tịch']),herb:legacy(x['mã linh thảo']),count:x['số lượng']}]));
 Object.assign(forge,fill.forge||{});
-Object.assign(recipes,fill.recipes||{});
 const talisman=Object.fromEntries(raw['vẽ phù'].map(x=>[legacy(x['mã phù']),{manual:legacy(x['mã bí tịch']),herb:legacy(x['mã linh thảo']),count:x['số lượng']}]));
 const npc=Object.fromEntries(raw.npc.map(x=>[x['mã NPC'],{...x,likes:legacy(x['thích (mã vật phẩm)']),dislikes:legacy(x['không thích (mã vật phẩm)']),offer:legacy(x['mã hàng/dạy/đan'])}]));
 const multiplier=text=>{const m=String(text||'').match(/(\d+(?:[.,]\d+)?)\s*%\s*ATK/i);return m?Number(m[1].replace(',','.'))/100:1};

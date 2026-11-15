@@ -86,29 +86,7 @@ for (const x of H.ITEMS.filter(y => y.kind === 'BT' && M.school(y) === 'ngoai'))
   rows[x.code] = r;
 }
 
-/* 3. Đan phương: mỗi đan một tổ hợp riêng (khác cả tỷ lệ), vì luyện thủ công nhận diện đan theo nguyên liệu bỏ vào lò. */
-const herbs = H.ITEMS.filter(x => x.kind === 'HERB'), pool = t => herbs.filter(h => h.tier === t).sort((a, b) => a.sub - b.sub || a.code.localeCompare(b.code));
-const gcd = (a, b) => b ? gcd(b, a % b) : a;
-const sig = r => { const e = Object.entries(r).sort(([x], [y]) => x.localeCompare(y)), g = e.map(([, n]) => n).reduce(gcd); return e.map(([k, n]) => k + ':' + n / g).join('+'); };
-const used = new Set();
-const AMOUNTS = [[2, 2], [3, 1], [1, 3], [3, 2], [2, 3], [4, 2], [2, 4], [3, 3], [4, 1], [1, 4]];
-for (const x of H.ITEMS.filter(y => y.kind === 'PILL').sort((a, b) => a.code.localeCompare(b.code))) {
-  const cur = H.DESIGN.recipes[x.code];
-  if (cur && !used.has(sig(cur))) { used.add(sig(cur)); continue; }
-  const p = pool(x.tier), n = (x.sourceNumber || 1) - 1, lo = pool(Math.max(0, x.tier - 1));
-  if (p.length < 2) throw Error('Thiếu linh thảo bậc ' + x.tier);
-  let set = null;
-  search: for (let shift = 0; shift < p.length * p.length; shift++) for (const [qa, qb] of AMOUNTS) {
-    const a = p[(n + shift) % p.length], b = p[(n + 1 + Math.floor(shift / p.length) + shift) % p.length];
-    if (a.code === b.code) continue;
-    const need = { [a.code]: qa, [b.code]: qb };
-    if (x.tier >= 9 && lo.length) need[lo[(n + shift) % lo.length].code] = 1;
-    if (H.MANUALS.isRarePill(x)) { const top = p.at(-1); need[top.code] = (need[top.code] || 0) + 1; }
-    if (!used.has(sig(need))) { set = need; break search; }
-  }
-  if (!set) throw Error('Không tìm được đan phương riêng cho ' + x.code);
-  used.add(sig(set)); recipes[x.code] = set;
-}
+/* 3. Đan phương đã được ghi tường minh trong data/items.js (tools/migrate-pills.mjs); không sinh ở đây. */
 
 /* 4. Rèn pháp bảo còn thiếu: nguyên liệu cùng bậc, cần bí tịch luyện pháp bảo. */
 const mats = H.ITEMS.filter(x => x.kind === 'MAT'), mpool = t => mats.filter(m => m.tier === t);
@@ -117,10 +95,10 @@ for (const x of eqs.filter(y => !H.DESIGN.forge[y.code])) {
   forge[x.code] = { manual: 'BT-900', herb: p[n % p.length].code, count: 3 + Math.floor(x.tier / 2) };
 }
 
-const out = `/* Dữ liệu thiết kế bổ sung (sinh bởi tools/gen-design-fill.cjs): pháp bảo, chiêu ngoại tu, đan phương, rèn pháp bảo. */
+const out = `/* Dữ liệu thiết kế bổ sung (sinh bởi tools/gen-design-fill.cjs): pháp bảo, chiêu ngoại tu, rèn pháp bảo. */
 (function (root) {
   'use strict';
-  const API = ${JSON.stringify({ rows, recipes, forge, effects })};
+  const API = ${JSON.stringify({ rows, forge, effects })};
   root.HU_DESIGN_FILL = API;
   if (typeof module !== 'undefined' && module.exports) module.exports = API;
 })(typeof window !== 'undefined' ? window : globalThis);
