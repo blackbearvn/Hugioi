@@ -19,11 +19,11 @@ test('linh điền trống thì không tưới được', async () => {
   await assert.rejects(t.cmd('garden', { slot: 0, action: 'water' }), /trống/);
 });
 
-test('luyện thủ công: sai công thức thì mất nguyên liệu và nổ lò hoặc phế đan', async () => {
+test('luyện thủ công: sai công thức thì mất nguyên liệu và nổ lò, né được, hoặc phế đan', async () => {
   const t = await setup(); await t.create();
   await t.patch(st => { st.bag['HERB-001'] = 5; });
   const out = await t.cmd('mixCraft', { mix: { 'HERB-001': 1 } });
-  assert.match(JSON.stringify(out), /explode|waste/);
+  assert.match(JSON.stringify(out), /explode|waste|dodge/);
   assert.equal((await t.state()).bag['HERB-001'], 4);
   await assert.rejects(t.cmd('mixCraft', { mix: { 'HERB-001': 9 } }), /Thiếu/);
 });
