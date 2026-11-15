@@ -345,6 +345,19 @@
     document.addEventListener('keydown', e => { if (e.key === 'Escape' && bubble.open) bubbleToggle(false); });
     session.subscribe(bubbleCount);
   }
+  /* Tin chưa đọc cho chấm đỏ ở menu: chỉ tính tin người khác gửi khi cả cửa sổ chat lẫn bong bóng đều đóng. */
+  const unread = { seenId: null, count: 0, init: false };
+  function trackUnread() {
+    const { status, messages: ms, self } = session.state, last = ms.at(-1)?.id ?? null;
+    if (status !== 'connected' && status !== 'online') { unread.init = false; unread.count = 0; return 0; }
+    if (!unread.init) { unread.init = true; unread.seenId = last; unread.count = 0; return 0; }
+    if (UI.windows?.has('chat') || bubble.open) { unread.seenId = last; unread.count = 0; return 0; }
+    const at = unread.seenId == null ? -1 : ms.findIndex(m => m.id === unread.seenId);
+    unread.count = ms.slice(at + 1).filter(m => !m.pending && m.senderId !== self?.id).length;
+    return unread.count;
+  }
+  UI.chatUnread = trackUnread;
+  session.subscribe(trackUnread);
   function bubbleCount() {
     const n = session.state.messages.length;
     if (bubble.open) { bubble.seen = n; bubble.unread = 0; }

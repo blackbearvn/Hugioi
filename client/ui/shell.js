@@ -1302,6 +1302,7 @@
       retreat: !!s.retreat?.report,
       craft: s.garden.some(p => { try { return g.gardenInfo(p, nowMs).ripe; } catch { return false; } }),
       quests: questBadge > 0,
+      chat: (UI.chatUnread?.() || 0) > 0,
       sect: !!s.sect.mission && nowMs >= s.sect.mission.end,
       character: Object.keys(s.bag).some(k => { const x = H.item(k); return x?.kind === 'BT' && !s.learned[k]; })
     };
