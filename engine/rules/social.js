@@ -2,10 +2,10 @@
 (function (root) {
   'use strict';
   const domain = 'social';
-  const commands = Object.freeze(['meetFriend', 'giftFriend', 'discuss', 'npcGift', 'npcOffer', 'npcQuest', 'duel']);
+  const commands = Object.freeze(['meetFriend', 'giftFriend', 'claimBond', 'bindPartner', 'songTu', 'breakPartner', 'discuss', 'npcGift', 'npcOffer', 'npcQuest', 'duel']);
 
   function install(API) {
-    const H = API, F = H.F, { FRIENDS, DAO, RIVALS, PVP_CD, DISCUSS_CD, giftCost, DESIGN, item, NPC_QUESTS, NPC_DISCOUNT_MAX } = H;
+    const H = API, F = H.F, { FRIENDS, DAO, RIVALS, PVP_CD, DISCUSS_CD, giftCost, BOND_MILESTONES, PARTNER, DESIGN, item, NPC_QUESTS, NPC_DISCOUNT_MAX } = H;
     const TEACH_ROLES = ['dạy công pháp', 'dạy bí tịch'], SELL_ROLES = ['bán đồ', 'luyện đan thuê'];
     const find = (list, id) => {
       const f = list.find(x => x.id === id);
@@ -17,7 +17,7 @@
     Object.assign(H.Game.prototype, {
       friend(id) {
         find([...FRIENDS, ...DAO], id);
-        return this.s.social.friends[id] || (this.s.social.friends[id] = { affinity: 0, metAt: 0, giftAt: 0, discussAt: 0 });
+        return this.s.social.friends[id] || (this.s.social.friends[id] = { affinity: 0, metAt: 0, giftAt: 0, discussAt: 0, claimed: [] });
       },
       meetFriend(payload, now) {
         this.requireFeature('social');
@@ -41,6 +41,65 @@
         f.giftAt = now;
         this.log('Tặng lễ một vị tri kỷ: tình nghĩa +' + amount + '.');
         return f.affinity;
+      },
+      /* Nhận thưởng mốc tình nghĩa của tri kỷ (mỗi mốc một lần). */
+      claimBond(payload) {
+        this.requireFeature('social');
+        const def = find(FRIENDS, payload.id), f = this.s.social.friends[def.id], m = BOND_MILESTONES.find(x => x.at === payload.at);
+        if (!m) throw Error('Mốc tình nghĩa không hợp lệ.');
+        if (!f?.metAt || f.affinity < m.at) throw Error('Tình nghĩa chưa đạt mốc này.');
+        f.claimed = f.claimed || [];
+        if (f.claimed.includes(m.at)) throw Error('Đã nhận thưởng mốc này.');
+        f.claimed.push(m.at);
+        const out = { stone: 0, exp: 0 };
+        if (m.reward.stone) { out.stone = Math.floor(F.income_rate(this.s.realm) * m.reward.stone); this.s.stone += out.stone; }
+        if (m.reward.exp) out.exp = this.gainExp(this.need() * m.reward.exp);
+        this.log('Tình nghĩa với ' + def.name + ' đạt "' + m.name + '": nhận thưởng.');
+        return out;
+      },
+      partnerDef() { return this.s.social.partner ? FRIENDS.find(f => f.id === this.s.social.partner.id) || null : null; },
+      /* Cộng dồn tốc độ tu từ đạo lữ: nền + phần theo tình nghĩa. */
+      partnerRate() {
+        const p = this.s.social.partner, f = p && this.s.social.friends[p.id];
+        return f ? PARTNER.rateBase + PARTNER.rateAffinity * Math.min(100, f.affinity) / 100 : 0;
+      },
+      bindCost(id) { return giftCost(find(FRIENDS, id)) * PARTNER.bindMult; },
+      bindPartner(payload, now) {
+        this.requireFeature('social');
+        now = at(this, now);
+        const def = find(FRIENDS, payload.id), f = this.s.social.friends[def.id], soc = this.s.social;
+        if (soc.partner) throw Error('Đã có đạo lữ, hãy ly duyên trước khi kết duyên mới.');
+        if (now < soc.partnerRebindAt) throw Error('Vừa ly duyên, đạo tâm chưa tĩnh; hãy chờ thêm.');
+        if (!f?.metAt) throw Error('Hãy kết giao trước.');
+        if (f.affinity < PARTNER.minAffinity) throw Error('Cần tình nghĩa từ ' + PARTNER.minAffinity + ' để kết duyên.');
+        this.spend(this.bindCost(def.id));
+        soc.partner = { id: def.id, since: now, songTuAt: 0, sessions: 0 };
+        this.log('Kết duyên đạo lữ cùng ' + def.name + '.');
+        return soc.partner;
+      },
+      songTu(payload, now) {
+        this.requireFeature('social');
+        now = at(this, now);
+        const p = this.s.social.partner, def = this.partnerDef();
+        if (!p || !def) throw Error('Chưa có đạo lữ.');
+        if (now < p.songTuAt) throw Error('Đạo lữ đang điều tức, hãy chờ thêm.');
+        if (this.s.qi >= this.need()) throw Error('Tu vi đã đầy, không thể song tu thêm.');
+        const f = this.s.social.friends[p.id], got = this.gainExp(this.discussGain() * PARTNER.songTuMult * (1 + f.affinity / 100));
+        p.songTuAt = now + PARTNER.songTuCd; p.sessions += 1;
+        f.affinity = Math.min(100, f.affinity + 1);
+        this.log('Song tu cùng ' + def.name + ': tu vi +' + F.fmt(got) + '.');
+        return { gain: got, affinity: f.affinity, songTuAt: p.songTuAt };
+      },
+      breakPartner(payload, now) {
+        this.requireFeature('social');
+        now = at(this, now);
+        const soc = this.s.social, def = this.partnerDef();
+        if (!soc.partner || !def) throw Error('Chưa có đạo lữ.');
+        const f = soc.friends[def.id];
+        f.affinity = Math.min(f.affinity, PARTNER.breakAffinity);
+        soc.partner = null; soc.partnerRebindAt = now + PARTNER.rebindCd;
+        this.log('Ly duyên cùng ' + def.name + '; tình nghĩa tụt xuống ' + f.affinity + '.');
+        return { affinity: f.affinity, rebindAt: soc.partnerRebindAt };
       },
       discussGain() { return Math.max(1, Math.floor(this.need() * .02)); },
       discuss(payload, now) {

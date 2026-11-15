@@ -9,12 +9,13 @@
 
   const TABS = [
     { id: 'friends', label: 'Tri kỷ', icon: '♡' },
+    { id: 'partner', label: 'Đạo lữ', icon: '❦' },
     { id: 'dao', label: 'Đạo hữu', icon: '✧' },
     { id: 'pvp', label: 'Luận kiếm', icon: '⚔' },
     { id: 'ranking', label: 'Bảng xếp hạng', icon: '♛' }
   ];
 
-  const { PVP_CD, DISCUSS_CD, FRIENDS, DAO, RIVALS, giftCost } = H;
+  const { PVP_CD, DISCUSS_CD, FRIENDS, DAO, RIVALS, giftCost, BOND_MILESTONES, PARTNER } = H;
 
   // Chế độ top độc lập, cache ngắn, không truy vấn toàn bộ game.players.state.
   const leaderboardState = { data: null, error: '', at: 0, owner: '', mode: 'power', pending: null };
@@ -56,7 +57,7 @@
       <div class="social-copy">
         <span class="eyebrow">${esc(f.title)}</span><h3>${esc(f.name)}</h3>
         <p>${esc(f.line)}</p>
-        ${met ? `<div class="affinity-line"><span>${affinityRank(aff)}</span><b>${aff}/100</b></div><div class="affinity-bar"><i style="width:${aff}%"></i></div>` : '<p class="info-note">Chưa kết giao · gặp gỡ để mở tương tác.</p>'}
+        ${met ? `<div class="affinity-line"><span>${affinityRank(aff)}</span><b>${aff}/100</b></div><div class="affinity-bar"><i style="width:${aff}%"></i></div>${milestones(f, st)}` : '<p class="info-note">Chưa kết giao · gặp gỡ để mở tương tác.</p>'}
       </div>
       <div class="social-actions">${met
         ? btn(aff >= 100 ? 'Tình nghĩa viên mãn' : `Tặng lễ · ${moneyHTML(giftCost(f))}`, 'moreGift', `data-id="${f.id}"`, aff >= 100, 'btn-outline')
@@ -69,6 +70,46 @@
     return `<p class="screen-lead">Tri kỷ là các NPC đồng hành trong chế độ mô phỏng. Kết giao, tặng lễ để nâng tình nghĩa; mỗi vị có một câu chuyện riêng.</p>
       ${card('Tình nghĩa đã kết', `${row('Số tri kỷ', met + ' / ' + FRIENDS.length)}${row('Tặng lễ', 'Tăng 8–20 tình nghĩa')}${row('Giới hạn', '100 tình nghĩa mỗi người')}<p class="info-note">Tặng lễ tiêu linh thạch. Tình nghĩa không giảm theo thời gian hay trọng sinh.</p>`, { eyebrow: 'GIAO TÌNH' })}
       <div class="social-list">${FRIENDS.map(friendCard).join('')}</div>`;
+  }
+
+  /* Mốc tình nghĩa: bấm nhận thưởng khi đạt mốc. */
+  function milestones(f, st) {
+    const aff = st?.affinity || 0, got = st?.claimed || [];
+    return `<div class="bond-marks">${BOND_MILESTONES.map(m => {
+      const done = got.includes(m.at), ready = !done && aff >= m.at;
+      const what = [m.reward.stone ? 'linh thạch' : '', m.reward.exp ? 'tu vi' : ''].filter(Boolean).join(' + ');
+      return `<button type="button" class="bond-mark ${done ? 'done' : ready ? 'ready' : ''}" data-act="moreClaimBond" data-id="${f.id}" data-at="${m.at}" ${ready ? '' : 'disabled'} title="${esc(m.name + ': ' + what)}">${done ? '✓' : m.at}<small>${esc(m.name)}</small></button>`;
+    }).join('')}</div>`;
+  }
+
+  function partner() {
+    const s = UI.s(), soc = s.social, now = Date.now(), g = UI.g(), mine = soc.partner && FRIENDS.find(f => f.id === soc.partner.id);
+    let body = '';
+    if (mine) {
+      const aff = soc.friends[mine.id]?.affinity || 0, end = soc.partner.songTuAt || 0, ready = now >= end;
+      body = `<article class="social-card partner-card">
+        <div class="social-portrait"><img src="${portrait(mine)}" alt="${esc(mine.name)}" loading="lazy" decoding="async"></div>
+        <div class="social-copy"><span class="eyebrow">Đạo lữ · ${esc(mine.title)}</span><h3>${esc(mine.name)}</h3><p>${esc(mine.line)}</p>
+          <div class="affinity-line"><span>${affinityRank(aff)}</span><b>${aff}/100</b></div><div class="affinity-bar"><i style="width:${aff}%"></i></div>
+          <p class="info-note">Tốc độ tu <b>+${(g.partnerRate() * 100).toFixed(1)}%</b> · đã song tu <b>${num(soc.partner.sessions)}</b> lần · song tu nhận ≈ <b>${num(g.discussGain() * PARTNER.songTuMult * (1 + aff / 100))}</b> tu vi.</p></div>
+        <div class="social-actions">${btn(ready ? 'Song tu' : 'Đang điều tức', 'moreSongTu', '', !ready)}<p class="cooldown">${ready ? 'Sẵn sàng' : live(end)}</p>${btn('Ly duyên', 'moreBreak', '', false, 'btn-outline')}</div>
+      </article>`;
+    } else {
+      const wait = now < soc.partnerRebindAt ? `<p class="info-note">Vừa ly duyên, có thể kết duyên lại sau ${live(soc.partnerRebindAt)}.</p>` : '';
+      const list = FRIENDS.map(f => {
+        const st = soc.friends[f.id], aff = st?.affinity || 0, met = !!st?.metAt, ok = met && aff >= PARTNER.minAffinity && now >= soc.partnerRebindAt;
+        return `<article class="social-card compact ${met ? '' : 'is-locked'}">
+          <div class="social-portrait small"><img src="${portrait(f)}" alt="${esc(f.name)}" loading="lazy" decoding="async"></div>
+          <div class="social-copy"><span class="eyebrow">${esc(f.title)}</span><h3>${esc(f.name)}</h3>
+            <p class="info-note">${met ? `Tình nghĩa <b>${aff}/100</b>${aff >= PARTNER.minAffinity ? '' : ` · cần ${PARTNER.minAffinity} để kết duyên`}` : 'Chưa kết giao ở mục Tri kỷ.'}</p></div>
+          <div class="social-actions">${btn(`Kết duyên · ${moneyHTML(g.bindCost(f.id))}`, 'moreBind', `data-id="${f.id}"`, !ok)}</div>
+        </article>`;
+      }).join('');
+      body = `${wait}<div class="social-list">${list}</div>`;
+    }
+    return `<p class="screen-lead">Đạo lữ là một vị tri kỷ đã đủ tình nghĩa, cùng bạn tu hành. Có đạo lữ sẽ tăng tốc độ tu theo tình nghĩa, và mỗi lần song tu nhận thêm tu vi.</p>
+      ${card('Quy tắc đạo lữ', `${row('Điều kiện', 'Tình nghĩa từ ' + PARTNER.minAffinity)}${row('Tăng tốc độ tu', '+' + (PARTNER.rateBase * 100) + '% đến +' + ((PARTNER.rateBase + PARTNER.rateAffinity) * 100) + '%')}${row('Song tu', 'Hồi ' + Math.round(PARTNER.songTuCd / 60000) + ' phút, +1 tình nghĩa')}${row('Ly duyên', 'Tình nghĩa tụt về ' + PARTNER.breakAffinity + ', chờ ' + Math.round(PARTNER.rebindCd / 36e5) + ' giờ mới kết lại')}`)}
+      ${body}`;
   }
 
   function daoCard(f) {
@@ -140,7 +181,7 @@
       '<button type="button" class="btn btn-outline" data-act="rankingRefresh">Làm mới thứ hạng</button>';
   }
 
-  const body = { friends, dao, pvp, ranking };
+  const body = { friends, partner, dao, pvp, ranking };
   function lockedMore() {
     const f = H.FEATURES.social;
     return card('Chưa mở', empty(esc(UI.release.socialFeatureLabel(f.label)) + ' mở ở cảnh giới ' + esc(F.REALMS[f.realm]) + '. Hiện bạn đang ở ' + esc(F.REALMS[UI.s().realm]) + '.'), { eyebrow: 'CHƯA ĐỦ ĐẠO HẠNH' });
@@ -155,7 +196,7 @@
     mount: tab => { if (tab === 'ranking') void loadLeaderboard(); },
     signature: tab => {
       const s = UI.s(), now = Date.now(), pvp = s.social.pvp;
-      const f = Object.values(s.social.friends).map(v => v.affinity + ':' + (v.discussAt <= now ? 1 : 0)).join(',');
+      const f = Object.values(s.social.friends).map(v => v.affinity + ':' + (v.discussAt <= now ? 1 : 0) + ':' + (v.claimed || []).join('.')).join(',') + '|' + (s.social.partner ? s.social.partner.id + ':' + s.social.partner.sessions + ':' + (s.social.partner.songTuAt <= now ? 1 : 0) : '-') + '|' + (s.social.partnerRebindAt <= now ? 1 : 0);
       return (tab === 'ranking' ? leaderboardState.at + ':' + leaderboardState.owner : '') + '|' + s.realm + '|' + f + '|' + pvp.rating + '|' + pvp.wins + '|' + pvp.losses + '|' + pvp.streak + '|' + pvp.best + '|' + (pvp.lastAt + PVP_CD <= now ? 1 : 0);
     }
   });
@@ -196,6 +237,31 @@
     const aff = await UI.command('giftFriend', { id: d.id });
     UI.toast('Tặng lễ ' + f.name + ' · tình nghĩa ' + aff + '/100.', { type: 'gold', title: 'Tri kỷ' });
     UI.vfx?.stage({ kind: 'chien_dau', variant: 'linh_phu', fps: 12, size: 'clamp(100px,16vw,170px)', style: { left: '50%', bottom: '24%', transform: 'translateX(-50%)' } });
+  });
+
+  UI.action('moreClaimBond', async (el, d) => {
+    const f = findFriend(d.id), at = Number(d.at);
+    if (!f) throw Error('Không tìm thấy vị tri kỷ này.');
+    const r = await UI.command('claimBond', { id: d.id, at });
+    const got = [r.stone ? '+' + money(r.stone) : '', r.exp ? '+' + num(r.exp) + ' tu vi' : ''].filter(Boolean).join(' · ');
+    UI.toast('Mốc ' + at + ' với ' + f.name + ' · ' + got + '.', { type: 'gold', title: 'Tri kỷ' });
+  });
+  UI.action('moreBind', async (el, d) => {
+    const f = findFriend(d.id);
+    if (!f) throw Error('Không tìm thấy vị tri kỷ này.');
+    await UI.command('bindPartner', { id: d.id });
+    UI.toast('Kết duyên đạo lữ cùng ' + f.name + '.', { type: 'success', title: 'Đạo lữ' });
+    UI.vfx?.stage({ kind: 'chien_dau', variant: 'linh_phu', fps: 12, size: 'clamp(100px,16vw,170px)', style: { left: '50%', bottom: '24%', transform: 'translateX(-50%)' } });
+  });
+  UI.action('moreSongTu', async () => {
+    const r = await UI.command('songTu', {});
+    UI.toast('Song tu · tu vi +' + num(r.gain) + ' · tình nghĩa ' + r.affinity + '/100.', { type: 'success', title: 'Đạo lữ' });
+    UI.vfx?.effect('qi'); UI.vfx?.ring('hero', '#e6a0c4');
+  });
+  UI.action('moreBreak', async () => {
+    if (root.confirm && !root.confirm('Ly duyên sẽ làm tình nghĩa tụt xuống ' + PARTNER.breakAffinity + ' và phải chờ mới kết lại. Tiếp tục?')) return UI.KEEP;
+    const r = await UI.command('breakPartner', {});
+    UI.toast('Đã ly duyên · tình nghĩa còn ' + r.affinity + '.', { type: 'danger', title: 'Đạo lữ' });
   });
 
   UI.action('moreDiscuss', async (el, d) => {

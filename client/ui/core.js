@@ -13,6 +13,7 @@
     ranking: true,
     labels: Object.freeze({
       friends: 'NPC · mô phỏng',
+      partner: 'NPC · mô phỏng',
       dao: 'NPC · mô phỏng',
       pvp: 'NPC · mô phỏng',
       auction: 'Phiên mô phỏng · không có người mua/bán khác',

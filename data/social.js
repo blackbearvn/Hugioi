@@ -23,6 +23,15 @@ const RIVALS=[
  {id:'tich-da',name:'Tịch Dạ',gender:'nam',realm:8,power:1.28,rating:1120,school:'Ám ảnh đạo'}
 ];
 const giftCost=f=>120+f.realm*90;
+/* Mốc tình nghĩa của tri kỷ: đạt mốc thì nhận thưởng một lần cho mỗi vị. stone = đơn vị thu nhập `seconds` giây, exp = % tu vi cần. */
+const BOND_MILESTONES=[
+ {at:25,name:'Tương tri',reward:{stone:900}},
+ {at:50,name:'Tri kỷ',reward:{exp:.03}},
+ {at:75,name:'Tâm giao',reward:{stone:2400,exp:.02}},
+ {at:100,name:'Sinh tử chi giao',reward:{exp:.06}}
+];
+/* Đạo lữ: kết duyên với một tri kỷ đã đủ tình nghĩa. Bonus tốc độ tu theo tình nghĩa; song tu có hồi chiêu; ly duyên phải chờ mới kết lại. */
+const PARTNER={minAffinity:80,bindMult:6,songTuCd:600000,songTuMult:3,rateBase:.03,rateAffinity:.05,breakAffinity:30,rebindCd:864e5};
 /* Chuỗi nhiệm vụ riêng của NPC Hạ Giới: mỗi vai trò có 3 bước, mở dần theo thiện cảm.
    need.type: kill (hạ yêu thú kể từ lúc nhận việc) | gift (nộp món NPC thích) | stone (nộp linh thạch, đơn vị = thu nhập `seconds` giây).
    reward: affinity (thiện cảm), stone (thu nhập `seconds` giây), exp (% tu vi cần), item (xem engine/rules/social.js). */
@@ -54,6 +63,6 @@ const NPC_QUESTS={
  ]
 };
 const NPC_DISCOUNT_MAX=.3;
-const API={PVP_CD,DISCUSS_CD,FRIENDS,DAO,RIVALS,giftCost,NPC_QUESTS,NPC_DISCOUNT_MAX};
+const API={BOND_MILESTONES,PARTNER,PVP_CD,DISCUSS_CD,FRIENDS,DAO,RIVALS,giftCost,NPC_QUESTS,NPC_DISCOUNT_MAX};
 root.HU_SOCIAL_DATA=API;if(typeof module!=='undefined'&&module.exports)module.exports=API;
 })(typeof window!=='undefined'?window:globalThis);

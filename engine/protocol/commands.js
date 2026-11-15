@@ -69,6 +69,10 @@
     // social
     meetFriend: { id: string },
     giftFriend: { id: string },
+    claimBond: { id: string, at: integer(25, 100) },
+    bindPartner: { id: string },
+    songTu: {},
+    breakPartner: {},
     discuss: { id: string },
     npcGift: { id: string, code },
     npcOffer: { id: string },

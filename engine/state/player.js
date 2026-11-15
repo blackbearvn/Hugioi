@@ -84,7 +84,7 @@
       offlineKills: 0, yaoValue: 0, progress: { kill: 0, meditate: 0, travel: 1, breaks: 0, alchemy: 0 },
       claimed: [], locations: [0], npcAffinities: {}, npcQuests: {}, adventurePoints: 0, borrowedBook: '',
       auction: { offers: {}, cycle: Math.floor(now / 3600000), pausedMs: 0 },
-      social: { friends: {}, pvp: { rating: 1000, wins: 0, losses: 0, streak: 0, best: 1000, lastAt: 0 }, lastDiscuss: 0 },
+      social: { friends: {}, pvp: { rating: 1000, wins: 0, losses: 0, streak: 0, best: 1000, lastAt: 0 }, lastDiscuss: 0, partner: null, partnerRebindAt: 0 },
       meta: metaDefault(), story: storyDefault(), designCombat: designCombatDefault(),
       settings: {
         reducedMotion: false, motionMode: 'auto', season: 'auto', seasonEffects: true,
@@ -340,13 +340,14 @@
       ? uniq([0, ...raw.locations.filter(n => Number.isInteger(n) && n >= 0 && n <= x.realm)])
       : [0];
 
-    x.social = { friends: {}, pvp: { rating: 1000, wins: 0, losses: 0, streak: 0, best: 1000, lastAt: 0 }, lastDiscuss: 0 };
+    x.social = { friends: {}, pvp: { rating: 1000, wins: 0, losses: 0, streak: 0, best: 1000, lastAt: 0 }, lastDiscuss: 0, partner: null, partnerRebindAt: 0 };
     const rawFriends = raw.social?.friends;
     if (object(rawFriends)) for (const [id, v] of Object.entries(rawFriends).slice(0, 64)) {
       if (!/^[a-z0-9_-]{1,24}$/i.test(id) || !object(v)) continue;
       x.social.friends[id] = {
         affinity: finite(v.affinity, 0, 100), metAt: finite(v.metAt, 0, now),
-        giftAt: finite(v.giftAt, 0, now), discussAt: finite(v.discussAt, 0, now + 7 * 864e5)
+        giftAt: finite(v.giftAt, 0, now), discussAt: finite(v.discussAt, 0, now + 7 * 864e5),
+        claimed: Array.isArray(v.claimed) ? [...new Set(v.claimed.filter(n => [25, 50, 75, 100].includes(n)))] : []
       };
     }
     const rawPvp = object(raw.social?.pvp) ? raw.social.pvp : {};
@@ -356,6 +357,10 @@
       best: finite(rawPvp.best, 1000, 5000), lastAt: finite(rawPvp.lastAt, 0, now)
     };
     x.social.lastDiscuss = finite(raw.social?.lastDiscuss, 0, now);
+    x.social.partnerRebindAt = finite(raw.social?.partnerRebindAt, 0, now + 7 * 864e5);
+    const rp = raw.social?.partner;
+    if (object(rp) && social.FRIENDS.some(f => f.id === rp.id) && x.social.friends[rp.id]?.metAt)
+      x.social.partner = { id: rp.id, since: finite(rp.since, 0, now), songTuAt: finite(rp.songTuAt, 0, now + 864e5), sessions: Math.floor(finite(rp.sessions, 0, 1e6)) };
     if (object(raw.npcAffinities)) for (const [id, value] of Object.entries(raw.npcAffinities))
       if (Object.hasOwn(DESIGN.npc, id)) x.npcAffinities[id] = finite(value, 0, 100);
     if (object(raw.npcQuests)) for (const [id, v] of Object.entries(raw.npcQuests)) {

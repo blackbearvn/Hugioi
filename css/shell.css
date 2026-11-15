@@ -722,3 +722,11 @@ img[data-q="3"]{background:radial-gradient(circle at 20% 22%,#ff4d6dcc 0,transpa
 @keyframes redDot{50%{transform:scale(1.25);opacity:.75}}
 @media (prefers-reduced-motion:reduce){.has-red::before{animation:none}}
 #menu .badge{background:#3e485e}
+.bond-marks{display:flex;gap:6px;margin-top:7px;flex-wrap:wrap}
+.bond-mark{display:grid;place-items:center;min-width:54px;padding:3px 6px;border:1px solid #3f4a63;border-radius:8px;background:#0e1014;color:#8b93a6;font:700 12px var(--font);cursor:default}
+.bond-mark small{font:500 10px var(--font);opacity:.85}
+.bond-mark.ready{border-color:#e0b865;color:#f3d791;box-shadow:0 0 10px #e0b86566;cursor:pointer;animation:bondReady 1.6s ease-in-out infinite}
+.bond-mark.done{border-color:#4d7a5d;color:#8fd4a6}
+@keyframes bondReady{50%{box-shadow:0 0 16px #e0b865aa}}
+@media (prefers-reduced-motion:reduce){.bond-mark.ready{animation:none}}
+.partner-card{border-color:#c46a8c;background:linear-gradient(135deg,#2a1420aa,#14101caa)}
