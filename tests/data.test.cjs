@@ -123,53 +123,34 @@ test('25 đan có đan phương thiết kế thì dùng đúng công thức gố
   assert.equal(count, 25);
 });
 
-test('35 đan còn lại giữ nguyên công thức fallback cũ, không đổi nguyên liệu', () => {
-  const expected = {
-    'PILL-029': { 'HERB-036': 2, 'HERB-037': 2 },
-    'PILL-030': { 'HERB-037': 2, 'HERB-038': 2 },
-    'PILL-031': { 'HERB-038': 2, 'HERB-039': 2 },
-    'PILL-032': { 'HERB-039': 2, 'HERB-040': 2 },
-    'PILL-033': { 'HERB-040': 2, 'HERB-031': 2 },
-    'PILL-034': { 'HERB-041': 2, 'HERB-042': 2 },
-    'PILL-035': { 'HERB-042': 2, 'HERB-041': 2 },
-    'PILL-036': { 'HERB-041': 2, 'HERB-042': 2 },
-    'PILL-037': { 'HERB-042': 2, 'HERB-041': 2 },
-    'PILL-038': { 'HERB-041': 2, 'HERB-042': 2 },
-    'PILL-026': { 'HERB-048': 2, 'HERB-043': 2 },
-    'PILL-039': { 'HERB-043': 2, 'HERB-044': 2 },
-    'PILL-040': { 'HERB-044': 2, 'HERB-045': 2 },
-    'PILL-041': { 'HERB-045': 2, 'HERB-046': 2 },
-    'PILL-042': { 'HERB-046': 2, 'HERB-047': 2 },
-    'PILL-015': { 'HERB-049': 2, 'HERB-050': 2 },
-    'PILL-008': { 'HERB-050': 2, 'HERB-049': 2 },
-    'PILL-043': { 'HERB-049': 2, 'HERB-050': 2 },
-    'PILL-044': { 'HERB-050': 2, 'HERB-049': 2 },
-    'PILL-045': { 'HERB-049': 2, 'HERB-050': 2 },
-    'PILL-046': { 'HERB-051': 2, 'HERB-052': 2 },
-    'PILL-047': { 'HERB-052': 2, 'HERB-053': 2 },
-    'PILL-048': { 'HERB-053': 2, 'HERB-051': 2 },
-    'PILL-049': { 'HERB-051': 2, 'HERB-052': 2 },
-    'PILL-050': { 'HERB-055': 2, 'HERB-056': 2 },
-    'PILL-051': { 'HERB-056': 2, 'HERB-054': 2 },
-    'PILL-052': { 'HERB-054': 2, 'HERB-055': 2 },
-    'PILL-053': { 'HERB-055': 2, 'HERB-056': 2 },
-    'PILL-054': { 'HERB-058': 2, 'HERB-059': 2 },
-    'PILL-055': { 'HERB-059': 2, 'HERB-060': 2 },
-    'PILL-056': { 'HERB-060': 2, 'HERB-057': 2 },
-    'PILL-057': { 'HERB-057': 2, 'HERB-058': 2 },
-    'PILL-058': { 'HERB-062': 2, 'HERB-063': 2 },
-    'PILL-059': { 'HERB-063': 2, 'HERB-064': 2 },
-    'PILL-060': { 'HERB-070': 2, 'HERB-065': 2 }
-  };
-  assert.equal(Object.keys(expected).length, 35);
-  for (const [code, herbs] of Object.entries(expected)) {
-    const p = byCode.get(code);
-    assert.ok(p, code);
-    assert.deepEqual(p.recipe, { herbs }, code);
-    for (const herb of Object.keys(herbs)) assert.equal(byCode.get(herb).kind, 'HERB', code + ' dùng ' + herb);
+test('35 công thức tự sinh: 2-4 loại, số lượng 2-4, nặng dần theo tier và độ hiếm', () => {
+  const generated = pills.filter(p => !DESIGN.recipes[p.code]);
+  assert.equal(generated.length, 35);
+  for (const p of generated) {
+    const entries = Object.entries(p.recipe.herbs);
+    const rare = M.isRarePill(p);
+    const baseTypes = p.tier < 5 ? 2 : p.tier < 9 ? 3 : 4;
+    const wantTypes = Math.min(4, baseTypes + (rare && p.tier < 9 ? 1 : 0));
+    assert.equal(entries.length, wantTypes, p.code);
+    assert.equal(new Set(entries.map(([c]) => c)).size, entries.length, p.code + ' lặp linh thảo');
+    for (const [herb, n] of entries) {
+      assert.equal(byCode.get(herb).kind, 'HERB', p.code + ' dùng ' + herb);
+      assert.ok(byCode.get(herb).tier <= p.tier, p.code + ' dùng ' + herb + ' cao hơn tier');
+      assert.ok(Number.isInteger(n) && n >= 2 && n <= 4, p.code + ' số lượng ' + herb + ': ' + n);
+    }
+    const total = entries.reduce((sum, [, n]) => sum + n, 0);
+    assert.ok(total >= (p.tier < 5 ? 4 : p.tier < 9 ? 6 : 8), p.code + ' tổng quá ít: ' + total);
+    if (rare) assert.ok(total >= 12, p.code + ' đan hiếm quá nhẹ: ' + total);
   }
-  const withDesign = new Set(Object.keys(DESIGN.recipes));
-  for (const p of pills) assert.ok(withDesign.has(p.code) || expected[p.code], p.code + ' thiếu công thức');
+  const average = list => list.reduce((sum, p) => sum + Object.values(p.recipe.herbs).reduce((a, b) => a + b, 0), 0) / list.length;
+  for (const [low, high] of [[5, 8], [9, 13]]) {
+    const normal = generated.filter(p => !M.isRarePill(p) && p.tier >= low && p.tier <= high);
+    const rare = generated.filter(p => M.isRarePill(p) && p.tier >= low && p.tier <= high);
+    assert.ok(normal.length && rare.length, low + '-' + high);
+    assert.ok(average(rare) > average(normal), low + '-' + high + ': hiếm phải nặng hơn thường');
+  }
+  assert.deepEqual(byCode.get('PILL-030').recipe.herbs, { 'HERB-039': 4, 'HERB-031': 3, 'HERB-032': 3, 'HERB-040': 3 });
+  assert.deepEqual(byCode.get('PILL-060').recipe.herbs, { 'HERB-065': 3, 'HERB-066': 2, 'HERB-067': 3, 'HERB-069': 2 });
 });
 
 test('CLI check-data --strict xanh khi cả 60 đan đã đủ trường', () => {
