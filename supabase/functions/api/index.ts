@@ -9,6 +9,7 @@ import { createEdgeRateLimiter } from './api-rate-limit.ts';
 import { getVerifiedUserId } from './auth-user.ts';
 import { createVerifiedUserCache } from './auth-cache.ts';
 import { handleSocial } from './social.ts';
+import { handleFriends } from './friends.ts';
 import {
   PlayerService, DailyService, PostgresPlayers, GameError, toEnvelope,
   createAccountAdmin, shouldLogApiError, CONTENT_VERSION
@@ -220,6 +221,7 @@ export async function handleApi(req: Request): Promise<Response> {
       case 'leaderboard':
         result = await handleSocial(repo, ownerId, route.name, body);
         break;
+      case 'friends': result = await handleFriends(repo, ownerId, body); break;
       case 'preview': result = await service.previewCreation(ownerId, body); status = 201; break;
       case 'create': result = await service.createPlayer(ownerId, body); status = 201; break;
       case 'pavilionPurchase': result = await service.pavilionPurchase(ownerId, body); break;

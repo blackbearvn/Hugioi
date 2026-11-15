@@ -1303,11 +1303,13 @@
       craft: s.garden.some(p => { try { return g.gardenInfo(p, nowMs).ripe; } catch { return false; } }),
       quests: questBadge > 0,
       chat: (UI.chatUnread?.() || 0) > 0,
+      more: (UI.friendRequests?.() || 0) > 0,
       sect: !!s.sect.mission && nowMs >= s.sect.mission.end,
       character: Object.keys(s.bag).some(k => { const x = H.item(k); return x?.kind === 'BT' && !s.learned[k]; })
     };
     $$('#menu [data-window]').forEach(b => b.classList.toggle('has-red', !!reds[b.dataset.window]));
     $$('[data-open-page]').forEach(b => b.classList.toggle('has-red', !!reds[b.dataset.openPage]));
+    $('moreMenuBtn')?.classList.toggle('has-red', !!reds.more);
     markMenu();
     document.body.classList.toggle('mode-fight', s.auto);
     const docTitle = s.name + ' · Hư Giới';

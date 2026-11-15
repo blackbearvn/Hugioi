@@ -570,3 +570,10 @@ body.in-tribulation{overflow:hidden}
 .peek-row.is-ready{border-color:#d9b25f}.peek-row.is-ready .peek-mark{color:#f3d699;font-weight:700;font-size:18px}.peek-row.is-done .peek-mark{color:#8fd5ae}
 .peek-row.is-done .peek-name{color:#959aa5}.peek-row.is-locked{opacity:.6}
 .peek-pop{text-align:left}.peek-pop .action-group,.peek-pop .detail-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+
+/* Bạn bè người chơi thật */
+.buddy-add{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin:10px 0 14px}
+.buddy-add label{flex:1 1 200px;display:grid;gap:4px;font-size:.82rem;color:var(--muted,#b9b2a2)}
+.buddy-add input{min-height:40px}
+.buddy-row .buddy-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.buddy-row.is-online .rank-no{color:#7fd69a}

@@ -8,6 +8,7 @@
   const { esc, num, money, moneyHTML, pct, row, btn, card, empty, tabs, live } = UI.kit;
 
   const TABS = [
+    { id: 'online', label: 'Bạn bè', icon: '☯' },
     { id: 'friends', label: 'Tri kỷ', icon: '♡' },
     { id: 'partner', label: 'Đạo lữ', icon: '❦' },
     { id: 'dao', label: 'Đạo hữu', icon: '✧' },
@@ -42,6 +43,55 @@
       });
     leaderboardState.pending = task;
     return task;
+  }
+
+  // Bạn bè người chơi thật: dữ liệu ở máy chủ, tải khi mở tab và thăm dò thưa để hiện chấm đỏ lời mời.
+  const buddy = { data: null, error: '', at: 0, owner: '', pending: null, busy: false };
+  UI.friendRequests = () => buddy.owner === UI.session?.accountId ? (buddy.data?.incoming?.length || 0) : 0;
+  function refreshBuddyViews() {
+    if (UI.windows?.has('more') && UI.tabState.more === 'online') UI.windows.render('more');
+  }
+  async function buddyCall(body, force = true) {
+    const owner = UI.session?.accountId;
+    if (!owner) return null;
+    if (buddy.owner !== owner) Object.assign(buddy, { data: null, error: '', at: 0, owner, pending: null });
+    if (!force && (buddy.pending || Date.now() - buddy.at < 30000)) return buddy.pending;
+    const task = UI.session.request('/social/friends', 'POST', body)
+      .then(data => { if (buddy.owner === owner) { buddy.data = data; buddy.error = ''; } return data; })
+      .catch(error => { if (buddy.owner === owner) buddy.error = error.message; throw error; })
+      .finally(() => { if (buddy.pending === task) buddy.pending = null; if (buddy.owner === owner) { buddy.at = Date.now(); refreshBuddyViews(); } });
+    buddy.pending = task;
+    return task;
+  }
+  const loadBuddies = force => buddyCall({ action: 'list' }, force).catch(() => null);
+  root.setInterval?.(() => {
+    try {
+      if (root.document?.hidden || !UI.session?.accountId || UI.s().realm < H.FEATURES.social.realm) return;
+      void loadBuddies(false);
+    } catch { /* chưa vào game */ }
+  }, 90000);
+
+  function person(p, actions) {
+    return '<div class="rank-row buddy-row ' + (p.online ? 'is-online' : '') + '"><span class="rank-no" title="' + (p.online ? 'Đang online' : 'Ngoại tuyến') +
+      '">' + (p.online ? '●' : '○') + '</span><span class="rank-name"><b>' + esc(p.name) + '</b><small>' + esc(F.REALMS[p.realm] || '') +
+      (p.online ? ' · đang online' : '') + '</small></span><span class="buddy-actions">' + actions + '</span></div>';
+  }
+  const bBtn = (act, id, label, cls = 'btn-outline') => '<button type="button" class="btn btn-sm ' + cls + '" data-act="' + act + '" data-id="' + esc(id) + '">' + label + '</button>';
+  function online() {
+    const d = buddy.data, L = d?.limits || { friends: 50 };
+    const list = (arr, fn, none) => arr?.length ? '<div class="rank-list">' + arr.map(fn).join('') + '</div>' : '<p class="empty-note">' + none + '</p>';
+    const sections = d ? [
+      d.incoming.length ? card('Lời mời kết giao (' + d.incoming.length + ')', list(d.incoming, p => person(p, bBtn('buddyAccept', p.id, 'Nhận', 'btn-gold') + bBtn('buddyDecline', p.id, 'Từ chối')), ''), { eyebrow: 'CHỜ BẠN PHẢN HỒI' }) : '',
+      card('Bạn bè (' + d.friends.length + '/' + L.friends + ')', list(d.friends, p => person(p, bBtn('buddyRemove', p.id, 'Xóa') + bBtn('buddyBlock', p.id, 'Chặn')), 'Chưa có bạn bè. Gửi lời mời bằng tên đạo hữu ở trên.'), { eyebrow: 'ĐẠO HỮU THẬT' }),
+      d.outgoing.length ? card('Đã gửi lời mời', list(d.outgoing, p => person(p, bBtn('buddyCancel', p.id, 'Thu hồi')), ''), { eyebrow: 'ĐANG CHỜ' }) : '',
+      d.blocked.length ? card('Đã chặn', list(d.blocked, p => person(p, bBtn('buddyUnblock', p.id, 'Bỏ chặn')), ''), { eyebrow: 'DANH SÁCH CHẶN' }) : ''
+    ].join('') : '';
+    return '<p class="screen-lead">Kết giao với người chơi thật: nhập đúng tên đạo thân, đối phương nhận lời mời rồi hai bên thành bạn. Trạng thái online theo kênh truyền âm.</p>' +
+      '<div class="buddy-add"><label>Tên đạo hữu<input id="buddyName" type="text" maxlength="60" autocomplete="off" placeholder="Nhập đúng tên đạo thân"></label>' +
+      '<button type="button" class="btn btn-gold" data-act="buddyAdd">Gửi lời mời</button></div>' +
+      (buddy.error ? '<p class="info-note" role="alert">' + esc(buddy.error) + '</p>' : '') +
+      (!d && !buddy.error ? '<p class="info-note" role="status">Đang tải danh sách bạn bè…</p>' : '') + sections +
+      '<button type="button" class="btn btn-outline" data-act="buddyRefresh">Làm mới</button>';
   }
 
   const affinityRank = v => v >= 90 ? 'Sinh tử chi giao' : v >= 50 ? 'Tri kỷ' : v >= 20 ? 'Tương tri' : 'Sơ giao';
@@ -181,7 +231,7 @@
       '<button type="button" class="btn btn-outline" data-act="rankingRefresh">Làm mới thứ hạng</button>';
   }
 
-  const body = { friends, partner, dao, pvp, ranking };
+  const body = { online, friends, partner, dao, pvp, ranking };
   function lockedMore() {
     const f = H.FEATURES.social;
     return card('Chưa mở', empty(esc(UI.release.socialFeatureLabel(f.label)) + ' mở ở cảnh giới ' + esc(F.REALMS[f.realm]) + '. Hiện bạn đang ở ' + esc(F.REALMS[UI.s().realm]) + '.'), { eyebrow: 'CHƯA ĐỦ ĐẠO HẠNH' });
@@ -193,11 +243,11 @@
       const active = UI.release.allowed('more:' + tab) ? tab : 'friends';
       return `<header class="screen-title"><span class="eyebrow gold">GIAO DU</span><h2>Giao du</h2></header>${tabs(UI.release.tabs(TABS), active)}<div class="screen-body">${UI.release.notice(active)}${(active === 'ranking' || UI.g().featureOpen('social')) ? body[active]() : lockedMore()}</div>`;
     },
-    mount: tab => { if (tab === 'ranking') void loadLeaderboard(); },
+    mount: tab => { if (tab === 'ranking') void loadLeaderboard(); if (tab === 'online') void loadBuddies(false); },
     signature: tab => {
       const s = UI.s(), now = Date.now(), pvp = s.social.pvp;
       const f = Object.values(s.social.friends).map(v => v.affinity + ':' + (v.discussAt <= now ? 1 : 0) + ':' + (v.claimed || []).join('.')).join(',') + '|' + (s.social.partner ? s.social.partner.id + ':' + s.social.partner.sessions + ':' + (s.social.partner.songTuAt <= now ? 1 : 0) : '-') + '|' + (s.social.partnerRebindAt <= now ? 1 : 0);
-      return (tab === 'ranking' ? leaderboardState.at + ':' + leaderboardState.owner : '') + '|' + s.realm + '|' + f + '|' + pvp.rating + '|' + pvp.wins + '|' + pvp.losses + '|' + pvp.streak + '|' + pvp.best + '|' + (pvp.lastAt + PVP_CD <= now ? 1 : 0);
+      return (tab === 'ranking' ? leaderboardState.at + ':' + leaderboardState.owner : tab === 'online' ? buddy.at + ':' + buddy.owner + ':' + buddy.busy : '') + '|' + s.realm + '|' + f + '|' + pvp.rating + '|' + pvp.wins + '|' + pvp.losses + '|' + pvp.streak + '|' + pvp.best + '|' + (pvp.lastAt + PVP_CD <= now ? 1 : 0);
     }
   });
 
@@ -217,6 +267,27 @@
     if (UI.windows?.has('more') && UI.tabState.more === 'ranking') UI.windows.render('more');
     return UI.KEEP;
   });
+  const BUDDY_MSG = {
+    sent: 'Đã gửi lời mời kết giao.', pending: 'Lời mời đã gửi, đang chờ đối phương.', accepted: 'Hai bên đã thành bạn.',
+    declined: 'Đã từ chối lời mời.', cancelled: 'Đã thu hồi lời mời.', removed: 'Đã xóa khỏi danh sách bạn.',
+    blocked: 'Đã chặn đạo hữu này.', unblocked: 'Đã bỏ chặn.'
+  };
+  async function buddyAct(body) {
+    const r = await buddyCall(body);
+    UI.toast(BUDDY_MSG[r?.result] || 'Đã cập nhật.', { type: r?.result === 'accepted' ? 'success' : 'info', title: 'Bạn bè' });
+    return UI.KEEP;
+  }
+  UI.action('buddyAdd', async () => {
+    const input = root.document.getElementById('buddyName');
+    const name = String(input?.value || '').trim();
+    if (!name) throw Error('Hãy nhập tên đạo hữu.');
+    const r = await buddyAct({ action: 'request', name });
+    if (input) input.value = '';
+    return r;
+  });
+  for (const [name, action] of [['buddyAccept', 'accept'], ['buddyDecline', 'decline'], ['buddyRemove', 'remove'], ['buddyBlock', 'block'], ['buddyUnblock', 'unblock'], ['buddyCancel', 'cancel']])
+    UI.action(name, (el, d) => buddyAct({ action, id: d.id }));
+  UI.action('buddyRefresh', () => { void loadBuddies(true); return UI.KEEP; });
   UI.action('rankingRefresh', () => { void loadLeaderboard(true); return UI.KEEP; });
 
   const findFriend = id => FRIENDS.find(f => f.id === id);
