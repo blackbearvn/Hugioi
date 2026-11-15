@@ -716,3 +716,9 @@ img[data-q="3"]{background:radial-gradient(circle at 20% 22%,#ff4d6dcc 0,transpa
 .mix-chip{display:inline-flex;align-items:center;gap:6px;padding:4px 6px;border:1px solid #414d68;border-radius:10px;background:#0e1014aa}
 .mix-chip .btn{min-width:30px;padding:2px 8px}.mix-chip em{font-style:normal;font-size:.85rem}
 .mix-chip img{width:32px;height:32px;object-fit:contain}.mix-chip{padding:4px 8px}
+/* Chấm đỏ thông báo: có việc cần làm trong trang đó */
+.has-red{position:relative}
+.has-red::before{content:"";position:absolute;top:3px;left:6px;width:9px;height:9px;border-radius:50%;background:#e5372b;box-shadow:0 0 0 2px #0c0e13,0 0 8px #ff5a4a;animation:redDot 1.6s ease-in-out infinite;pointer-events:none;z-index:2}
+@keyframes redDot{50%{transform:scale(1.25);opacity:.75}}
+@media (prefers-reduced-motion:reduce){.has-red::before{animation:none}}
+#menu .badge{background:#3e485e}

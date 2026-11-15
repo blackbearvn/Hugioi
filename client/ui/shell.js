@@ -1294,6 +1294,19 @@
     const daily = UI.session.daily;
     const questBadge = (daily?.claimable || 0) + (UI.session.mailClaimable || 0) + (daily?.checkin?.canCheckIn ? 1 : 0);
     badge('quests', String(questBadge), questBadge > 0);
+    /* Chấm đỏ báo việc cần làm ngay: đột phá, nhận thưởng, thu hoạch, sách chưa lĩnh ngộ… */
+    const nowMs = Date.now();
+    const peakNow = s.stage === F.STAGES[s.realm] && readyQi && !s.completed;
+    const reds = {
+      idle: peakNow && !trainingBusy,
+      retreat: !!s.retreat?.report,
+      craft: s.garden.some(p => { try { return g.gardenInfo(p, nowMs).ripe; } catch { return false; } }),
+      quests: questBadge > 0,
+      sect: !!s.sect.mission && nowMs >= s.sect.mission.end,
+      character: Object.keys(s.bag).some(k => { const x = H.item(k); return x?.kind === 'BT' && !s.learned[k]; })
+    };
+    $$('#menu [data-window]').forEach(b => b.classList.toggle('has-red', !!reds[b.dataset.window]));
+    $$('[data-open-page]').forEach(b => b.classList.toggle('has-red', !!reds[b.dataset.openPage]));
     markMenu();
     document.body.classList.toggle('mode-fight', s.auto);
     const docTitle = s.name + ' · Hư Giới';
