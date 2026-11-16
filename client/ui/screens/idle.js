@@ -53,7 +53,7 @@
     const pills = [...pillsBy('TU_VI').slice(0, 2), ...pillsBy('BUFF_TOC').slice(0, 1)].map(x =>
       `<div class="boost-row">${img(x.key, 'mini-img')}<div><b>${UI.kit.itemName(x)} <em>×${g.count(x.key)}</em></b><small>${UI.kit.pillEffectText ? UI.kit.pillEffectText(x) : (x.effect === 'TU_VI' ? 'Bồi bổ tu vi ngay' : 'Tăng tốc độ hấp thụ linh khí có thời hạn')}</small></div>${btn('Dùng', 'consume', codeAttr(x.key), false, 'btn-outline')}</div>`).join('');
     const coins = F.COINS.slice(0, 3).map(([name, value], i) => btn('Hấp thu 1 ' + coinLabel(name), 'absorb', `data-index="${i}"`, s.stone < value || s.qi >= g.need(), 'btn-outline')).join('');
-    return card('Bồi dưỡng đạo cơ', upgrade + (pills || '<p class="info-note">Chưa có đan tăng tu vi trong túi. Mua ở Thế giới → Cửa hàng hoặc tự luyện ở Nghề phụ.</p>') + `<div class="action-group coin-row">${coins}</div>`, { eyebrow: 'ĐAN DƯỢC · TỤ LINH' });
+    return card('Bồi dưỡng đạo cơ', upgrade + (pills || '<p class="info-note">Chưa có đan tăng tu vi trong túi. Mua ở Thế giới → Tàng bảo các hoặc tự luyện ở Nghề phụ.</p>') + `<div class="action-group coin-row">${coins}</div>`, { eyebrow: 'ĐAN DƯỢC · TỤ LINH' });
   }
 
   function manualsCard() {

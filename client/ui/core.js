@@ -224,6 +224,36 @@
     if (d?.group === 'phù lục') return [d['hệ'], d['hiệu quả']].filter(Boolean).join(' · ');
     return x.description || '—';
   };
+  /* Khung thông tin vật phẩm dùng chung cho Hành trang và Tàng bảo các.
+     `facts`: mảng [nhãn, giá trị, làHtml]; `notes`: [nhãn, giá trị] một dòng;
+     `detail`: HTML các dòng chỉ số riêng; `footer` chen trước hành động. */
+  const itemSheet = (x, { effect = '', facts = [], notes = [], detail = '', footer = '', actions = '', source = '', lore = true } = {}) => {
+    if (!x) return '';
+    const L = root.HU_LABELS;
+    const quality = qualityLabelOf(x), rank = rankLabelOf(x);
+    const qualityHtml = L ? L.span(quality, 'quality', quality, { variant: 'badge' }) : esc(quality);
+    const rankHtml = L ? L.span(rank, 'rank', rank, { variant: 'badge' }) : esc(rank);
+    const fact = ([label, value, isHtml]) => `<div class="item-fact"><span>${esc(label)}</span><b>${isHtml ? value : esc(value)}</b></div>`;
+    const note = ([label, value]) => `<p class="item-sheet-note"><span>${esc(label)}</span> ${esc(value)}</p>`;
+    return `<div class="item-sheet">
+      <header class="item-sheet-hero">
+        <div class="item-sheet-art">${img(x.key)}</div>
+        <div class="item-sheet-head">
+          <div class="item-sheet-badges">${rankHtml}${qualityHtml}</div>
+          <p class="item-sheet-sub">${esc(x.category || 'Vật phẩm')}</p>
+          <p class="item-sheet-desc">${esc(x.description || 'Không có mô tả.')}</p>
+        </div>
+      </header>
+      ${effect ? `<div class="item-sheet-effect"><span>Thuộc tính / công dụng</span><p>${esc(effect)}</p></div>` : ''}
+      ${lore && x.lore && x.lore !== x.description ? `<p class="item-sheet-lore">${esc(x.lore)}</p>` : ''}
+      ${facts.length ? `<div class="item-facts">${facts.map(fact).join('')}</div>` : ''}
+      ${notes.length ? `<div class="item-sheet-notes">${notes.map(note).join('')}</div>` : ''}
+      ${detail ? `<div class="item-sheet-detail">${detail}</div>` : ''}
+      ${source ? `<p class="item-sheet-source">${source}</p>` : ''}
+      ${footer}
+      ${actions ? `<div class="item-sheet-actions">${actions}</div>` : ''}
+    </div>`;
+  };
   const codeAttr = key => `data-code="${esc(key)}"`;
   const bar = (percent, cls = '', id = '') =>
     `<div class="meter-bar ${cls}"><i ${id ? `id="${id}"` : ''} style="width:${clamp(percent, 0, 100)}%"></i></div>`;
@@ -248,7 +278,7 @@
     return Object.entries(effects || {}).map(([k, v]) => (labels[k] || k) + ' +' + (v * weight * 100).toLocaleString('vi-VN', { maximumFractionDigits: 2 }) +
       (['crit', 'dodge', 'regen'].includes(k) ? ' điểm %' : '%')).join(' · ');
   };
-  UI.kit = { itemName, rankOf, rankLabelOf, qualityOf, qualityLabelOf, useCondition, itemEffectText, pillEffectText, $, $$, esc, clamp, num, money, moneyHTML, coinLabel, pct, duration, abs, row, btn, img, codeAttr, bar, card, empty, tabs, live };
+  UI.kit = { itemName, rankOf, rankLabelOf, qualityOf, qualityLabelOf, useCondition, itemEffectText, pillEffectText, itemSheet, $, $$, esc, clamp, num, money, moneyHTML, coinLabel, pct, duration, abs, row, btn, img, codeAttr, bar, card, empty, tabs, live };
 
   /* ======================================================================
      2. DỮ LIỆU HIỂN THỊ
@@ -324,6 +354,7 @@
   UI.screens = {};
   UI.actions = {};
   UI.modalActions = new Set(); /* hành động cho phép chạy khi cửa sổ nổi đang mở (shell đóng cửa sổ trước) */
+  UI.modalKeepOpen = new Set(); /* hành động chạy ngay trong cửa sổ nổi mà không đóng nó */
   UI.tabState = {};
   UI.current = 'idle';
   UI.KEEP = Symbol('keep');

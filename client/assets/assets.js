@@ -176,7 +176,14 @@
   /* Bộ hiệu ứng "hu_gioi" cũ đã được thay bằng bộ mới: ánh xạ tên cũ sang chuỗi khung mới. */
   const VFX_ALIAS = {
     slash: ['chien_dau', 'nhan_vat'], hit: ['chien_dau', 'trung_don'], bolt: ['chien_dau', 'linh_khi'],
-    break: ['dot_pha', 'ha_gioi'], heal: ['chien_dau', 'hoi_phuc/mau_01'], qi: ['chien_dau', 'linh_khi']
+    break: ['dot_pha', 'ha_gioi'], heal: ['chien_dau', 'hoi_phuc/mau_01'], qi: ['chien_dau', 'linh_khi'],
+    /* Tên trực tiếp của bộ chien_dau dùng trong bảng giao chiến theo lượt. */
+    nhan_vat: ['chien_dau', 'nhan_vat'], trung_don: ['chien_dau', 'trung_don'],
+    linh_khi: ['chien_dau', 'linh_khi'], ke_dich: ['chien_dau', 'ke_dich'],
+    ho_thuan: ['chien_dau', 'ho_thuan'], linh_phu: ['chien_dau', 'linh_phu'],
+    hoi_phuc: ['chien_dau', 'hoi_phuc/mau_01'],
+    hoi_sinh: ['chien_dau', 'hoi_phuc/mau_02'],
+    phi_thang: ['chien_dau', 'phi_thang']
   };
   const resolveVfx = (kind, variant) => kind === 'hu_gioi' && VFX_ALIAS[variant] ? VFX_ALIAS[variant] : [kind, variant];
   const vfxCount = (kind0, variant0) => {

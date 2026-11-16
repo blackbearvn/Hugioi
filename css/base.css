@@ -62,6 +62,8 @@ h1,h2,h3{font-family:var(--serif);line-height:1.15}
 .btn-outline:not(:disabled):hover{background:#1a1e28;border-color:#a68d73}
 .btn-danger{background:#3a1d19;border-color:#7c3b31;color:#ffc4b7}
 .btn-wide{width:100%}
+/* Nút phụ nhỏ trong danh sách bạn bè/đạo hữu. */
+.btn-sm{padding:6px 10px;font-size:13px;line-height:1.15;border-radius:8px}
 .text-btn{border:0;background:transparent;color:#e1cba4;padding:2px 4px;font-size:14px;font-weight:700}
 .text-btn:hover{color:var(--gold)}
 /* ===== form ===== */
@@ -146,6 +148,7 @@ body.modal-open{overflow:hidden}
 .game-modal[data-type="danger"] .modal-symbol{color:var(--danger);filter:drop-shadow(0 0 20px #e8745f66)}
 .game-modal[data-type="gold"]{border-color:#8a733a;box-shadow:0 0 0 1px #e6c16426,0 18px 60px #0009,0 0 60px #e6c1641a}
 .modal-buttons{display:flex;justify-content:center;gap:9px;flex-wrap:wrap;margin-top:20px}
+.modal-buttons:empty{display:none}
 .modal-buttons .btn{min-width:135px}
 .game-modal.is-busy{cursor:progress}
 .game-modal.is-busy .modal-buttons{display:none}

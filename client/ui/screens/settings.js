@@ -78,7 +78,7 @@
         <p>• Khi bắt đầu lại sau tử vong, vật phẩm và thành tựu của đạo thân cũ không được kế thừa; Thiên Tinh và nâng cấp Thiên Mệnh Các thuộc về tài khoản nên được giữ lại.</p>
         <p>• <b>Nhiệm vụ tông môn</b> chỉ tiếp tục tính thời gian khi bạn đang trong game và kết nối. Khi hoàn tất, hãy quay lại nhận cống hiến.</p>`, { eyebrow: 'XUYÊN KIẾP' })}
       ${card('Mẹo tu hành', `
-        <p>• Bán yêu đan ở Lịch luyện hoặc Thế giới → Cửa hàng để lấy linh thạch.</p>
+        <p>• Bán yêu đan ở Lịch luyện hoặc Thế giới → Tàng bảo các để lấy linh thạch.</p>
         <p>• Đan cấp thấp vẫn dùng được nhưng hiệu quả giảm theo chênh lệch cảnh giới.</p>
         <p>• Độ kiếp đại cảnh giới: hộ kiếp không đủ khiến đạo thân tử vong; nếu lôi kiếp đã qua mà xác suất phá cảnh trượt, đạo thân chỉ mất một phần tu vi và tích lũy may mắn.</p>
         <p>• Tông môn mang lại linh thạch định kỳ và chúc phúc +10% tốc độ hấp thụ linh khí.</p>

@@ -67,7 +67,7 @@
     const pillCap = .25 * F.realm_exp_total(s.realm);
     return `<div class="char-sheet">
       ${card('Chiến lực', `<div class="stat-tiles">${power.map(([k, v, key]) => tile(k, v, '', key)).join('')}</div>`, { eyebrow: 'CHỈ SỐ', cls: 'sheet-power' })}
-      ${card('Tu luyện', `<div class="stat-tiles tiles-4">${tile(S.qiRate, num(g.rate()) + '<small>/giây</small>', '', 'qiRate')}${tile('Tu vi từ đan', num(s.pillRealmExp) + '<small>/ ' + num(pillCap) + '</small>')}${tile('Đan đã dùng', s.pillUses + '<small>viên · tầng này</small>')}${tile('Tâm ma', num(s.tamMa || 0) + '<small>/ ' + (H.TAM_MA_MAX || 100) + ' · đột phá −' + (Math.min(15, (s.tamMa || 0) * (H.TAM_MA_BREAK_PENALTY || .0015) * 100)).toFixed(1).replace('.', ',') + '%</small>', s.tamMa >= 50 ? 'tile-warn' : '')}</div>`, { eyebrow: 'ĐẠO CẢNH', cls: 'sheet-cultivate' })}
+      ${card('Tu luyện', `<div class="stat-tiles tiles-4">${tile(S.qiRate, num(g.rate()) + '<small>/giây</small>', '', 'qiRate')}${tile('Tu vi từ đan', num(s.pillRealmExp) + '<small>/ ' + num(pillCap) + '</small>')}${tile('Đan đã dùng', s.pillUses + '<small>viên · tầng này</small>')}${tile('Tâm ma', num(s.tamMa || 0) + '<small>/ ' + (H.TAM_MA_MAX || 100) + ' · đột phá −' + Math.min(15, (s.tamMa || 0) * (H.TAM_MA_BREAK_PENALTY || .0015) * 100).toLocaleString('vi-VN', { maximumFractionDigits: 1 }) + '%</small>', s.tamMa >= 50 ? 'tile-warn' : '')}</div>`, { eyebrow: 'ĐẠO CẢNH', cls: 'sheet-cultivate' })}
       ${card('Giải nghĩa chỉ số', `<details class="stat-glossary"><summary>Xem ý nghĩa các chỉ số</summary><dl>${glossary}</dl></details>`, { eyebrow: 'ĐẠO THỂ', cls: 'sheet-glossary' })}
     </div>`;
   }
@@ -185,36 +185,24 @@
     return meridianPanel() + UI.adventure.roots();
   }
 
-  function itemDescription(key) {
-    const x=H.item(key),d=x.design,e=H.DESIGN.effects[x.code],q=2**(x.sub-H.BY_ID[x.code].sub);
-    let detail='';
-    if(d?.group==='pháp bảo')detail=row('Thuộc tính','Sinh lực +'+num(d['hp cộng']*q)+' · Linh lực +'+num(d['mp cộng']*q)+' · Công kích +'+num(d['atk cộng']*q)+' · Phòng thủ +'+num(d['def cộng']*q))+row('Né tránh / bạo kích','+'+num(d['eva cộng (%)']*q)+'% / +'+num(d['crit cộng (%)']*q)+'%')+(e?row('Hiệu ứng',esc(e['hiệu ứng'])+' · '+esc(e['điều kiện kích hoạt'])):'');
-    else if(d?.group==='công pháp')detail=row('Hệ',esc(d['hệ']))+row('Kỹ năng',esc(d['công dụng'])+' · '+d['tiêu hao mp']+' linh lực · '+d['hồi chiêu (giây)']+' giây');
-    else if(d?.group==='bí tịch')detail=row('Thể loại',esc(d['thể loại']))+row('Công dụng',esc(d['công dụng']));
-    else if(d?.group==='linh thảo')detail=row('Cách dùng',esc(d['cách dùng']))+row('Hiệu quả',esc(d['hiệu quả']));
-    else if(x.kind==='PILL'||x.kind==='TAL'){
-      const effectText=UI.kit.pillEffectText?UI.kit.pillEffectText(x):'';
-      if(effectText)detail=row('Thuộc tính / công dụng',esc(effectText));
-      if(x.kind==='PILL'&&x.effect==='TU_VI')detail+='<p class="info-note">Đan tăng tu vi giảm dần theo số viên đã dùng trong tầng hiện tại; tổng tu vi từ đan mỗi cảnh giới có trần.</p>';
-    }
-    const quality = H.SCHEMA?.qualityOf(x) || (Number.isInteger(x.sub) ? x.sub + 1 : 1);
-    const qualityText = H.SCHEMA?.qualityLabel(quality) || (F.SUBPHAM[quality - 1] || 'Hạ') + ' phẩm';
-    const rank = H.SCHEMA?.rankOf(x) || x.rank || 1;
-    const rankText = H.SCHEMA?.rankLabel(rank) || 'Phàm giai';
-    const qualityHtml = L ? L.span(qualityText, 'quality', qualityText, { variant: 'badge' }) : esc(qualityText);
-    const rankHtml = L ? L.span(rankText, 'rank', rankText, { variant: 'badge' }) : esc(rankText);
-    const requiredRealm = Number.isInteger(x.useReq?.realmMin) ? F.REALMS[x.useReq.realmMin] : x.realm;
-    const condition = UI.kit.useCondition ? UI.kit.useCondition(x) : (x.kind === 'QITEM' ? 'Vật phẩm nhiệm vụ, không bán' : 'Không có điều kiện đặc biệt');
-    return `<p>${esc(x.description)}</p>${x.lore ? `<p class="item-tip-lore">${esc(x.lore)}</p>` : ''}${row('Danh mục',esc(x.category||'—'))}${row('Cấp bậc',rankHtml)}${row('Phẩm chất',qualityHtml)}${row('Cảnh giới yêu cầu',esc(requiredRealm||'—'))}${row('Điều kiện',esc(condition))}${x.age ? row('Tuổi dược liệu', esc(x.age)) : ''}${row('Nguồn gốc', 'Chưa có dữ liệu nguồn nhận')}${detail}`;
-  }
-
   /* ---------- Cửa sổ nổi: trang bị, công pháp, chi tiết vật phẩm ---------- */
-  const popup = (title, eyebrow, body) => UI.modal(title, `<div class="pop">${body}</div>`, null, 'Đóng', eyebrow, { vfx: false });
+  const popup = (title, eyebrow, body, opts = {}) => UI.modal(title, `<div class="pop">${body}</div>`, null, 'Đóng', eyebrow, { vfx: false, ...opts });
   const qualityOf = x => F.SUBPHAM[x.sub];
   const popCell = (key, from, note = '') => {
     const x = H.item(key), q = qualityOf(x), qClass = L ? ' ' + L.keyClass('quality', q) : '';
     return `<button type="button" class="pop-item inventory-cell${qClass}" data-select="${esc(key)}" data-popup="1" data-from="${from}" data-sub="${x.sub}" aria-label="${esc(x.name)} · ${q} phẩm${note ? ' · ' + esc(note) : ''}">${img(key)}<span class="pop-name">${UI.kit.itemName(x)}</span>${note ? `<span class="pop-note">${esc(note)}</span>` : ''}</button>`;
   };
+
+  /* Nguồn nhận gợi ý theo loại vật phẩm; không bịa dữ liệu riêng cho từng món. */
+  const itemSource = x => ({
+    PILL: 'Luyện đan hoặc mua tại Tàng bảo các.',
+    TAL: 'Chế phù hoặc mua tại Tàng bảo các.',
+    EQ: 'Lịch luyện, bí cảnh, đấu giá hoặc chế tác.',
+    BT: 'Lịch luyện, bí cảnh hoặc Tàng Kinh Các.',
+    HERB: 'Hái ở Linh Điền hoặc rơi khi lịch luyện.',
+    SEED: 'Mua tại Tàng bảo các hoặc nhận từ thưởng.',
+    QITEM: 'Nhận từ nhiệm vụ.'
+  }[x.kind] || 'Lịch luyện, bí cảnh, chế tác hoặc Tàng bảo các.');
 
   function itemDetail(key, back) {
     const s = UI.s(), g = UI.g(), x = H.item(key);
@@ -225,11 +213,42 @@
     if (x.kind === 'EQ') primary = btn(equipped ? 'Tháo' : 'Trang bị', 'equip', codeAttr(key));
     else if (x.kind === 'BT') primary = learned ? (H.MANUALS.school(x) === 'nghe' ? '<span class="gold">Đã học bí tịch nghề</span>' : btn(active ? 'Dừng vận hành' : 'Vận hành', 'activate', codeAttr(key))) : btn('Lĩnh ngộ', 'learn', codeAttr(key));
     else primary = btn(usable ? 'Sử dụng' : 'Công dụng', usable ? 'consume' : 'info', codeAttr(key));
-    const sell = g.count(key) > 0 ? btn('Bán 1', 'sell', codeAttr(key), equipped && g.count(key) <= 1, 'btn-outline') : '';
+    const count = g.count(key);
+    const sell = count > 0 ? btn('Bán 1', 'sell', codeAttr(key), equipped && count <= 1, 'btn-outline') : '';
     const back_ = back ? `<button type="button" class="btn btn-outline" data-act="${back}">‹ Quay lại</button>` : '';
-    const mastery = learned ? row('Thuần thục', pct(s.learned[key])) : '';
-    return `<div class="pop-detail">${img(key, 'detail-img')}${itemDescription(key)}${mastery}${g.count(key) > 0 ? row('Giá bán', moneyHTML(F.shop_sell_price(g.price(key)))) : ''}
-      <div class="detail-actions">${back_}${primary}${sell}</div></div>`;
+    const d = x.design, e = H.DESIGN.effects[x.code], scale = 2 ** (x.sub - H.BY_ID[x.code].sub);
+    let detail = '', effect = '';
+    if (d?.group === 'pháp bảo') {
+      detail = row('Thuộc tính', 'Sinh lực +' + num(d['hp cộng'] * scale) + ' · Linh lực +' + num(d['mp cộng'] * scale) + ' · Công kích +' + num(d['atk cộng'] * scale) + ' · Phòng thủ +' + num(d['def cộng'] * scale)) +
+        row('Né tránh / bạo kích', '+' + num(d['eva cộng (%)'] * scale) + '% / +' + num(d['crit cộng (%)'] * scale) + '%') +
+        (e ? row('Hiệu ứng', esc(e['hiệu ứng']) + ' · ' + esc(e['điều kiện kích hoạt'])) : '');
+    } else if (d?.group === 'công pháp') {
+      detail = row('Hệ', esc(d['hệ'])) + row('Kỹ năng', esc(d['công dụng']) + ' · ' + d['tiêu hao mp'] + ' linh lực · ' + d['hồi chiêu (giây)'] + ' giây');
+    } else if (d?.group === 'bí tịch') {
+      detail = row('Thể loại', esc(d['thể loại'])) + row('Công dụng', esc(d['công dụng']));
+    } else if (x.kind === 'PILL' || x.kind === 'TAL') {
+      effect = UI.kit.pillEffectText ? UI.kit.pillEffectText(x) : '';
+    } else {
+      effect = UI.kit.itemEffectText ? UI.kit.itemEffectText(x) : '';
+      if (effect === x.description) effect = '';
+    }
+    const requiredRealm = Number.isInteger(x.useReq?.realmMin) ? F.REALMS[x.useReq.realmMin] : x.realm;
+    const condition = UI.kit.useCondition ? UI.kit.useCondition(x) : (x.kind === 'QITEM' ? 'Vật phẩm nhiệm vụ, không bán' : 'Không có điều kiện đặc biệt');
+    const sellPrice = count > 0 ? F.shop_sell_price(g.price(key)) : 0;
+    const facts = [
+      ['Cảnh giới yêu cầu', requiredRealm || '—'],
+      count ? ['Số lượng', '×' + num(count)] : null,
+      learned ? ['Thuần thục', pct(s.learned[key])] : null,
+      sellPrice ? ['Giá bán', moneyHTML(sellPrice), true] : null,
+      x.age ? ['Tuổi dược liệu', x.age] : null
+    ].filter(Boolean);
+    const notes = [['Điều kiện', condition]];
+    if (x.kind === 'PILL' && x.effect === 'TU_VI') notes.push(['Lưu ý', 'Đan tăng tu vi giảm dần theo số viên đã dùng trong tầng hiện tại; tổng tu vi từ đan mỗi cảnh giới có trần.']);
+    return UI.kit.itemSheet(x, {
+      effect, facts, notes, detail,
+      source: 'Nguồn gốc: ' + itemSource(x),
+      actions: back_ + primary + sell
+    });
   }
 
   function gearWindow() {

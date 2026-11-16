@@ -2,14 +2,14 @@
 (function (root) {
   'use strict';
   const H = root.HU_GAME, F = H.F, A = root.HU_ASSETS;
-  const UI = root.HU_UI;
+  const UI = root.HU_UI, L = root.HU_LABELS;
   const { abs, $, esc, num, money, moneyHTML, coinLabel, pct, duration, row, btn, img, codeAttr, bar, card, empty, tabs, live } = UI.kit;
   const { QUESTS } = UI.data;
   const { lists } = UI;
 
   const TABS = [
     { id: 'map', label: 'Bản đồ', icon: '✥' },
-    { id: 'shop', label: 'Cửa hàng', icon: '◈' },
+    { id: 'shop', label: 'Tàng bảo các', icon: '◈' },
     { id: 'auction', label: 'Đấu giá', icon: '⚖' }
   ];
 
@@ -151,12 +151,22 @@
       error ? `<p>${esc(error)}</p>${btn('Thử lại', 'accountRefresh', '', false, 'btn-outline')}` : '<p>Đang hỏi máy chủ Hư Giới...</p>',
       { eyebrow: 'KẾT NỐI MÁY CHỦ' });
   };
+  /* Bản HTML dùng trong bảng/chi tiết; bản chữ thuần dùng cho toast vì toast
+     tự escape nội dung, nếu nhận HTML sẽ hiện nguyên thẻ. */
   const rewardLine = reward => {
     const parts = [];
     if (reward?.stone) parts.push(moneyHTML(reward.stone));
     if (reward?.itemName && reward.qty) parts.push(esc(reward.itemName) + ' ×' + reward.qty);
     if (Array.isArray(reward?.items)) for (const item of reward.items)
       if (item?.name && item.qty) parts.push(esc(item.name) + ' ×' + item.qty);
+    return parts.join(' · ') || 'Không có quà';
+  };
+  const rewardText = reward => {
+    const parts = [];
+    if (reward?.stone) parts.push(money(reward.stone));
+    if (reward?.itemName && reward.qty) parts.push(reward.itemName + ' ×' + reward.qty);
+    if (Array.isArray(reward?.items)) for (const item of reward.items)
+      if (item?.name && item.qty) parts.push(item.name + ' ×' + item.qty);
     return parts.join(' · ') || 'Không có quà';
   };
   const dailyPanel = () => {
@@ -252,20 +262,50 @@
     }).join('')}</div>`;
   };
 
+  /* Chi tiết vật phẩm trong Tàng bảo các, dùng chung khung với Hành trang. */
+  const shopDetail = (key, x, price) => {
+    let effect = UI.kit.itemEffectText ? UI.kit.itemEffectText(x) : '';
+    if (effect === x.description) effect = '';
+    const requiredRealm = Number.isInteger(x.useReq?.realmMin) ? F.REALMS[x.useReq.realmMin] : x.realm;
+    return UI.kit.itemSheet(x, {
+      effect,
+      facts: [
+        ['Cảnh giới yêu cầu', requiredRealm || '—'],
+        ['Giá mua', moneyHTML(price), true]
+      ],
+      notes: [['Điều kiện', UI.kit.useCondition(x)]],
+      lore: false,
+      footer: `<div class="buy-qty" ${codeAttr(key)} data-unit="${price}">
+        <div class="buy-qty-row">
+          <button type="button" class="btn btn-outline buy-qty-step" data-act="buyQtyStep" data-step="-1" aria-label="Giảm số lượng">−</button>
+          <input type="number" class="buy-qty-input" min="1" max="999" value="1" inputmode="numeric" aria-label="Số lượng cần mua">
+          <button type="button" class="btn btn-outline buy-qty-step" data-act="buyQtyStep" data-step="1" aria-label="Tăng số lượng">+</button>
+          <button type="button" class="btn btn-outline buy-qty-max" data-act="buyQtySet" data-n="max">Tối đa</button>
+        </div>
+        ${btn('Mua · <span class="buy-qty-total" aria-live="polite">' + moneyHTML(price) + '</span>', 'buyQty', codeAttr(key), false, 'btn-gold btn-wide')}
+      </div>`
+    });
+  };
+
   const shop = () => {
     const s = UI.s(), g = UI.g(), v = UI.view;
     const xs = H.ITEMS.filter(x => x.kind !== 'QITEM' && x.tier <= s.realm + 1 && lists.matches(x));
-    return `<p class="screen-lead">Cửa hàng có thể bán vật phẩm cao hơn cảnh giới hiện tại một bậc. Giá mua bằng 120% giá trị vật phẩm. Số dư ${moneyHTML(s.stone)}.</p>${lists.controls({ quality: true })}${lists.pager(xs.length)}
-      <div class="peek-list shop-list">${lists.slice(xs).map(x => {
-        const key = ['PILL', 'EQ', 'BT', 'TAL'].includes(x.kind) ? H.keyFor(x.code, v.quality) : x.code;
-        return UI.kit.peekRow('shop:' + key, x.name, {
-          titleHtml: UI.kit.itemName(H.item(key)), eyebrow: 'CỬA HÀNG', mark: '◈', img: img(key),
-          body: `<div class="pop-detail">${img(key, 'detail-img')}<p>${x.category} · ${x.realm} · ${F.SUBPHAM[H.item(key).sub]} phẩm</p><p>${esc(x.description)}</p>${UI.kit.pillEffectText && ['PILL','TAL'].includes(x.kind) ? `<p class="item-tip-effect"><span>Thuộc tính / công dụng</span> ${esc(UI.kit.pillEffectText(H.item(key)))}</p>` : ''}<div class="detail-actions">${btn('Mua · ' + moneyHTML(F.shop_buy_price(g.price(key))), 'buy', codeAttr(key))}</div>
-            <div class="buy-qty" ${codeAttr(key)} data-unit="${F.shop_buy_price(g.price(key))}"><label>Số lượng<input type="number" class="buy-qty-input" min="1" max="999" value="1" inputmode="numeric"></label>
-              ${[5, 10, 50].map(n => `<button type="button" class="btn btn-outline btn-sm" data-act="buyQtySet" data-n="${n}">×${n}</button>`).join('')}<button type="button" class="btn btn-outline btn-sm" data-act="buyQtySet" data-n="max">Tối đa</button>
-              ${btn('Mua số lượng', 'buyQty', codeAttr(key), false, 'btn-gold')}</div></div>`
-        });
-      }).join('')}</div>
+    const cards = lists.slice(xs).map(x => {
+      const key = ['PILL', 'EQ', 'BT', 'TAL'].includes(x.kind) ? H.keyFor(x.code, v.quality) : x.code;
+      const item = H.item(key), price = F.shop_buy_price(g.price(key));
+      const quality = F.SUBPHAM[item.sub] || 'Hạ';
+      const qClass = L ? ' ' + L.keyClass('quality', quality) : '';
+      const id = 'shop:' + key;
+      UI.peek.set(id, { title: item.name, eyebrow: 'TÀNG BẢO CÁC', body: shopDetail(key, item, price) });
+      return `<button type="button" class="shop-card${qClass}" data-act="peek" data-peek="${esc(id)}" aria-label="${esc(item.name)} · ${esc(UI.kit.rankLabelOf(item))} · ${esc(UI.kit.qualityLabelOf(item))} · ${esc(money(price))}">
+        <span class="shop-card-art">${img(key)}</span>
+        <span class="shop-card-name">${UI.kit.itemName(item)}</span>
+        <span class="shop-card-meta">${esc(UI.kit.rankLabelOf(item))} · ${esc(UI.kit.qualityLabelOf(item))}</span>
+        <span class="shop-card-price">${moneyHTML(price)}</span>
+      </button>`;
+    }).join('');
+    return `<p class="screen-lead">Tàng bảo các bày bán vật phẩm cao hơn cảnh giới hiện tại một bậc. Giá mua bằng 120% giá trị vật phẩm. Số dư ${moneyHTML(s.stone)}.</p>${lists.controls({ quality: true })}${lists.pager(xs.length)}
+      <div class="shop-grid">${cards || empty('Không có vật phẩm phù hợp bộ lọc.')}</div>
       ${card('Yêu đan và linh thạch', `${row('Giá trị yêu đan', moneyHTML(s.yaoValue))}${btn('Bán yêu đan', 'sellYao', '', s.yaoValue <= 0)}<p>Hấp thu linh thạch để đổi lấy tu vi với hiệu suất 15%; loại thấp hơn cảnh giới bị giảm hiệu quả.</p><div class="action-group coin-row">${F.COINS.map(([n, val], i) => btn('Hấp thu 1 ' + coinLabel(n), 'absorb', `data-index="${i}"`, s.stone < val, 'btn-outline')).join(' ')}</div>`)}`;
   };
 
@@ -296,7 +336,11 @@
     pageBg: () => UI.kit.abs(root.HU_ASSETS.BG.sect),
     render: tab => '<header class="screen-title"><span class="eyebrow gold">TIÊN MÔN</span><h2>Tông môn</h2></header><div class="screen-body">' + UI.adventure.sect(tab) + '</div>',
     update: tab => { UI.adventure.update(); if (tab === 'exploration') UI.screens.combat.update(); },
+    mount: tab => { if (tab === 'exploration') UI.screens.combat.mount?.(); },
+    /* Bảng Lịch luyện dùng chung chữ ký với màn giao chiến để hoạt ảnh
+       không bị nhịp tick một giây vẽ lại giữa chừng. */
     signature: tab => {
+      if (tab === 'exploration') return UI.screens.combat.signature?.() ?? '';
       const s = UI.s(), e = s.exploration?.active;
       return [tab,s.craftQueue.length,s.realm,s.stage,s.rootType,s.rootSub,s.sect.joined,s.sect.id,s.sect.discipleClass,UI.sectMeasured?.(),s.sect.earned,s.sect.contribution,s.adventurePoints || 0,s.borrowedBook || '',s.sect.mission?.id,s.sect.mission?.end,s.sect.last?.at,s.sect.repeat,s.hp,s.stone,s.dungeon.active?.end,s.dungeon.run?.floor,s.dungeon.run?.turn,e?.start,e?.choice,e?.battle ? [e.battle.state,e.battle.turn,Math.round(e.battle.enemyHp),e.battle.intent].join(',') : '',s.exploration?.last?.end].join('|');
     }
@@ -323,22 +367,53 @@
 
   UI.action('buy', async (el, d) => {
     await UI.command('buy', { code: d.code });
-    UI.toast('Đã mua ' + H.item(d.code).name + '.', { type: 'loot', title: 'Cửa hàng' });
+    UI.toast('Đã mua ' + H.item(d.code).name + '.', { type: 'loot', title: 'Tàng bảo các' });
     UI.vfx?.stage({ kind: 'chien_dau', variant: 'linh_phu', fps: 12, size: 'clamp(100px,16vw,170px)', style: { left: '50%', bottom: '24%', transform: 'translateX(-50%)' } });
   });
+  UI.action('sellYao', async () => {
+    const amount = await UI.command('sellYao');
+    UI.toast('Đã bán yêu đan · nhận ' + money(amount) + '.', { type: 'loot', title: 'Tàng bảo các' });
+  });
   const qtyBox = el => el.closest('.buy-qty') || el.closest('.pop-detail')?.querySelector('.buy-qty');
+  /* Nhãn nút mua phản ánh tổng tiền theo số lượng đang chọn. */
+  const syncBuyQty = box => {
+    if (!box) return;
+    const input = box.querySelector('.buy-qty-input'), total = box.querySelector('.buy-qty-total');
+    if (!input || !total) return;
+    const unit = Math.max(1, Number(box.dataset.unit) || 1);
+    const n = Math.max(1, Math.min(999, Math.floor(Number(input.value)) || 1));
+    total.innerHTML = moneyHTML(unit * n);
+  };
+  root.document.addEventListener('input', e => {
+    const input = e.target.closest?.('.buy-qty-input');
+    if (input) syncBuyQty(input.closest('.buy-qty'));
+  });
+  /* Hai nút chỉnh số lượng chạy ngay trong hộp thoại, không đóng cửa sổ. */
+  UI.modalKeepOpen.add('buyQtySet');
+  UI.modalKeepOpen.add('buyQtyStep');
+  UI.action('buyQtyStep', (el, d) => {
+    const box = qtyBox(el), input = box?.querySelector('.buy-qty-input');
+    if (!input) return UI.KEEP;
+    const next = (Math.floor(Number(input.value)) || 1) + (Number(d.step) < 0 ? -1 : 1);
+    input.value = String(Math.max(1, Math.min(999, next)));
+    syncBuyQty(box);
+    input.focus({ preventScroll: true });
+    return UI.KEEP;
+  });
   UI.action('buyQtySet', (el, d) => {
     const box = qtyBox(el), input = box?.querySelector('.buy-qty-input');
     if (!input) return UI.KEEP;
     const unit = Math.max(1, Number(box.dataset.unit) || 1);
     input.value = d.n === 'max' ? Math.max(1, Math.min(999, Math.floor(UI.s().stone / unit))) : d.n;
+    syncBuyQty(box);
+    input.focus({ preventScroll: true });
     return UI.KEEP;
   });
   UI.action('buyQty', async (el, d) => {
     const box = qtyBox(el), n = Math.floor(Number(box?.querySelector('.buy-qty-input')?.value));
     if (!Number.isInteger(n) || n < 1 || n > 999) throw Error('Nhập số lượng từ 1 đến 999.');
     await UI.command('buy', { code: d.code, count: n });
-    UI.toast('Đã mua ' + n + ' ' + H.item(d.code).name + '.', { type: 'loot', title: 'Cửa hàng' });
+    UI.toast('Đã mua ' + n + ' ' + H.item(d.code).name + '.', { type: 'loot', title: 'Tàng bảo các' });
     UI.vfx?.stage({ kind: 'chien_dau', variant: 'linh_phu', fps: 12, size: 'clamp(100px,16vw,170px)', style: { left: '50%', bottom: '24%', transform: 'translateX(-50%)' } });
   });
   UI.action('npcGift', async (el, d) => {
@@ -408,7 +483,7 @@
   UI.action('claimDaily', async (el, d) => {
     const result = await UI.session.claimDailyQuest(d.id);
     if (!result) return UI.KEEP;
-    UI.toast('Đã nhận ' + rewardLine(result.reward) + '.', { type: 'loot', title: 'Nhiệm vụ ngày' });
+    UI.toast('Đã nhận ' + rewardText(result.reward) + '.', { type: 'loot', title: 'Nhiệm vụ ngày' });
     UI.vfx?.stage({ kind: 'chien_dau', variant: 'phi_thang', fps: 14, size: 'clamp(110px,18vw,190px)', style: { left: '50%', bottom: '24%', transform: 'translateX(-50%)' } });
   });
   UI.action('checkIn', async () => {
@@ -418,7 +493,7 @@
       UI.toast('Hôm nay đã điểm danh · chuỗi ' + num(result.streak) + '/7.', { type: 'info', title: 'Điểm danh' });
       return UI.KEEP;
     }
-    UI.toast('Điểm danh ngày ' + num(result.day) + ' · ' + rewardLine(result.reward) + '.', { type: 'loot', title: 'Điểm danh' });
+    UI.toast('Điểm danh ngày ' + num(result.day) + ' · ' + rewardText(result.reward) + '.', { type: 'loot', title: 'Điểm danh' });
     UI.vfx?.stage({ kind: 'chien_dau', variant: 'linh_khi', fps: 14, size: 'clamp(110px,18vw,190px)', style: { left: '50%', bottom: '24%', transform: 'translateX(-50%)' } });
   });
   UI.action('claimMail', async (el, d) => {
@@ -426,7 +501,7 @@
     if (!result) return UI.KEEP;
     const reward = result.attachments;
     const has = (reward?.stone || 0) > 0 || (reward?.items || []).length > 0;
-    UI.toast(has ? 'Đã nhận ' + rewardLine(reward) + '.' : 'Đã đánh dấu thư là đã đọc.', { type: has ? 'loot' : 'info', title: 'Hộp thư' });
+    UI.toast(has ? 'Đã nhận ' + rewardText(reward) + '.' : 'Đã đánh dấu thư là đã đọc.', { type: has ? 'loot' : 'info', title: 'Hộp thư' });
     if (has) UI.vfx?.stage({ kind: 'chien_dau', variant: 'linh_phu', fps: 12, size: 'clamp(110px,18vw,190px)', style: { left: '50%', bottom: '24%', transform: 'translateX(-50%)' } });
   });
   UI.action('fragments', async () => {

@@ -7,8 +7,12 @@
   const color = i => root.HU_MERIDIANS?.HE_COLOR?.[H.ELEMENT_NAMES[i]] || '#b6c7dc';
   const signed = n => (n >= 0 ? '+' : '') + pct(n);
   /* Nhãn hệ/linh căn/tông môn/danh phận lấy màu từ client/ui/labels.js. */
-  const elementLabel = (i, text = element(i)) => !L ? esc(text)
-    : i < 0 ? L.span(text, 'element', 'trungHoa') : L.span(text, 'element', H.ELEMENT_NAMES[i]);
+  const elementLabel = (i, text = element(i)) => {
+    if (!L) return esc(text);
+    if (i < 0) return L.span(text, 'element', 'trungHoa');
+    const key = H.ELEMENT_NAMES[i];
+    return key ? L.span(text, 'element', key) : esc(text);
+  };
   const rootLabelHtml = (type, sub, variant = 'name') => {
     const text = H.rootLabel(type, sub);
     if (!L) return esc(text);
@@ -177,7 +181,11 @@
     if (sub === 'exploration') return nav + UI.screens.combat.panel();
     if (sub === 'dungeons') return nav + dungeons();
     const rite = sub === 'missions' ? sectRite() : '';
-    if (!d) return nav + rite + `<p class="screen-lead">${sectMeasured() ? 'Chọn một tông môn để bước lên tiên lộ.' : 'Chạm bia đo linh căn trước khi chọn tông môn.'}</p><div class="adventure-grid">${H.SECTS.map(x => card(sectLabel(x), `<p>${x.desc}</p><p class="gold">${x.bonus}</p>` + btn('Gia nhập', 'joinSect', `data-id="${x.id}"`, !sectMeasured()))).join('')}</div>`;
+    /* Chưa đo linh căn: các tab khác không có bia đá, thêm lối tắt về Nhiệm vụ
+       để người chơi không gặp nút "Gia nhập" bị khóa mà không rõ đường đi. */
+    const riteLink = !d && !sectMeasured() && sub !== 'missions'
+      ? `<div class="action-group">${btn('Đến bia đo linh căn', 'sectPanel', 'data-panel="missions"', false, 'btn-outline')}</div>` : '';
+    if (!d) return nav + rite + `<p class="screen-lead">${sectMeasured() ? 'Chọn một tông môn để bước lên tiên lộ.' : 'Chạm bia đo linh căn trước khi chọn tông môn.'}</p>${riteLink}<div class="adventure-grid">${H.SECTS.map(x => card(sectLabel(x), `<p>${x.desc}</p><p class="gold">${x.bonus}</p>` + btn('Gia nhập', 'joinSect', `data-id="${x.id}"`, !sectMeasured()))).join('')}</div>`;
     const rank = g.sectRank();
     const header = card(sectLabel(d), `<p>${d.desc} <b class="gold">${d.bonus}</b></p>` + row('Danh phận', g.sectDisciple() ? roleLabel(g.sectDisciple()) : 'Chưa xác định') + row('Cấp cống hiến', rank.name) + row('Cống hiến khả dụng', num(s.sect.contribution)) + row('Điểm lịch luyện', num(s.adventurePoints || 0)) + row('Tổng đã kiếm', num(s.sect.earned)) +
       row('Linh thạch tự tích lũy', moneyHTML(g.sectIncome()) + '/giây') +
@@ -196,7 +204,7 @@
     let extra = '';
     if (type === 'Dị') {
       const di = H.DI_LINH_CAN[s.rootSub];
-      if (di) extra = `<div class="root-di"><b>${elementLabel(s.rootSub, di.name)} · ${esc(di.role)}</b><p>${esc(di.desc)}</p><p class="root-di-fx">Thế mạnh: ${esc(UI.rootEffectText(di.effects))}</p></div>`;
+      if (di) extra = `<div class="root-di"><b>${L ? L.span(di.name, 'element', s.rootSub) : esc(di.name)} · ${esc(di.role)}</b><p>${esc(di.desc)}</p><p class="root-di-fx">Thế mạnh: ${esc(UI.rootEffectText(di.effects))}</p></div>`;
     } else if (type === 'Hỗn Độn') {
       extra = `<div class="root-di"><b>Giữ các hệ thành phần ban đầu</b><p>Không bị khắc; khắc ngũ hành và dị linh căn +10%.</p></div>`;
     }

@@ -160,7 +160,7 @@
         <img class="decor stone" src="${FARM(1)}" alt="" loading="lazy" decoding="async"><img class="decor scarecrow" src="${FARM(2)}" alt="" loading="lazy" decoding="async">
         <div class="plot-grid">${plots}</div></div>
       <div class="screen-grid">
-        ${card('Hạt giống trong túi', seedRows ? `<div class="shop-list">${seedRows}</div>` : `${empty('Chưa có hạt giống.')}<button class="btn btn-outline" data-go="world:shop">Mua ở Cửa hàng</button>`, { eyebrow: `Ô TRỐNG ${4 - s.garden.length}/4` })}
+        ${card('Hạt giống trong túi', seedRows ? `<div class="shop-list">${seedRows}</div>` : `${empty('Chưa có hạt giống.')}<button class="btn btn-outline" data-go="world:shop">Mua ở Tàng bảo các</button>`, { eyebrow: `Ô TRỐNG ${4 - s.garden.length}/4` })}
         ${card('Phân bón', ferts ? `<div class="shop-list">${ferts}</div><p class="info-note">Giảm 30% thời gian còn lại của cây đang lớn đầu tiên.</p>` : empty('Chưa có phân bón.'), { eyebrow: 'TĂNG TỐC' })}
       </div>`;
   }

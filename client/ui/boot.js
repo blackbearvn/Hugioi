@@ -307,6 +307,19 @@
   UI.onDeath = function (r) {
     if (deathOpen || !store.ready) return;
     if (UI.tribulation?.pageOpen) { UI.pendingDeathReport = r || {}; return; }
+    /* Trận đấu vừa kết thúc: để hoạt ảnh đạo thân gục ngã chạy xong rồi mới
+       phủ hộp thoại tọa hóa lên, tránh cắt ngang đòn quyết định. */
+    if (UI.battleFx?.busy?.()) {
+      deathOpen = true;
+      const wait = () => {
+        if (!store.ready) { deathOpen = false; return; }
+        if (UI.battleFx?.busy?.()) { root.setTimeout(wait, 180); return; }
+        deathOpen = false;
+        UI.onDeath(r);
+      };
+      root.setTimeout(wait, 240);
+      return;
+    }
     UI.tutorial?.close();
     const s = UI.s(), g = UI.g();
     deathOpen = true;
@@ -321,7 +334,7 @@
       '</div>' +
       '<p class="info-note">Bạn có thể bắt đầu lại từ Khởi Nguyên. Nhân vật, cảnh giới, lực chiến và vật phẩm sẽ về 0; Thiên Tinh và nâng cấp Thiên Mệnh Các vẫn được giữ cho đạo thân kế tiếp.</p>' +
       '<div class="death-actions"><button type="button" class="btn btn-gold btn-wide" data-act="resetAfterDeath">Bắt đầu lại từ đầu</button></div>',
-      null, 'Đóng', 'THIÊN MỆNH', { type: 'danger', symbol: '✝', vfx: ['loi_kiep', 'ha_gioi'] });
+      null, 'Đóng', 'THIÊN MỆNH', { type: 'danger', symbol: '✝', vfx: ['loi_kiep', 'ha_gioi'], dismissible: false });
   };
 
 

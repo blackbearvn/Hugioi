@@ -122,9 +122,12 @@
       const actor = hostOf(target === 'battleFoe' ? '#battleFoeSprite' : '#battleSelf');
       if (host?.getClientRects().length && actor?.getClientRects().length) {
         const r = host.getBoundingClientRect(), a = actor.getBoundingClientRect();
+        /* Ảnh sprite có nhiều khoảng trong suốt quanh nhân vật, nên dùng chiều cao
+           ước lệ để số sát thương và hiệu ứng rơi đúng thân, không lên bảng tên. */
+        const tall = target === 'battleFoe' ? Math.min(96, a.height) : 44;
         return { host, x: a.left + a.width / 2 - r.left,
-          y: (target === 'battleFoe' ? a.top + a.height * .28 : a.top + a.height * .35) - r.top,
-          height: target === 'battleFoe' ? a.height : 44 };
+          y: (target === 'battleFoe' ? a.top + a.height * .42 : a.top + a.height * .35) - r.top,
+          height: tall, battle: true };
       }
       target = target === 'battleFoe' ? 'enemy' : 'hero';
     }
@@ -192,7 +195,9 @@
     const el = document.createElement('span');
     el.className = 'float-text ' + cls;
     el.textContent = text;
-    Object.assign(el.style, { left: p.x + 'px', top: (p.y - p.height * .8) + 'px' });
+    /* Trong bảng trận, ảnh quái có viền trong suốt dày nên số sát thương chỉ nhích
+       lên một đoạn ngắn để nằm trên thân, không đè lên bảng tên. */
+    Object.assign(el.style, { left: p.x + 'px', top: (p.y - p.height * (p.battle ? .45 : .8)) + 'px' });
     transient(p.host, el, 1000);
   }
 

@@ -337,10 +337,11 @@
       },
       _battleEnemyTurn(e, b, enemy, st, now) {
         const s = this.s;
-        let taken = 0;
+        let taken = 0, counter = false;
         const locked = b.enemyStatuses.find(x => ['đóng băng', 'choáng'].includes(x.type) && x.turns > 0);
         if (locked) this.battleLog(b, enemy.name + ' đang bị ' + locked.type + ', không thể phản kích.');
         else {
+          counter = true;
           const heavy = b.intent === 'heavy', phase = this.battlePhase(enemy, b.enemyHp / b.enemyMax);
           const dodge = Math.min(.8, st.DODGE + (b.bonusDodge || 0));
           if (this.rng() >= dodge) {
@@ -390,10 +391,10 @@
           e.cleared = true; e.text = b.result;
           this.battleLog(b, 'Sinh lực cạn. Đạo thân tọa hóa.');
           this.markDeath('combat', now);
-          return { taken, died: true, state: b.state };
+          return { counter, taken, died: true, state: b.state };
         }
-        if (b.enemyHp <= 0) { this._battleWin(e, b); return { taken, won: true, state: b.state }; }
-        return { taken, state: b.state };
+        if (b.enemyHp <= 0) { this._battleWin(e, b); return { counter, taken, won: true, state: b.state }; }
+        return { counter, taken, state: b.state };
       },
       battleAct(payload, now) {
         now = at(this, now);

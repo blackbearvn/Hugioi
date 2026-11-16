@@ -56,7 +56,7 @@
     const prep = prepItems();
     return card('Chuẩn bị đan / phù', prep
       ? `<div class="shop-list">${prep}</div>`
-      : `${empty('Chưa có đan hay phù hộ kiếp trong túi.')}<div class="action-group"><button class="btn btn-outline" data-go="world:shop">Mua ở Cửa hàng</button><button class="btn btn-outline" data-go="craft:dan">Tự luyện đan</button></div>`,
+      : `${empty('Chưa có đan hay phù hộ kiếp trong túi.')}<div class="action-group"><button class="btn btn-outline" data-go="world:shop">Mua ở Tàng bảo các</button><button class="btn btn-outline" data-go="craft:dan">Tự luyện đan</button></div>`,
       { eyebrow: 'HÀNH TRANG', cls: 'wide' });
   }
 

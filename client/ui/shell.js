@@ -8,7 +8,7 @@
   const { $, $$, esc, clamp, num, money, moneyHTML, pct, duration, btn } = UI.kit;
   const store = UI.store;
 
-  let modalAction = null, modalFocus = null, modalBusy = false;
+  let modalAction = null, modalFocus = null, modalBusy = false, modalDismissible = true;
   let lastFrameTime = 0, frameCount = 0, zTop = 1;
   let lastStageMode = '', lastIdleVfx = 0, lastDocTitle = '';
   let heroAttackUntil = 0, heroAttackFrame = 0;
@@ -483,6 +483,7 @@
   function modal(title, html, onConfirm = null, label = 'Tiếp tục', eyebrow = 'THIÊN MỆNH', opts = {}) {
     modalAction = onConfirm;
     modalBusy = !!opts.busy;
+    modalDismissible = opts.dismissible !== false;
     if ($('modalLayer').hidden) modalFocus = document.activeElement;
     const type = opts.type || 'info';
     const layer = $('modalLayer');
@@ -495,9 +496,13 @@
     $('modalTitle').textContent = title;
     $('modalBody').innerHTML = html;
     $('modalSymbol').textContent = opts.symbol || ({ success: '✦', danger: '⚠', gold: '✧', info: '✧' }[type] || '✦');
-    $('modalButtons').innerHTML = modalBusy ? '' : btn(label, 'modalConfirm', '', false, type === 'danger' ? 'btn-danger' : 'btn-gold') +
-      (onConfirm ? btn('Hủy', 'modalClose', '', false, 'btn-outline') : '');
-    layer.querySelector('.modal-x').hidden = modalBusy;
+    /* Chỉ hộp thoại có hành động xác nhận mới cần nút ở chân. Hộp thông tin
+       đóng bằng nút × ở góc trên hoặc bấm nền, không lặp thêm nút "Đóng". */
+    $('modalButtons').innerHTML = modalBusy ? '' : onConfirm
+      ? btn(label, 'modalConfirm', '', false, type === 'danger' ? 'btn-danger' : 'btn-gold') +
+        btn('Hủy', 'modalClose', '', false, 'btn-outline')
+      : '';
+    layer.querySelector('.modal-x').hidden = modalBusy || !modalDismissible;
     layer.hidden = false;
     hideItemTip();
     document.body.classList.add('modal-open');
@@ -509,13 +514,21 @@
           : type === 'gold' ? ['chien_dau', 'linh_phu'] : null);
       if (fx) UI.vfx?.play('#modalVfx', { kind: fx[0], variant: fx[1], fps: 10, loop: true, className: 'modal-vfx-sprite' });
     }
-    if (!modalBusy) $('modalButtons').querySelector(type === 'danger' && onConfirm ? '[data-act="modalClose"]' : 'button')?.focus();
-    else layer.querySelector('.game-modal').focus?.({ preventScroll: true });
+    /* Hộp thông tin (không có nút xác nhận) nhận tiêu điểm vào chính khung,
+       tránh viền vàng dính trên nút ×; Tab vẫn tới được nút ×. Hộp xác nhận
+       đưa tiêu điểm vào hành động chính. */
+    const card = layer.querySelector('.game-modal');
+    const primary = !modalBusy && onConfirm
+      ? $('modalButtons').querySelector(type === 'danger' ? '[data-act="modalClose"]' : 'button')
+      : null;
+    (primary || card).focus?.({ preventScroll: true });
   }
 
   function closeModal(force = false) {
     if (modalBusy && !force) return;
+    if (!modalDismissible && !force) return;
     modalBusy = false;
+    modalDismissible = true;
     const layer = $('modalLayer');
     layer.hidden = true;
     layer.removeAttribute('data-type');
@@ -1975,8 +1988,10 @@
     }
     if (name === 'resetAfterDeath') { await safe(() => UI.resetAfterDeath?.()); return; }
     if (!$('modalLayer').hidden) {
-      if (!UI.modalActions.has(name) && !$('modalBody').querySelector('.peek-pop')) return;
-      closeModal();
+      const peekOpen = !!$('modalBody').querySelector('.peek-pop');
+      if (!UI.modalActions.has(name) && !peekOpen) return;
+      /* Nút chỉnh số lượng trong hộp thoại cửa hàng phải giữ hộp thoại mở. */
+      if (!(peekOpen && UI.modalKeepOpen.has(name))) closeModal();
     }
     if (store.locked) { toast('Một tab khác đang chơi. Đóng tab kia rồi tải lại trang.'); return; }
     if (trib.pageOpen) {
