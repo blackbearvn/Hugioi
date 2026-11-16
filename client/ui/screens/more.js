@@ -46,6 +46,8 @@
   }
 
   // Bạn bè người chơi thật: dữ liệu ở máy chủ, tải khi mở tab và thăm dò thưa để hiện chấm đỏ lời mời.
+  // Bạn bè người thật mở sớm: từ Luyện Khí viên mãn (khớp kiểm tra ở Edge friends.ts).
+  const buddyOpen = () => { const st = UI.s(); return st.realm > 0 || st.stage >= F.STAGES[0]; };
   const buddy = { data: null, error: '', at: 0, owner: '', pending: null, busy: false };
   UI.friendRequests = () => buddy.owner === UI.session?.accountId ? (buddy.data?.incoming?.length || 0) : 0;
   function refreshBuddyViews() {
@@ -66,7 +68,7 @@
   const loadBuddies = force => buddyCall({ action: 'list' }, force).catch(() => null);
   root.setInterval?.(() => {
     try {
-      if (root.document?.hidden || !UI.session?.accountId || UI.s().realm < H.FEATURES.social.realm) return;
+      if (root.document?.hidden || !UI.session?.accountId || !buddyOpen()) return;
       void loadBuddies(false);
     } catch { /* chưa vào game */ }
   }, 90000);
@@ -232,6 +234,9 @@
   }
 
   const body = { online, friends, partner, dao, pvp, ranking };
+  function lockedBuddy() {
+    return card('Chưa mở', empty('Kết bạn với người chơi thật mở từ Luyện Khí viên mãn. Hiện bạn ở ' + esc(F.REALMS[UI.s().realm]) + ' tầng ' + num(UI.s().stage) + '/' + F.STAGES[UI.s().realm] + '.'), { eyebrow: 'CHƯA ĐỦ ĐẠO HẠNH' });
+  }
   function lockedMore() {
     const f = H.FEATURES.social;
     return card('Chưa mở', empty(esc(UI.release.socialFeatureLabel(f.label)) + ' mở ở cảnh giới ' + esc(F.REALMS[f.realm]) + '. Hiện bạn đang ở ' + esc(F.REALMS[UI.s().realm]) + '.'), { eyebrow: 'CHƯA ĐỦ ĐẠO HẠNH' });
@@ -241,7 +246,7 @@
     id: 'more', label: 'Giao du', icon: '♡', eyebrow: 'GIAO DU', tabs: TABS,
     render: tab => {
       const active = UI.release.allowed('more:' + tab) ? tab : 'friends';
-      return `<header class="screen-title"><span class="eyebrow gold">GIAO DU</span><h2>Giao du</h2></header>${tabs(UI.release.tabs(TABS), active)}<div class="screen-body">${UI.release.notice(active)}${(active === 'ranking' || UI.g().featureOpen('social')) ? body[active]() : lockedMore()}</div>`;
+      return `<header class="screen-title"><span class="eyebrow gold">GIAO DU</span><h2>Giao du</h2></header>${tabs(UI.release.tabs(TABS), active)}<div class="screen-body">${UI.release.notice(active)}${(active === 'ranking' || (active === 'online' ? buddyOpen() : UI.g().featureOpen('social'))) ? body[active]() : (active === 'online' ? lockedBuddy() : lockedMore())}</div>`;
     },
     mount: tab => { if (tab === 'ranking') void loadLeaderboard(); if (tab === 'online') void loadBuddies(false); },
     signature: tab => {
