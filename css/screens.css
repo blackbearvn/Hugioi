@@ -432,7 +432,6 @@ body.in-tribulation{overflow:hidden}
 .battle-round b{font:800 22px/1.05 var(--serif);color:#ffe1a0;letter-spacing:0}
 .battle-kind{max-width:92px;font-size:9.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;text-align:center;color:#e6bd5c}
 .battle-clock{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border:1px solid #3d475c;border-radius:999px;background:#080b11d9;color:#cbd2de}
-.battle-clock>i{font-style:normal;font-size:10px;opacity:.8}
 .battle-clock>b{font:700 11.5px ui-monospace,monospace;letter-spacing:.04em;font-variant-numeric:tabular-nums}
 .battle-clock-bar{display:block;width:30px;height:3px;border-radius:3px;background:#242c3b;overflow:hidden}
 .battle-clock-bar>i{display:block;height:100%;width:0;background:linear-gradient(90deg,#b9744a,#e6bd5c);transition:width .5s}
@@ -456,10 +455,10 @@ body.in-tribulation{overflow:hidden}
 .battle-status.more{border-color:#4a5266;background:#141a24;color:#b9c1cf;flex:none}
 
 .battle-telegraph{position:relative;z-index:4;display:flex;align-items:center;justify-content:center;gap:5px;margin:8px 12px 0;padding:3px 12px;justify-self:center;max-width:calc(100% - 24px);border:1px solid #4a5874;border-radius:999px;background:#0b111bdb;color:#c6cede;font-size:11px;line-height:1.5;text-align:center}
-.battle-telegraph>span{flex:none;color:#e6bd5c;font-size:11px}
+.battle-pip{flex:none;display:inline-block;width:7px;height:7px;border-radius:50%;background:#e6bd5c}
 .battle-telegraph b{color:#f3e6cd;font-weight:700}
 .battle-telegraph.heavy{border-color:#c65a45;background:#2a1210ea;color:#ffd0c4;animation:battleIntent 1.8s ease-in-out infinite}
-.battle-telegraph.heavy>span{color:#ff9a7a}
+.battle-telegraph.heavy .battle-pip{background:#ff8a6a;border-radius:2px;transform:rotate(45deg)}
 
 /* --- Chiến binh --- */
 .battle-fighters{position:relative;z-index:3;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:end;gap:0 10px;padding:0 22px 40px}
@@ -477,7 +476,7 @@ body.in-tribulation{overflow:hidden}
 .battle-vfx{position:absolute;inset:0;z-index:5;pointer-events:none;overflow:hidden}
 .battle-vfx .float-text{font-size:clamp(19px,6.4vw,32px)}
 .battle-ticker{position:absolute;left:12px;right:12px;bottom:9px;z-index:4;display:flex;align-items:center;gap:7px;margin:0;padding:5px 11px;border:1px solid #ffffff17;border-radius:9px;background:#06090fd9;color:#d6dae3;font-size:12px;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.battle-ticker>i{flex:none;font-style:normal;color:#e6bd5c;font-size:11px}
+.battle-ticker .battle-pip{width:5px;height:5px}
 
 .battle-figure.is-attacking{animation:battleLunge .46s ease-in-out;will-change:transform}
 .battle-unit.hero .battle-figure.is-attacking{animation-name:battleLungeRight}
@@ -843,6 +842,17 @@ body.in-tribulation{overflow:hidden}
 .buddy-add label{flex:1 1 200px;display:grid;gap:4px;font-size:.82rem;color:var(--muted,#b9b2a2)}
 .buddy-add input{min-height:40px}
 .buddy-row .buddy-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
-.buddy-row.is-online .rank-no{color:#7fd69a}
 .buddy-row.is-dead .rank-name b{color:#9aa0ad;text-decoration:line-through;text-decoration-thickness:1px}
-.buddy-row.is-dead .rank-no{color:#7f8594}
+/* Màn Đạo hữu: cột đọc vừa phải, hàng danh sách phẳng (không thẻ lồng thẻ), chấm trạng thái vẽ bằng CSS,
+   nút hành động trong hàng không phát sáng để nút chính (Gửi lời mời) còn là điểm nhấn duy nhất. */
+.buddy-screen{max-width:720px}
+.buddy-screen .card{margin-top:12px;padding:12px 14px}
+.buddy-screen>.btn{margin-top:12px}
+.buddy-screen .rank-list{gap:0;margin-top:4px}
+.buddy-screen .rank-row{border:0;border-bottom:1px solid #ffffff12;border-radius:0;background:none;padding:10px 2px}
+.buddy-screen .rank-row:last-child{border-bottom:0}
+.buddy-screen .rank-no{display:grid;place-items:center}
+.buddy-dot{display:block;width:9px;height:9px;border-radius:50%;border:1.5px solid #6c7589}
+.buddy-row.is-online .buddy-dot{background:#6fd394;border-color:#6fd394;box-shadow:0 0 0 3px #6fd39426}
+.buddy-row.is-dead .buddy-dot{background:#4a5163;border-color:#4a5163}
+.buddy-row .btn-gold,.buddy-row .btn-gold:not(:disabled):hover{box-shadow:none}

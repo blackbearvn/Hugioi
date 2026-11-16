@@ -512,7 +512,7 @@
           <div class="battle-center">
             <span class="battle-round" aria-label="Lượt ${b.turn}">LƯỢT<b>${b.turn}</b></span>
             <span class="battle-clock" role="timer" aria-label="Thời gian lịch luyện còn lại, tạm dừng khi giao chiến">
-              <i aria-hidden="true">⏳</i><b id="explorationCountdown">${clock}</b>
+              <b id="explorationCountdown">${clock}</b>
               <span class="battle-clock-bar" aria-hidden="true"><i id="explorationProgress" style="width:${(100 - remain / 6).toFixed(1)}%"></i></span>
             </span>
             ${active && boss ? `<span class="battle-kind">Giai đoạn ×${phase.toFixed(2)}</span>` : ''}
@@ -524,7 +524,7 @@
           </div>
         </div>
         ${active ? `<p class="battle-telegraph${heavy ? ' heavy' : ''}" role="status">
-          <span aria-hidden="true">${heavy ? '⚠' : '✦'}</span>
+          <i class="battle-pip" aria-hidden="true"></i>
           <b>${esc(e.name)}</b> chuẩn bị ${heavy ? 'đòn nặng' : 'đòn thường'}${heavy ? ' · thủ thế giảm ' + Math.round(B.guardCut * 100) + '%' : ''}
         </p>` : '<span></span>'}
         <div class="battle-fighters">
@@ -541,7 +541,7 @@
         </div>
         <div class="battle-cry" aria-hidden="true"></div>
         <div id="battleVfx" class="battle-vfx" aria-hidden="true"></div>
-        <p class="battle-ticker" aria-hidden="true"><i>✦</i>${esc(latest)}</p>
+        <p class="battle-ticker" aria-hidden="true"><i class="battle-pip" aria-hidden="true"></i>${esc(latest)}</p>
       </div>
       ${verdict}
       ${command}

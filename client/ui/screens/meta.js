@@ -11,7 +11,7 @@
 
   function header() {
     const choice = H.META_UPGRADES[UI.s().destiny];
-    return `<header class="screen-title"><span class="eyebrow gold">THIÊN MỆNH</span><h2>Thiên mệnh</h2></header>
+    return `<header class="screen-title"><h2>Thiên mệnh</h2></header>
       <p class="screen-lead">Dấu ấn Thiên Mệnh là buff khởi đầu, phải mua tại Quầy Khởi Nguyên trước khi lập đạo thân. Mỗi đạo thân chỉ nhận một dấu ấn; khi tọa hóa, hành trình này kết thúc.</p>
       ${choice ? card('Dấu ấn đã nhận', row('Dấu ấn', L ? L.span(choice.name, 'destiny', UI.s().destiny, { variant: 'name' }) : esc(choice.name)) + row('Hiệu ứng', esc(choice.desc)), { eyebrow: 'KHỞI NGUYÊN' }) : card('Chưa có Dấu ấn', '<p>Đạo thân này không mang Dấu ấn Thiên Mệnh. Dấu ấn chỉ có thể mua trước khi lập đạo thân.</p>', { eyebrow: 'KHỞI NGUYÊN' })}`;
   }

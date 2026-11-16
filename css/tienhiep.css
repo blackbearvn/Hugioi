@@ -434,11 +434,11 @@ body{background:radial-gradient(ellipse 60% 50% at 82% -4%,#2a3f6a55,transparent
 .btn-gold{
   background:linear-gradient(180deg,#d9573a,#9c2c1b);
   border-color:#f0a07e;color:#fff8ef;text-shadow:none;
-  box-shadow:inset 0 1px 0 #ffffff33,0 4px 14px #c2402c55;
+  box-shadow:inset 0 1px 0 #ffffff26,0 1px 3px #000a;
 }
 .btn-gold:not(:disabled):hover{
   background:linear-gradient(180deg,#e8694a,#a8321f);
-  box-shadow:0 6px 18px #c2402c77;
+  box-shadow:0 2px 8px #000b;
 }
 .btn-outline{background:#1e222b;border-color:#4c5975;color:#e0d7cc}
 .btn-outline:not(:disabled):hover{background:#232833;border-color:#566485}

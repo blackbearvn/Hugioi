@@ -167,7 +167,7 @@
 
   function lockedFeature(id) {
     const f = H.FEATURES[id];
-    return card('Chưa mở', empty(esc(f.label) + ' mở ở cảnh giới ' + esc(F.REALMS[f.realm]) + '. Hiện bạn đang ở ' + esc(F.REALMS[UI.s().realm]) + '.'), { eyebrow: 'CHƯA ĐỦ ĐẠO HẠNH' });
+    return card('Chưa mở', empty(esc(f.label) + ' mở ở cảnh giới ' + esc(F.REALMS[f.realm]) + '. Hiện bạn đang ở ' + esc(F.REALMS[UI.s().realm]) + '.'));
   }
 
   function render(tab) {
