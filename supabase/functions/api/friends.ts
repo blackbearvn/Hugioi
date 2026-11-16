@@ -11,6 +11,8 @@ type Database = {
   transaction: <T>(work: (db: Db) => Promise<T>) => Promise<T>;
 };
 export const FRIEND_LIMITS = { friends: 50, outgoing: 20, incoming: 30 };
+// Mở từ Luyện Khí viên mãn (realm 0 tầng 13 = F.STAGES[0] trong data/balance.js) hoặc cảnh giới cao hơn.
+const OPEN_STAGE = 13;
 const ONLINE_GRACE_MS = 90000;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const fail = (code: string, msg: string) => { throw new GameError(code, msg); };
@@ -70,8 +72,9 @@ export async function handleFriends(repo: Database, ownerId: string, rawBody: un
   if (Object.keys(rawBody).some(k => !allowed.has(k))) return fail('INVALID_REQUEST', 'Dữ liệu không hợp lệ.');
   const now = Date.now();
   return repo.transaction(async c => {
-    const mine = await first(c, 'SELECT 1 AS ok FROM game.player_leaderboard WHERE owner_id = $1', [ownerId]);
+    const mine = await first(c, 'SELECT realm, stage FROM game.player_leaderboard WHERE owner_id = $1', [ownerId]);
     if (!mine) return fail('PLAYER_NOT_FOUND', 'Bạn cần có đạo thân trước khi kết bạn.');
+    if (num(mine.realm) < 1 && num(mine.stage) < OPEN_STAGE) return fail('FRIEND_LOCKED', 'Kết bạn mở từ Luyện Khí viên mãn.');
     if (action === 'list') return listAll(c, ownerId, now);
 
     // Xác định đối phương: theo id (UUID) hoặc theo tên chính xác (không phân biệt hoa thường).
