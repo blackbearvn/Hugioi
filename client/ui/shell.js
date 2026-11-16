@@ -770,6 +770,7 @@
       const def = w.def, tab = tabOf(def), y = w.body.scrollTop;
       const oldTab = w.tab, oldTabMenu = w.body.querySelector('.tabbar-menu');
       const oldTabScroll = oldTabMenu?.scrollLeft || 0;
+      const oldTabOpen = !!w.body.querySelector('.tabbar.open');
       const content = def.panel ? def.panel(tab) : def.render(tab);
       w.body.innerHTML = (id === 'idle' ? '<p class="screen-lead">Tu vi tự tăng khi nhập định. Mở các bảng bên dưới để tăng tốc, xem công pháp và mục tiêu gần.</p>' : '') + content;
       w.body.scrollTop = y;
@@ -777,7 +778,11 @@
       const tabbar = w.body.querySelector('.tabbar');
       if (tabbar) {
         const menu = tabbar.querySelector('.tabbar-menu');
-        if (oldTab === tab) { if (menu) menu.scrollLeft = oldTabScroll; }
+        if (oldTab === tab) {
+          if (menu) menu.scrollLeft = oldTabScroll;
+          // Vẽ lại nền (dữ liệu về, đồng hồ đếm) không được đóng menu thả xuống người chơi đang mở.
+          if (oldTabOpen) { tabbar.classList.add('open'); tabbar.querySelector('.tabbar-toggle')?.setAttribute('aria-expanded', 'true'); }
+        }
         else root.requestAnimationFrame(() => {
           if (tabbar.isConnected) revealHorizontalItem(menu, tabbar.querySelector('.tab.active'));
         });

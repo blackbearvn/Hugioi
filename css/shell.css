@@ -256,7 +256,7 @@ body.in-game.log-collapsed{--log-panel-h:31px}
 .win.drag{opacity:.94}
 .win .screen-title{margin-top:0}
 .win .screen-title h2{font-size:28px}
-.win .screen-lead{font-size:14px;margin-bottom:10px}
+.win .screen-lead{font-size:13px;margin-bottom:10px}
 .win .card{padding:14px}
 .win .screen-grid{gap:10px;margin-top:10px;grid-template-columns:1fr}
 .win .tabbar{margin-top:8px;flex-wrap:wrap;overflow:visible;row-gap:2px}
@@ -348,7 +348,7 @@ body.in-game.log-collapsed{--log-panel-h:31px}
 /* ===== TIÊU ĐỀ MÀN ===== */
 .screen-title{margin:4px 0 12px}
 .screen-title h2{font:700 32px var(--serif);margin:4px 0 0}
-.screen-lead{color:#b5b8be;font-size:15px;line-height:1.7;margin:0 0 14px;max-width:900px}
+.screen-lead{color:#b5b8be;font-size:13.5px;line-height:1.55;margin:0 0 14px;max-width:900px}
 /* ===== THANH KỸ NĂNG ===== */
 
 /* ===== LƯỚI / DANH SÁCH ===== */
@@ -469,7 +469,7 @@ body.in-game.log-collapsed{--log-panel-h:31px}
   .win-body{padding:10px}
   .win .card{padding:11px 12px}
   .win .screen-title h2{font-size:25px}
-  .win .screen-lead{font-size:13.5px;margin-bottom:9px}
+  .win .screen-lead{font-size:12.5px;line-height:1.5;margin-bottom:9px}
   .win .screen-grid{gap:8px;margin-top:8px}
   .win .tabbar{margin-top:6px}
   .win .tab{padding:7px 8px;font-size:13px}
