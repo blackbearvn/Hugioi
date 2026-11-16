@@ -46,7 +46,7 @@
   // Bạn bè người chơi thật: dữ liệu ở máy chủ, tải khi mở tab và thăm dò thưa để hiện chấm đỏ lời mời.
   // Bạn bè người thật mở sớm: từ Luyện Khí viên mãn (khớp kiểm tra ở Edge friends.ts).
   const buddyOpen = () => { const st = UI.s(); return st.realm > 0 || st.stage >= F.STAGES[0]; };
-  const buddy = { data: null, error: '', at: 0, owner: '', pending: null, busy: false, sugg: [], nextAt: 0, suggBusy: false };
+  const buddy = { data: null, error: '', at: 0, owner: '', pending: null, busy: false, sugg: [], nextAt: 0, suggBusy: false, suggAt: 0, draft: '' };
   UI.friendRequests = () => buddy.owner === UI.session?.accountId ? (buddy.data?.incoming?.length || 0) : 0;
   function refreshBuddyViews() {
     if (UI.windows?.has('more') && UI.tabState.more === 'online') UI.windows.render('more');
@@ -54,14 +54,21 @@
   async function buddyCall(body, force = true) {
     const owner = UI.session?.accountId;
     if (!owner) return null;
-    if (buddy.owner !== owner) Object.assign(buddy, { data: null, error: '', at: 0, owner, pending: null, sugg: [], nextAt: 0 });
+    if (buddy.owner !== owner) Object.assign(buddy, { data: null, error: '', at: 0, owner, pending: null, sugg: [], nextAt: 0, suggAt: 0, draft: '' });
     if (!force && (buddy.pending || Date.now() - buddy.at < 30000)) return buddy.pending;
     const task = UI.session.request('/social/friends', 'POST', body)
-      .then(data => { if (buddy.owner === owner) { buddy.data = data; buddy.error = ''; } return data; })
+      .then(data => { if (buddy.owner === owner) { buddy.data = data; buddy.error = ''; pruneSuggestions(); } return data; })
       .catch(error => { if (buddy.owner === owner) buddy.error = error.message; throw error; })
       .finally(() => { if (buddy.pending === task) buddy.pending = null; if (buddy.owner === owner) { buddy.at = Date.now(); refreshBuddyViews(); } });
     buddy.pending = task;
     return task;
+  }
+  /* Người đã là bạn, đang chờ, đã mời hoặc bị chặn không còn thuộc danh sách gợi ý. */
+  function pruneSuggestions() {
+    const d = buddy.data;
+    if (!d || !buddy.sugg.length) return;
+    const taken = new Set([...d.friends, ...d.incoming, ...d.outgoing, ...d.blocked].map(p => p.id));
+    buddy.sugg = buddy.sugg.filter(p => !taken.has(p.id));
   }
   // Gợi ý ngẫu nhiên 5 người mỗi lượt; đổi lượt tối đa 15 giây một lần (máy chủ giữ nguyên lượt trong 15 giây).
   async function loadSuggest(force = false) {
@@ -71,9 +78,9 @@
     buddy.suggBusy = true;
     try {
       const r = await UI.session.request('/social/friends', 'POST', { action: 'suggest' });
-      if (buddy.owner === owner) { buddy.sugg = r.suggestions || []; buddy.nextAt = Number(r.nextAt) || Date.now() + 15000; buddy.error = ''; }
+      if (buddy.owner === owner) { buddy.sugg = r.suggestions || []; pruneSuggestions(); buddy.nextAt = Number(r.nextAt) || Date.now() + 15000; buddy.error = ''; }
     } catch (error) { if (buddy.owner === owner) { buddy.error = error.message; buddy.nextAt = Date.now() + 15000; } }
-    finally { buddy.suggBusy = false; buddy.at = Date.now(); refreshBuddyViews(); }
+    finally { buddy.suggBusy = false; buddy.suggAt = Date.now(); refreshBuddyViews(); }
   }
   const loadBuddies = force => buddyCall({ action: 'list' }, force).catch(() => null);
   root.setInterval?.(() => {
@@ -84,9 +91,9 @@
   }, 90000);
 
   function person(p, actions) {
-    return '<div class="rank-row buddy-row ' + (p.online ? 'is-online' : '') + '"><span class="rank-no" title="' + (p.online ? 'Đang online' : 'Ngoại tuyến') +
+    return '<div class="rank-row buddy-row ' + (p.online ? 'is-online' : '') + (p.dead ? ' is-dead' : '') + '"><span class="rank-no" title="' + (p.dead ? 'Đã tọa hóa' : p.online ? 'Đang online' : 'Ngoại tuyến') +
       '">' + (p.online ? '●' : '○') + '</span><span class="rank-name"><b>' + esc(p.name) + '</b><small>' + esc(F.REALMS[p.realm] || '') +
-      (p.online ? ' · đang online' : '') + '</small></span><span class="buddy-actions">' + actions + '</span></div>';
+      (p.dead ? ' · đã tọa hóa' : p.online ? ' · đang online' : '') + '</small></span><span class="buddy-actions">' + actions + '</span></div>';
   }
   const bBtn = (act, id, label, cls = 'btn-outline') => '<button type="button" class="btn btn-sm ' + cls + '" data-act="' + act + '" data-id="' + esc(id) + '">' + label + '</button>';
   function online() {
@@ -102,7 +109,7 @@
       d.blocked.length ? card('Đã chặn', list(d.blocked, p => person(p, bBtn('buddyUnblock', p.id, 'Bỏ chặn')), ''), { eyebrow: 'DANH SÁCH CHẶN' }) : ''
     ].join('') : '';
     return '<p class="screen-lead">Kết giao với người chơi thật: nhập đúng tên đạo thân, đối phương nhận lời mời rồi hai bên thành bạn. Trạng thái online theo kênh truyền âm.</p>' +
-      '<div class="buddy-add"><label>Tên đạo hữu<input id="buddyName" type="text" maxlength="60" autocomplete="off" placeholder="Nhập đúng tên đạo thân"></label>' +
+      '<div class="buddy-add"><label>Tên đạo hữu<input id="buddyName" type="text" maxlength="60" autocomplete="off" placeholder="Nhập đúng tên đạo thân" value="' + esc(buddy.draft) + '"></label>' +
       '<button type="button" class="btn btn-gold" data-act="buddyAdd">Gửi lời mời</button></div>' + suggest +
       (buddy.error ? '<p class="info-note" role="alert">' + esc(buddy.error) + '</p>' : '') +
       (!d && !buddy.error ? '<p class="info-note" role="status">Đang tải danh sách bạn bè…</p>' : '') + sections +
@@ -243,7 +250,7 @@
     signature: tab => {
       const s = UI.s(), now = Date.now(), pvp = s.social.pvp;
       const f = Object.values(s.social.friends).map(v => v.affinity + ':' + (v.discussAt <= now ? 1 : 0) + ':' + (v.claimed || []).join('.')).join(',') + '|' + (s.social.partner ? s.social.partner.id + ':' + s.social.partner.sessions + ':' + (s.social.partner.songTuAt <= now ? 1 : 0) : '-') + '|' + (s.social.partnerRebindAt <= now ? 1 : 0);
-      return (tab === 'ranking' ? leaderboardState.at + ':' + leaderboardState.owner : tab === 'online' ? buddy.at + ':' + buddy.owner + ':' + buddy.busy + ':' + (Date.now() >= buddy.nextAt ? 1 : 0) : '') + '|' + s.realm + '|' + f + '|' + pvp.rating + '|' + pvp.wins + '|' + pvp.losses + '|' + pvp.streak + '|' + pvp.best + '|' + (pvp.lastAt + PVP_CD <= now ? 1 : 0);
+      return (tab === 'ranking' ? leaderboardState.at + ':' + leaderboardState.owner : tab === 'online' ? buddy.at + ':' + buddy.suggAt + ':' + buddy.owner + ':' + buddy.busy + ':' + (Date.now() >= buddy.nextAt ? 1 : 0) : '') + '|' + s.realm + '|' + f + '|' + pvp.rating + '|' + pvp.wins + '|' + pvp.losses + '|' + pvp.streak + '|' + pvp.best + '|' + (pvp.lastAt + PVP_CD <= now ? 1 : 0);
     }
   });
 
@@ -278,11 +285,14 @@
     const name = String(input?.value || '').trim();
     if (!name) throw Error('Hãy nhập tên đạo hữu.');
     const r = await buddyAct({ action: 'request', name });
+    buddy.draft = '';
     if (input) input.value = '';
     return r;
   });
   for (const [name, action] of [['buddyAccept', 'accept'], ['buddyDecline', 'decline'], ['buddyRemove', 'remove'], ['buddyBlock', 'block'], ['buddyUnblock', 'unblock'], ['buddyCancel', 'cancel']])
     UI.action(name, (el, d) => buddyAct({ action, id: d.id }));
+  // Giữ chữ đang gõ: bảng được vẽ lại khi hết thời gian chờ gợi ý hoặc khi tải lại danh sách.
+  root.document?.addEventListener('input', e => { if (e.target?.id === 'buddyName') buddy.draft = String(e.target.value || ''); });
   UI.action('buddyRefresh', () => { void loadBuddies(true); return UI.KEEP; });
   UI.action('buddySuggest', () => { void loadSuggest(true); return UI.KEEP; });
   UI.action('buddyInvite', async (el, d) => {

@@ -29,11 +29,24 @@ const PEOPLE = `SELECT l.owner_id, l.name, l.realm, l.sect_id,
     COALESCE(pr.seen_at, 0) AS seen_at
   FROM game.player_leaderboard l
   LEFT JOIN game.world_chat_presence pr ON pr.owner_id = l.owner_id`;
-const asPerson = (r: Row, now: number) => ({
-  id: String(r.owner_id), name: String(r.name), realm: num(r.realm),
-  sect: r.sect_id ? String(r.sect_id) : null,
-  online: num(r.seen_at) >= now - ONLINE_GRACE_MS
-});
+/* Thiên Bảng (player_leaderboard) chỉ giữ đạo thân còn sống: trigger xóa dòng khi tọa hóa.
+ * Danh sách bạn, lời mời và chặn gắn với tài khoản nên phải đọc từ game.players, nếu không bạn đã tọa hóa
+ * biến mất khỏi danh sách nhưng vẫn chiếm chỗ trong giới hạn và không thể xóa hay bỏ chặn. */
+const PEOPLE_ANY = `SELECT l.owner_id, l.name, COALESCE((l.state ->> 'realm')::integer, 0) AS realm,
+    CASE WHEN l.state #>> '{sect,joined}' = 'true' THEN NULLIF(l.state #>> '{sect,id}', '') ELSE NULL END AS sect_id,
+    (l.state -> 'death' IS NOT NULL AND l.state -> 'death' <> 'null'::jsonb) AS dead,
+    COALESCE(pr.seen_at, 0) AS seen_at
+  FROM game.players l
+  LEFT JOIN game.world_chat_presence pr ON pr.owner_id = l.owner_id`;
+const asPerson = (r: Row, now: number) => {
+  const dead = r.dead === true;
+  return {
+    id: String(r.owner_id), name: String(r.name), realm: num(r.realm),
+    sect: r.sect_id ? String(r.sect_id) : null,
+    dead,
+    online: !dead && num(r.seen_at) >= now - ONLINE_GRACE_MS
+  };
+};
 
 /* Gợi ý ngẫu nhiên: nhảy tới một điểm ngẫu nhiên trên index owner_id rồi quay vòng, tránh ORDER BY random() trên cả bảng.
  * Loại bản thân, bạn, lời mời hai chiều, và mọi quan hệ chặn hai chiều; chỉ gợi ý người đã đủ điều kiện kết bạn. */
@@ -58,16 +71,16 @@ async function suggest(c: Db, me: string, now: number) {
 }
 
 async function listAll(c: Db, me: string, now: number) {
-  const friends = await rows(c, `${PEOPLE}
+  const friends = await rows(c, `${PEOPLE_ANY}
     JOIN game.friendships f ON (f.owner_a = $1 AND f.owner_b = l.owner_id) OR (f.owner_b = $1 AND f.owner_a = l.owner_id)
     ORDER BY (COALESCE(pr.seen_at,0) >= $2) DESC, l.name ASC LIMIT ${FRIEND_LIMITS.friends}`, [me, now - ONLINE_GRACE_MS]);
-  const incoming = await rows(c, `${PEOPLE}
+  const incoming = await rows(c, `${PEOPLE_ANY}
     JOIN game.friend_requests q ON q.from_owner = l.owner_id AND q.to_owner = $1
     ORDER BY q.created_at DESC LIMIT ${FRIEND_LIMITS.incoming}`, [me]);
-  const outgoing = await rows(c, `${PEOPLE}
+  const outgoing = await rows(c, `${PEOPLE_ANY}
     JOIN game.friend_requests q ON q.to_owner = l.owner_id AND q.from_owner = $1
     ORDER BY q.created_at DESC LIMIT ${FRIEND_LIMITS.outgoing}`, [me]);
-  const blocked = await rows(c, `${PEOPLE}
+  const blocked = await rows(c, `${PEOPLE_ANY}
     JOIN game.friend_blocks b ON b.blocked_id = l.owner_id AND b.owner_id = $1
     ORDER BY l.name ASC LIMIT 100`, [me]);
   return {
@@ -108,15 +121,19 @@ export async function handleFriends(repo: Database, ownerId: string, rawBody: un
     if (action === 'request' && rawBody.name !== undefined) {
       const name = String(rawBody.name).trim().replace(/\s+/g, ' ');
       if (!name || name.length > 60) return fail('INVALID_REQUEST', 'Tên đạo hữu không hợp lệ.');
+      // Gửi lời mời theo tên chỉ khớp đạo thân còn sống (đang có trên Thiên Bảng).
       target = await first(c, `${PEOPLE} WHERE lower(l.name) = lower($1)`, [name]);
     } else {
       const id = String(rawBody.id || '');
       if (!UUID.test(id)) return fail('INVALID_REQUEST', 'Dữ liệu không hợp lệ.');
-      target = await first(c, `${PEOPLE} WHERE l.owner_id = $1`, [id.toLowerCase()]);
+      // Theo id: lấy cả đạo thân đã tọa hóa để vẫn xóa, bỏ chặn, thu hồi được.
+      target = await first(c, `${PEOPLE_ANY} WHERE l.owner_id = $1`, [id.toLowerCase()]);
     }
     if (!target) return fail('FRIEND_NOT_FOUND', 'Không tìm thấy đạo hữu này.');
     const other = String(target.owner_id);
     if (other === ownerId) return fail('FRIEND_SELF', 'Không thể kết bạn với chính mình.');
+    // Quan hệ sắp đổi: bỏ lượt gợi ý đang nhớ để không gợi lại người vừa mời, vừa chặn hoặc vừa thành bạn.
+    suggestCache.delete(ownerId);
     // Khóa theo cặp để hai bên bấm cùng lúc không tạo trạng thái lệch.
     await rows(c, 'SELECT pg_advisory_xact_lock(hashtextextended($1, 0))', ['friend:' + pair(ownerId, other).join(':')]);
 

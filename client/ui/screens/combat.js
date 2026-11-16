@@ -349,10 +349,10 @@
   /* ======================================================================
      BẢNG GIAO CHIẾN
      ====================================================================== */
-  const vital = (label, value, max, cls, bar) => {
+  const vital = (label, value, max, cls, bar, mini = false) => {
     const v = Math.max(0, Math.min(max || 0, value || 0));
     const p = max > 0 ? v / max * 100 : 0;
-    return `<div class="battle-vital">
+    return `<div class="battle-vital${mini ? ' mini' : ''}">
       <div class="battle-vital-head"><span>${esc(label)}</span><b>${num(v)}<i> / ${num(max || 0)}</i></b></div>
       <div class="meter-bar ${cls}" role="meter" aria-label="${esc(label)}" aria-valuemin="0" aria-valuemax="${Math.round(max || 0)}" aria-valuenow="${Math.round(v)}"><i data-bar="${bar}" style="width:${p.toFixed(1)}%"></i></div>
     </div>`;
@@ -479,12 +479,6 @@
 
     /* --- Bảng chiêu thức --- */
     const command = active ? `<div class="battle-command">
-      <div class="battle-resource">
-        <span class="battle-resource-label">Linh lực</span>
-        <div class="meter-bar mp" role="meter" aria-label="Linh lực" aria-valuemin="0" aria-valuemax="${Math.round(maxMp || 0)}" aria-valuenow="${Math.round(s.mp || 0)}"><i data-bar="mp" style="width:${(maxMp > 0 ? s.mp / maxMp * 100 : 0).toFixed(1)}%"></i></div>
-        <b>${num(s.mp)} <i>/ ${num(maxMp)}</i></b>
-        <small>Dùng để thi triển công pháp và chiêu thức</small>
-      </div>
       <div class="battle-skills" role="group" aria-label="Chiêu thức giao chiến">
         ${skillCard({ action: 'attack', key: '1', label: 'Tấn công', hint: 'Sát thương cơ bản', cost: '0 MP', cd: 0, disabled: false, tone: 'attack' })}
         ${skillCard({ action: 'power', key: '2', label: 'Trọng kích', hint: '×' + B.powerMult + ' sát thương', cost: Math.round(B.powerMp * 100) + '% MP', cd: b.powerCd, disabled: powerOff && b.powerCd <= 0, tone: 'seal' })}
@@ -503,61 +497,58 @@
       </div>
     </div>` : '';
 
+    const logOpen = UI.view.battleLog !== false, lines = (b.log || []).slice(0, 4);
+    const latest = lines[0] || e.text || '';
     return `<section class="battle-panel${boss ? ' boss' : ''}${active ? '' : ' is-over'}" aria-label="Giao chiến với ${esc(e.name)}">
-      <header class="battle-head">
-        <div><span class="eyebrow gold">${active ? 'GIAO CHIẾN' : 'KẾT QUẢ'}</span><h3>${esc(e.name)}</h3></div>
-        <span class="battle-head-tag ${boss ? 'boss' : ''}">${esc(kindLabel)}</span>
-      </header>
       <div class="battle-stage${boss ? ' boss' : ''}" id="battleArena" style="--battle-bg:url('${esc(bg)}')">
         <div class="battle-sky" aria-hidden="true"></div>
-        <div class="battle-topbar">
-          <span class="battle-round">LƯỢT <b>${b.turn}</b></span>
-          <span class="battle-kind">${active && boss ? 'Giai đoạn ×' + phase.toFixed(2) : ''}</span>
-          <span class="battle-clock" role="timer" aria-label="Thời gian lịch luyện còn lại, tạm dừng khi giao chiến">
-            <i aria-hidden="true">⏳</i><b id="explorationCountdown">${clock}</b>
-            <span class="battle-clock-bar" aria-hidden="true"><i id="explorationProgress" style="width:${(100 - remain / 6).toFixed(1)}%"></i></span>
-          </span>
+        <div class="battle-hud">
+          <div class="battle-card hero">
+            <div class="battle-card-name"><b>${esc(s.name)}</b><small>${esc(g.realmLabel())}</small></div>
+            ${vital('Sinh lực', s.hp, st.HP, 'hp', 'hp')}
+            ${vital('Linh lực', s.mp, maxMp, 'mp', 'mp', true)}
+            ${buffChips(b)}${statusChips(b.statuses)}
+          </div>
+          <div class="battle-center">
+            <span class="battle-round" aria-label="Lượt ${b.turn}">LƯỢT<b>${b.turn}</b></span>
+            <span class="battle-clock" role="timer" aria-label="Thời gian lịch luyện còn lại, tạm dừng khi giao chiến">
+              <i aria-hidden="true">⏳</i><b id="explorationCountdown">${clock}</b>
+              <span class="battle-clock-bar" aria-hidden="true"><i id="explorationProgress" style="width:${(100 - remain / 6).toFixed(1)}%"></i></span>
+            </span>
+            ${active && boss ? `<span class="battle-kind">Giai đoạn ×${phase.toFixed(2)}</span>` : ''}
+          </div>
+          <div class="battle-card foe${boss ? ' boss' : ''}">
+            <div class="battle-card-name"><span class="battle-tag${boss ? ' boss' : ''}">${esc(kindLabel)}</span><b>${esc(e.name)}</b><small>${esc(level)}</small></div>
+            ${vital('Sinh lực', b.enemyHp, b.enemyMax, 'hp', 'enemy')}
+            ${statusChips(b.enemyStatuses)}
+          </div>
         </div>
         ${active ? `<p class="battle-telegraph${heavy ? ' heavy' : ''}" role="status">
           <span aria-hidden="true">${heavy ? '⚠' : '✦'}</span>
           <b>${esc(e.name)}</b> chuẩn bị ${heavy ? 'đòn nặng' : 'đòn thường'}${heavy ? ' · thủ thế giảm ' + Math.round(B.guardCut * 100) + '%' : ''}
-        </p>` : ''}
+        </p>` : '<span></span>'}
         <div class="battle-fighters">
           <div class="battle-unit hero${active ? '' : ' is-over'}">
-            <div class="battle-plate">
-              <b>${esc(s.name)}</b>
-              <small>${esc(g.realmLabel())}</small>
-            </div>
             <div class="battle-figure">
               <img id="battleSelf" class="battle-sprite hero" src="${esc(heroSrc)}" alt="${esc(s.name)} đang giao chiến" decoding="async" fetchpriority="high">
             </div>
-            <div class="battle-vitals">
-              ${vital('Sinh lực', s.hp, st.HP, 'hp', 'hp')}
-            </div>
-            ${buffChips(b)}${statusChips(b.statuses)}
           </div>
-          <div class="battle-vs" aria-hidden="true"><span class="battle-vs-mark">${icon('attack')}</span><span>VS</span></div>
           <div class="battle-unit foe${active ? '' : ' is-over'}${b.state === 'won' ? ' is-beaten' : ''}">
-            <div class="battle-plate foe">
-              <b>${esc(e.name)}</b>
-              <small>${esc(level)}</small>
-            </div>
             <div class="battle-figure">
               <img id="battleFoeSprite" class="battle-sprite foe" src="${esc(foeSrc)}" alt="${esc(e.name)} đang đối đầu" decoding="async">
             </div>
-            <div class="battle-vitals">${vital('Sinh lực', b.enemyHp, b.enemyMax, 'hp', 'enemy')}</div>
-            ${statusChips(b.enemyStatuses)}
           </div>
         </div>
         <div class="battle-cry" aria-hidden="true"></div>
         <div id="battleVfx" class="battle-vfx" aria-hidden="true"></div>
+        <p class="battle-ticker" aria-hidden="true"><i>✦</i>${esc(latest)}</p>
       </div>
       ${verdict}
-      <div class="battle-log" role="log" aria-live="polite" aria-label="Diễn biến lượt đánh">
-        <b>Diễn biến</b>
-        <ol class="run-log">${(b.log || []).slice(0, 4).map(v => `<li>${esc(v)}</li>`).join('')}</ol>
-      </div>
       ${command}
+      <div class="battle-log${logOpen ? ' is-open' : ''}">
+        <button type="button" class="battle-log-head" data-act="battleLog" aria-expanded="${logOpen}">Diễn biến<i aria-hidden="true">${logOpen ? '▾' : '▸'}</i></button>
+        ${logOpen ? `<ol class="run-log" role="log" aria-live="polite" aria-label="Diễn biến lượt đánh">${lines.map(v => `<li>${esc(v)}</li>`).join('')}</ol>` : ''}
+      </div>
     </section>`;
   }
 
@@ -674,6 +665,7 @@
     else if (out.state === 'lost') UI.toast('Đạo thân đã tọa hóa trong giao chiến.', { type: 'danger', title: 'Giao chiến' });
   });
   /* Chuyển nhóm công cụ trong bảng trận. */
+  UI.action('battleLog', () => { UI.view.battleLog = UI.view.battleLog === false; });
   UI.action('battleTool', (el, d) => {
     if (!['manual', 'artifact', 'item'].includes(d.tool)) return UI.KEEP;
     UI.view.battleTool = d.tool;
