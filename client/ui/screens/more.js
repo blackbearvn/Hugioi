@@ -73,8 +73,10 @@
   // Gợi ý ngẫu nhiên 5 người mỗi lượt; đổi lượt tối đa 15 giây một lần (máy chủ giữ nguyên lượt trong 15 giây).
   async function loadSuggest(force = false) {
     const owner = UI.session?.accountId;
-    if (!owner || buddy.suggBusy || (!force && buddy.sugg.length && Date.now() < buddy.nextAt)) return;
-    if (force && Date.now() < buddy.nextAt) return;
+    /* Tôn trọng thời gian chờ cả khi danh sách gợi ý đang trống hoặc vừa lỗi. Trước đây chỉ chặn khi đã có gợi ý:
+       danh sách rỗng khiến mỗi lần vẽ lại (mount) gọi lại API, API xong lại vẽ lại ... vòng lặp đến khi máy chủ báo
+       "Thao tác quá nhanh" và làm menu thả xuống của tab đóng mở liên tục. */
+    if (!owner || buddy.suggBusy || Date.now() < buddy.nextAt) return;
     buddy.suggBusy = true;
     try {
       const r = await UI.session.request('/social/friends', 'POST', { action: 'suggest' });
