@@ -13,6 +13,23 @@ test('mua vật phẩm trừ linh thạch và thêm vào túi', async () => {
   assert.equal(after.bag['EQ-001'], (before.bag['EQ-001'] || 0) + 1);
 });
 
+test('mua theo số lượng trừ đúng tổng giá và từ chối số lượng sai', async () => {
+  const t = await setup(); await t.create();
+  const b1 = await t.state();
+  await t.cmd('buy', { code: 'HERB-001' });
+  const unit = b1.stone - (await t.state()).stone;
+  const b2 = await t.state();
+  if (b2.stone >= unit * 3) {
+    await t.cmd('buy', { code: 'HERB-001', count: 3 });
+    const a = await t.state();
+    assert.equal(b2.stone - a.stone, unit * 3);
+    assert.equal(a.bag['HERB-001'], (b2.bag['HERB-001'] || 0) + 3);
+  }
+  await assert.rejects(t.cmd('buy', { code: 'HERB-001', count: 0 }));
+  await assert.rejects(t.cmd('buy', { code: 'HERB-001', count: 1000 }));
+  await assert.rejects(t.cmd('buy', { code: 'HERB-001', count: 99999999 }));
+});
+
 test('bán vật phẩm được linh thạch, hết hàng thì không bán được', async () => {
   const t = await setup(); await t.create();
   const before = await t.state();

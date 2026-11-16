@@ -30,7 +30,7 @@
     stopRetreat: {},
     acknowledgeRetreat: {},
     // inventory
-    buy: { code }, sell: { code }, equip: { code }, learn: { code }, activate: { code }, use: { code },
+    buy: { code, count: optional(integer(1, 999)) }, sell: { code }, equip: { code }, learn: { code }, activate: { code }, use: { code },
     sellYao: {},
     bid: { code },
     // crafting

@@ -13,6 +13,9 @@ type Database = {
 export const FRIEND_LIMITS = { friends: 50, outgoing: 20, incoming: 30 };
 // Mở từ Luyện Khí viên mãn (realm 0 tầng 13 = F.STAGES[0] trong data/balance.js) hoặc cảnh giới cao hơn.
 const OPEN_STAGE = 13;
+const SUGGEST_COUNT = 5;
+const SUGGEST_COOLDOWN_MS = 15000;
+const suggestCache = new Map<string, { at: number; list: unknown[] }>(); // theo isolate; giữ lượt gợi ý ổn định trong 15 giây
 const ONLINE_GRACE_MS = 90000;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const fail = (code: string, msg: string) => { throw new GameError(code, msg); };
@@ -31,6 +34,28 @@ const asPerson = (r: Row, now: number) => ({
   sect: r.sect_id ? String(r.sect_id) : null,
   online: num(r.seen_at) >= now - ONLINE_GRACE_MS
 });
+
+/* Gợi ý ngẫu nhiên: nhảy tới một điểm ngẫu nhiên trên index owner_id rồi quay vòng, tránh ORDER BY random() trên cả bảng.
+ * Loại bản thân, bạn, lời mời hai chiều, và mọi quan hệ chặn hai chiều; chỉ gợi ý người đã đủ điều kiện kết bạn. */
+async function suggest(c: Db, me: string, now: number) {
+  const hit = suggestCache.get(me);
+  if (hit && now - hit.at < SUGGEST_COOLDOWN_MS) return { suggestions: hit.list, nextAt: hit.at + SUGGEST_COOLDOWN_MS };
+  const filter = `l.owner_id <> $1 AND (l.realm >= 1 OR l.stage >= ${OPEN_STAGE})
+    AND NOT EXISTS (SELECT 1 FROM game.friendships f WHERE (f.owner_a = $1 AND f.owner_b = l.owner_id) OR (f.owner_b = $1 AND f.owner_a = l.owner_id))
+    AND NOT EXISTS (SELECT 1 FROM game.friend_requests q WHERE (q.from_owner = $1 AND q.to_owner = l.owner_id) OR (q.to_owner = $1 AND q.from_owner = l.owner_id))
+    AND NOT EXISTS (SELECT 1 FROM game.friend_blocks b WHERE (b.owner_id = $1 AND b.blocked_id = l.owner_id) OR (b.blocked_id = $1 AND b.owner_id = l.owner_id))`;
+  const start = crypto.randomUUID();
+  let picked = await rows(c, `${PEOPLE} WHERE ${filter} AND l.owner_id >= $2 ORDER BY l.owner_id LIMIT ${SUGGEST_COUNT}`, [me, start]);
+  if (picked.length < SUGGEST_COUNT) {
+    const have = picked.map(r => String(r.owner_id));
+    const more = await rows(c, `${PEOPLE} WHERE ${filter} AND l.owner_id < $2 AND NOT (l.owner_id = ANY($3::uuid[])) ORDER BY l.owner_id LIMIT ${SUGGEST_COUNT - picked.length}`, [me, start, have]);
+    picked = picked.concat(more);
+  }
+  const list = picked.map(r => asPerson(r, now));
+  if (suggestCache.size > 5000) suggestCache.clear();
+  suggestCache.set(me, { at: now, list });
+  return { suggestions: list, nextAt: now + SUGGEST_COOLDOWN_MS };
+}
 
 async function listAll(c: Db, me: string, now: number) {
   const friends = await rows(c, `${PEOPLE}
@@ -76,6 +101,7 @@ export async function handleFriends(repo: Database, ownerId: string, rawBody: un
     if (!mine) return fail('PLAYER_NOT_FOUND', 'Bạn cần có đạo thân trước khi kết bạn.');
     if (num(mine.realm) < 1 && num(mine.stage) < OPEN_STAGE) return fail('FRIEND_LOCKED', 'Kết bạn mở từ Luyện Khí viên mãn.');
     if (action === 'list') return listAll(c, ownerId, now);
+    if (action === 'suggest') return suggest(c, ownerId, now);
 
     // Xác định đối phương: theo id (UUID) hoặc theo tên chính xác (không phân biệt hoa thường).
     let target: Row | null = null;

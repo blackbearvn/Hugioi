@@ -19,8 +19,10 @@
       buy(payload, now) {
         const key = payload.code, x = item(key);
         if (!x || x.tier > this.s.realm + 1 || x.kind === 'QITEM') throw Error('Vật phẩm chưa mở khóa.');
-        this.spend(F.shop_buy_price(this.price(key)));
-        this.add(key);
+        const n = payload.count === undefined ? 1 : payload.count;
+        if (!Number.isInteger(n) || n < 1 || n > 999) throw Error('Số lượng mua không hợp lệ.');
+        this.spend(F.shop_buy_price(this.price(key)) * n);
+        this.add(key, n);
         return key;
       },
       sell(payload, now) {

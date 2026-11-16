@@ -1,5 +1,5 @@
 /* HƯ GIỚI · MÀN GIAO DU
- * Tri kỷ, đạo hữu, luận kiếm PvP và bảng xếp hạng. Toàn bộ tương tác lưu trong
+ * Đạo hữu (người chơi thật), đạo lữ, Sinh Tử Đài và bảng xếp hạng. Toàn bộ tương tác lưu trong
  * state.social của từng đạo thân trên máy chủ; chưa phải social/PvP người thật. */
 (function (root) {
   'use strict';
@@ -8,11 +8,9 @@
   const { esc, num, money, moneyHTML, pct, row, btn, card, empty, tabs, live } = UI.kit;
 
   const TABS = [
-    { id: 'online', label: 'Bạn bè', icon: '☯' },
-    { id: 'friends', label: 'Tri kỷ', icon: '♡' },
+    { id: 'online', label: 'Đạo hữu', icon: '☯' },
     { id: 'partner', label: 'Đạo lữ', icon: '❦' },
-    { id: 'dao', label: 'Đạo hữu', icon: '✧' },
-    { id: 'pvp', label: 'Luận kiếm', icon: '⚔' },
+    { id: 'pvp', label: 'Sinh Tử Đài', icon: '⚔' },
     { id: 'ranking', label: 'Bảng xếp hạng', icon: '♛' }
   ];
 
@@ -48,7 +46,7 @@
   // Bạn bè người chơi thật: dữ liệu ở máy chủ, tải khi mở tab và thăm dò thưa để hiện chấm đỏ lời mời.
   // Bạn bè người thật mở sớm: từ Luyện Khí viên mãn (khớp kiểm tra ở Edge friends.ts).
   const buddyOpen = () => { const st = UI.s(); return st.realm > 0 || st.stage >= F.STAGES[0]; };
-  const buddy = { data: null, error: '', at: 0, owner: '', pending: null, busy: false };
+  const buddy = { data: null, error: '', at: 0, owner: '', pending: null, busy: false, sugg: [], nextAt: 0, suggBusy: false };
   UI.friendRequests = () => buddy.owner === UI.session?.accountId ? (buddy.data?.incoming?.length || 0) : 0;
   function refreshBuddyViews() {
     if (UI.windows?.has('more') && UI.tabState.more === 'online') UI.windows.render('more');
@@ -56,7 +54,7 @@
   async function buddyCall(body, force = true) {
     const owner = UI.session?.accountId;
     if (!owner) return null;
-    if (buddy.owner !== owner) Object.assign(buddy, { data: null, error: '', at: 0, owner, pending: null });
+    if (buddy.owner !== owner) Object.assign(buddy, { data: null, error: '', at: 0, owner, pending: null, sugg: [], nextAt: 0 });
     if (!force && (buddy.pending || Date.now() - buddy.at < 30000)) return buddy.pending;
     const task = UI.session.request('/social/friends', 'POST', body)
       .then(data => { if (buddy.owner === owner) { buddy.data = data; buddy.error = ''; } return data; })
@@ -64,6 +62,18 @@
       .finally(() => { if (buddy.pending === task) buddy.pending = null; if (buddy.owner === owner) { buddy.at = Date.now(); refreshBuddyViews(); } });
     buddy.pending = task;
     return task;
+  }
+  // Gợi ý ngẫu nhiên 5 người mỗi lượt; đổi lượt tối đa 15 giây một lần (máy chủ giữ nguyên lượt trong 15 giây).
+  async function loadSuggest(force = false) {
+    const owner = UI.session?.accountId;
+    if (!owner || buddy.suggBusy || (!force && buddy.sugg.length && Date.now() < buddy.nextAt)) return;
+    if (force && Date.now() < buddy.nextAt) return;
+    buddy.suggBusy = true;
+    try {
+      const r = await UI.session.request('/social/friends', 'POST', { action: 'suggest' });
+      if (buddy.owner === owner) { buddy.sugg = r.suggestions || []; buddy.nextAt = Number(r.nextAt) || Date.now() + 15000; buddy.error = ''; }
+    } catch (error) { if (buddy.owner === owner) { buddy.error = error.message; buddy.nextAt = Date.now() + 15000; } }
+    finally { buddy.suggBusy = false; buddy.at = Date.now(); refreshBuddyViews(); }
   }
   const loadBuddies = force => buddyCall({ action: 'list' }, force).catch(() => null);
   root.setInterval?.(() => {
@@ -82,6 +92,9 @@
   function online() {
     const d = buddy.data, L = d?.limits || { friends: 50 };
     const list = (arr, fn, none) => arr?.length ? '<div class="rank-list">' + arr.map(fn).join('') + '</div>' : '<p class="empty-note">' + none + '</p>';
+    const cooling = Date.now() < buddy.nextAt;
+    const suggest = card('Gợi ý đạo hữu', list(buddy.sugg, p => person(p, bBtn('buddyInvite', p.id, 'Kết giao', 'btn-gold')), buddy.suggBusy ? 'Đang tìm đạo hữu…' : 'Chưa có đạo hữu nào để gợi ý lúc này.') +
+      '<button type="button" class="btn btn-outline" data-act="buddySuggest"' + (cooling || buddy.suggBusy ? ' disabled' : '') + '>Đổi lượt khác' + (cooling ? ' · ' + live(buddy.nextAt) : '') + '</button>', { eyebrow: 'NGẪU NHIÊN · 5 NGƯỜI MỖI LƯỢT' });
     const sections = d ? [
       d.incoming.length ? card('Lời mời kết giao (' + d.incoming.length + ')', list(d.incoming, p => person(p, bBtn('buddyAccept', p.id, 'Nhận', 'btn-gold') + bBtn('buddyDecline', p.id, 'Từ chối')), ''), { eyebrow: 'CHỜ BẠN PHẢN HỒI' }) : '',
       card('Bạn bè (' + d.friends.length + '/' + L.friends + ')', list(d.friends, p => person(p, bBtn('buddyRemove', p.id, 'Xóa') + bBtn('buddyBlock', p.id, 'Chặn')), 'Chưa có bạn bè. Gửi lời mời bằng tên đạo hữu ở trên.'), { eyebrow: 'ĐẠO HỮU THẬT' }),
@@ -90,7 +103,7 @@
     ].join('') : '';
     return '<p class="screen-lead">Kết giao với người chơi thật: nhập đúng tên đạo thân, đối phương nhận lời mời rồi hai bên thành bạn. Trạng thái online theo kênh truyền âm.</p>' +
       '<div class="buddy-add"><label>Tên đạo hữu<input id="buddyName" type="text" maxlength="60" autocomplete="off" placeholder="Nhập đúng tên đạo thân"></label>' +
-      '<button type="button" class="btn btn-gold" data-act="buddyAdd">Gửi lời mời</button></div>' +
+      '<button type="button" class="btn btn-gold" data-act="buddyAdd">Gửi lời mời</button></div>' + suggest +
       (buddy.error ? '<p class="info-note" role="alert">' + esc(buddy.error) + '</p>' : '') +
       (!d && !buddy.error ? '<p class="info-note" role="status">Đang tải danh sách bạn bè…</p>' : '') + sections +
       '<button type="button" class="btn btn-outline" data-act="buddyRefresh">Làm mới</button>';
@@ -115,13 +128,6 @@
         ? btn(aff >= 100 ? 'Tình nghĩa viên mãn' : `Tặng lễ · ${moneyHTML(giftCost(f))}`, 'moreGift', `data-id="${f.id}"`, aff >= 100, 'btn-outline')
         : btn('Kết giao', 'moreMeet', `data-id="${f.id}"`)}</div>
     </article>`;
-  }
-
-  function friends() {
-    const met = Object.values(UI.s().social.friends).filter(f => f.metAt).length;
-    return `<p class="screen-lead">Tri kỷ là các NPC đồng hành trong chế độ mô phỏng. Kết giao, tặng lễ để nâng tình nghĩa; mỗi vị có một câu chuyện riêng.</p>
-      ${card('Tình nghĩa đã kết', `${row('Số tri kỷ', met + ' / ' + FRIENDS.length)}${row('Tặng lễ', 'Tăng 8–20 tình nghĩa')}${row('Giới hạn', '100 tình nghĩa mỗi người')}<p class="info-note">Tặng lễ tiêu linh thạch. Tình nghĩa không giảm theo thời gian hay trọng sinh.</p>`, { eyebrow: 'GIAO TÌNH' })}
-      <div class="social-list">${FRIENDS.map(friendCard).join('')}</div>`;
   }
 
   /* Mốc tình nghĩa: bấm nhận thưởng khi đạt mốc. */
@@ -153,41 +159,26 @@
         return `<article class="social-card compact ${met ? '' : 'is-locked'}">
           <div class="social-portrait small"><img src="${portrait(f)}" alt="${esc(f.name)}" loading="lazy" decoding="async"></div>
           <div class="social-copy"><span class="eyebrow">${esc(f.title)}</span><h3>${esc(f.name)}</h3>
-            <p class="info-note">${met ? `Tình nghĩa <b>${aff}/100</b>${aff >= PARTNER.minAffinity ? '' : ` · cần ${PARTNER.minAffinity} để kết duyên`}` : 'Chưa kết giao ở mục Tri kỷ.'}</p></div>
-          <div class="social-actions">${btn(`Kết duyên · ${moneyHTML(g.bindCost(f.id))}`, 'moreBind', `data-id="${f.id}"`, !ok)}</div>
+            <p class="info-note">${met ? `Tình nghĩa <b>${aff}/100</b>${aff >= PARTNER.minAffinity ? '' : ` · cần ${PARTNER.minAffinity} để kết duyên`}` : 'Chưa kết giao · bấm Kết giao để làm quen.'}</p></div>
+          ${met ? milestones(f, st) : ''}
+          <div class="social-actions">${met ? btn(aff >= 100 ? 'Tình nghĩa viên mãn' : `Tặng lễ · ${moneyHTML(giftCost(f))}`, 'moreGift', `data-id="${f.id}"`, aff >= 100, 'btn-outline') : btn('Kết giao', 'moreMeet', `data-id="${f.id}"`)}${met ? btn(`Kết duyên · ${moneyHTML(g.bindCost(f.id))}`, 'moreBind', `data-id="${f.id}"`, !ok) : ''}</div>
         </article>`;
       }).join('');
       body = `${wait}<div class="social-list">${list}</div>`;
     }
-    return `<p class="screen-lead">Đạo lữ là một vị tri kỷ đã đủ tình nghĩa, cùng bạn tu hành. Có đạo lữ sẽ tăng tốc độ tu theo tình nghĩa, và mỗi lần song tu nhận thêm tu vi.</p>
+    return `<p class="screen-lead">Đạo lữ là một vị đạo hữu mô phỏng đã đủ tình nghĩa, cùng bạn tu hành. Có đạo lữ sẽ tăng tốc độ tu theo tình nghĩa, và mỗi lần song tu nhận thêm tu vi.</p>
       ${card('Quy tắc đạo lữ', `${row('Điều kiện', 'Tình nghĩa từ ' + PARTNER.minAffinity)}${row('Tăng tốc độ tu', '+' + (PARTNER.rateBase * 100) + '% đến +' + ((PARTNER.rateBase + PARTNER.rateAffinity) * 100) + '%')}${row('Song tu', 'Hồi ' + Math.round(PARTNER.songTuCd / 60000) + ' phút, +1 tình nghĩa')}${row('Ly duyên', 'Tình nghĩa tụt về ' + PARTNER.breakAffinity + ', chờ ' + Math.round(PARTNER.rebindCd / 36e5) + ' giờ mới kết lại')}`)}
       ${body}`;
   }
 
-  function daoCard(f) {
-    const st = UI.s().social.friends[f.id], end = st?.discussAt || 0, ready = Date.now() >= end;
-    return `<article class="social-card compact">
-      <div class="social-portrait small"><img src="${portrait(f)}" alt="${esc(f.name)}" loading="lazy" decoding="async"></div>
-      <div class="social-copy"><span class="eyebrow">${esc(f.school)} · ${esc(F.REALMS[f.realm])}</span><h3>${esc(f.name)}</h3><p>${esc(f.line)}</p>
-        <p class="info-note">Luận đạo nhận khoảng <b>${num(discussGain())}</b> tu vi · hồi ${Math.round(DISCUSS_CD / 1000)} giây.</p></div>
-      <div class="social-actions">${btn(ready ? 'Luận đạo' : 'Đang bế quan', 'moreDiscuss', `data-id="${f.id}"`, !ready)}<p class="cooldown">${ready ? 'Sẵn sàng' : live(end)}</p></div>
-    </article>`;
-  }
-
-  function dao() {
-    return `<p class="screen-lead">Luận đạo cùng các NPC mô phỏng. Mỗi lần luận đạo nhận một ít tu vi, tăng nhẹ tình nghĩa và có thời gian hồi riêng.</p>
-      ${card('Luận đạo', `${row('Tu vi mỗi lần', '≈ ' + num(discussGain()))}${row('Thời gian hồi', Math.round(DISCUSS_CD / 1000) + ' giây')}${row('Tình nghĩa', '+1 mỗi lần')}<p class="info-note">Tu vi nhận được không vượt quá thanh tu vi hiện tại. Khi tu vi đã đầy, hãy đột phá trước.</p>`, { eyebrow: 'ĐỒNG ĐẠO' })}
-      <div class="social-list">${DAO.map(daoCard).join('')}</div>`;
-  }
-
   function pvp() {
     const s = UI.s(), pvp = s.social.pvp, g = UI.g(), my = g.stats().CP, ready = Date.now() >= pvp.lastAt + PVP_CD;
-    return `<p class="screen-lead">Luận kiếm với đối thủ NPC, không phải người chơi thật. Thắng tăng danh vọng, nhận linh thạch và tu vi; thua mất một ít danh vọng.</p>
+    return `<p class="screen-lead">Sinh Tử Đài: giao đấu với đối thủ NPC, không phải người chơi thật. Thắng tăng danh vọng, nhận linh thạch và tu vi; thua mất một ít danh vọng.</p>
       <div class="screen-grid">
-        ${card('Đài luận kiếm', `<div class="pvp-rating"><b>${num(pvp.rating)}</b><span>${pvpTier(pvp.rating)}</span></div>
+        ${card('Sinh Tử Đài', `<div class="pvp-rating"><b>${num(pvp.rating)}</b><span>${pvpTier(pvp.rating)}</span></div>
           ${row('Thắng / Thua', num(pvp.wins) + ' / ' + num(pvp.losses))}${row('Chuỗi thắng', num(pvp.streak))}${row('Danh vọng cao nhất', num(pvp.best))}${row('Chiến lực của bạn', num(my))}
           <p class="info-note">Sau mỗi trận cần điều tức ${Math.round(PVP_CD / 1000)} giây trước khi tái đấu. Thắng nhận 18–25 danh vọng; thua hao tổn 12–19 danh vọng.</p>`, { eyebrow: 'DANH VỌNG' })}
-        ${card('Quy tắc', `<p>Đối thủ trên Luận Kiếm Đài tương ứng với chiến lực hiện tại của bạn. Mỗi cảnh giới đều có những thử thách riêng.</p>${row('Thắng', 'Linh thạch · tu vi · danh vọng')}${row('Thua', 'Mất danh vọng, không mất tu vi')}${row('Trạng thái', ready ? 'Sẵn sàng' : live(pvp.lastAt + PVP_CD))}`, { eyebrow: 'LUẬT ĐẤU' })}
+        ${card('Quy tắc', `<p>Đối thủ trên Sinh Tử Đài tương ứng với chiến lực hiện tại của bạn. Mỗi cảnh giới đều có những thử thách riêng.</p>${row('Thắng', 'Linh thạch · tu vi · danh vọng')}${row('Thua', 'Mất danh vọng, không mất tu vi')}${row('Trạng thái', ready ? 'Sẵn sàng' : live(pvp.lastAt + PVP_CD))}`, { eyebrow: 'LUẬT ĐẤU' })}
       </div>
       <div class="social-list pvp-list">${RIVALS.map(f => {
         const power = g.rivalPower(f.id), chance = F.win_probability(my, power);
@@ -196,7 +187,7 @@
           <div class="social-copy"><span class="eyebrow">${esc(f.school)} · ${esc(F.REALMS[f.realm])}</span><h3>${esc(f.name)}</h3>
             <p>Chiến lực đối thủ <b>${num(power)}</b> · kỳ vọng thắng <b>${pct(chance)}</b></p>
             <p class="info-note">Danh vọng khởi đầu ${num(f.rating)} · phần thưởng theo cảnh giới hiện tại.</p></div>
-          <div class="social-actions">${btn('Luận kiếm', 'moreDuel', `data-id="${f.id}"`, !ready)}<p class="cooldown">${ready ? 'Sẵn sàng' : live(pvp.lastAt + PVP_CD)}</p></div>
+          <div class="social-actions">${btn('Khiêu chiến', 'moreDuel', `data-id="${f.id}"`, !ready)}<p class="cooldown">${ready ? 'Sẵn sàng' : live(pvp.lastAt + PVP_CD)}</p></div>
         </article>`;
       }).join('')}</div>`;
   }
@@ -233,7 +224,7 @@
       '<button type="button" class="btn btn-outline" data-act="rankingRefresh">Làm mới thứ hạng</button>';
   }
 
-  const body = { online, friends, partner, dao, pvp, ranking };
+  const body = { online, partner, pvp, ranking };
   function lockedBuddy() {
     return card('Chưa mở', empty('Kết bạn với người chơi thật mở từ Luyện Khí viên mãn. Hiện bạn ở ' + esc(F.REALMS[UI.s().realm]) + ' tầng ' + num(UI.s().stage) + '/' + F.STAGES[UI.s().realm] + '.'), { eyebrow: 'CHƯA ĐỦ ĐẠO HẠNH' });
   }
@@ -245,14 +236,14 @@
   UI.register({
     id: 'more', label: 'Giao du', icon: '♡', eyebrow: 'GIAO DU', tabs: TABS,
     render: tab => {
-      const active = UI.release.allowed('more:' + tab) ? tab : 'friends';
+      const active = UI.release.allowed('more:' + tab) && body[tab] ? tab : 'online';
       return `<header class="screen-title"><span class="eyebrow gold">GIAO DU</span><h2>Giao du</h2></header>${tabs(UI.release.tabs(TABS), active)}<div class="screen-body">${UI.release.notice(active)}${(active === 'ranking' || (active === 'online' ? buddyOpen() : UI.g().featureOpen('social'))) ? body[active]() : (active === 'online' ? lockedBuddy() : lockedMore())}</div>`;
     },
-    mount: tab => { if (tab === 'ranking') void loadLeaderboard(); if (tab === 'online') void loadBuddies(false); },
+    mount: tab => { if (tab === 'ranking') void loadLeaderboard(); if (tab === 'online') { void loadBuddies(false); void loadSuggest(false); } },
     signature: tab => {
       const s = UI.s(), now = Date.now(), pvp = s.social.pvp;
       const f = Object.values(s.social.friends).map(v => v.affinity + ':' + (v.discussAt <= now ? 1 : 0) + ':' + (v.claimed || []).join('.')).join(',') + '|' + (s.social.partner ? s.social.partner.id + ':' + s.social.partner.sessions + ':' + (s.social.partner.songTuAt <= now ? 1 : 0) : '-') + '|' + (s.social.partnerRebindAt <= now ? 1 : 0);
-      return (tab === 'ranking' ? leaderboardState.at + ':' + leaderboardState.owner : tab === 'online' ? buddy.at + ':' + buddy.owner + ':' + buddy.busy : '') + '|' + s.realm + '|' + f + '|' + pvp.rating + '|' + pvp.wins + '|' + pvp.losses + '|' + pvp.streak + '|' + pvp.best + '|' + (pvp.lastAt + PVP_CD <= now ? 1 : 0);
+      return (tab === 'ranking' ? leaderboardState.at + ':' + leaderboardState.owner : tab === 'online' ? buddy.at + ':' + buddy.owner + ':' + buddy.busy + ':' + (Date.now() >= buddy.nextAt ? 1 : 0) : '') + '|' + s.realm + '|' + f + '|' + pvp.rating + '|' + pvp.wins + '|' + pvp.losses + '|' + pvp.streak + '|' + pvp.best + '|' + (pvp.lastAt + PVP_CD <= now ? 1 : 0);
     }
   });
 
@@ -293,6 +284,13 @@
   for (const [name, action] of [['buddyAccept', 'accept'], ['buddyDecline', 'decline'], ['buddyRemove', 'remove'], ['buddyBlock', 'block'], ['buddyUnblock', 'unblock'], ['buddyCancel', 'cancel']])
     UI.action(name, (el, d) => buddyAct({ action, id: d.id }));
   UI.action('buddyRefresh', () => { void loadBuddies(true); return UI.KEEP; });
+  UI.action('buddySuggest', () => { void loadSuggest(true); return UI.KEEP; });
+  UI.action('buddyInvite', async (el, d) => {
+    const r = await buddyAct({ action: 'request', id: d.id });
+    buddy.sugg = buddy.sugg.filter(p => p.id !== d.id);
+    refreshBuddyViews();
+    return r;
+  });
   UI.action('rankingRefresh', () => { void loadLeaderboard(true); return UI.KEEP; });
 
   const findFriend = id => FRIENDS.find(f => f.id === id);
@@ -355,7 +353,7 @@
     const r = await UI.command('duel', { id: d.id });
     UI.toast((r.win ? 'Thắng ' : 'Thua · tọa hóa vĩnh viễn trước ') + f.name + ' · danh vọng ' + (r.delta > 0 ? '+' : '') + r.delta +
       (r.win ? ' · +' + money(r.reward) + ' · +' + num(r.exp) + ' tu vi' : '') + '.',
-      { type: r.win ? 'success' : 'danger', title: r.win ? 'Luận kiếm thắng' : 'Luận kiếm thua' });
+      { type: r.win ? 'success' : 'danger', title: r.win ? 'Sinh Tử Đài · thắng' : 'Sinh Tử Đài · thua' });
     UI.vfx?.stage({ kind: 'chien_dau', variant: r.win ? 'phi_thang' : 'ha_gioi', fps: 14, size: 'clamp(120px,19vw,200px)', style: { left: '50%', bottom: '24%', transform: 'translateX(-50%)' } });
     if (r.win) UI.vfx?.ring('hero', '#e6c164');
   });

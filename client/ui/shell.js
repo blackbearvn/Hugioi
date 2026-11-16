@@ -584,8 +584,8 @@
   /* ======================================================================
      CỬA SỔ NỔI
      ====================================================================== */
-  /* Thứ tự theo nhịp chơi: tu luyện → lịch luyện → bản thân → nghề → thế giới → tông môn → nhiệm vụ → giao du. */
-  const WINDOW_ORDER = ['idle', 'retreat', 'combat', 'character', 'craft', 'world', 'sect', 'quests', 'chat', 'ranking'];
+  /* Thứ tự menu: Nhân vật → Tu luyện → Bế quan → Nhiệm vụ → Tông môn → Nghề phụ → Lịch luyện → Thế giới → Thêm. Truyền âm mở bằng bong bóng chat, Bảng xếp hạng nằm trong Giao du. */
+  const WINDOW_ORDER = ['character', 'idle', 'retreat', 'quests', 'sect', 'craft', 'combat', 'world'];
   const WINDOW_SIZE = { idle: 470, retreat: 620, combat: 590, craft: 740, character: 760, world: 850, quests: 700, chat: 620, ranking: 740, settings: 630, meta: 760, more: 720 };
   const BADGED = ['combat', 'craft', 'retreat', 'quests'];
 

@@ -260,7 +260,10 @@
         const key = ['PILL', 'EQ', 'BT', 'TAL'].includes(x.kind) ? H.keyFor(x.code, v.quality) : x.code;
         return UI.kit.peekRow('shop:' + key, x.name, {
           titleHtml: UI.kit.itemName(H.item(key)), eyebrow: 'CỬA HÀNG', mark: '◈', img: img(key),
-          body: `<div class="pop-detail">${img(key, 'detail-img')}<p>${x.category} · ${x.realm} · ${F.SUBPHAM[H.item(key).sub]} phẩm</p><p>${esc(x.description)}</p><div class="detail-actions">${btn('Mua · ' + moneyHTML(F.shop_buy_price(g.price(key))), 'buy', codeAttr(key))}</div></div>`
+          body: `<div class="pop-detail">${img(key, 'detail-img')}<p>${x.category} · ${x.realm} · ${F.SUBPHAM[H.item(key).sub]} phẩm</p><p>${esc(x.description)}</p><div class="detail-actions">${btn('Mua · ' + moneyHTML(F.shop_buy_price(g.price(key))), 'buy', codeAttr(key))}</div>
+            <div class="buy-qty" ${codeAttr(key)} data-unit="${F.shop_buy_price(g.price(key))}"><label>Số lượng<input type="number" class="buy-qty-input" min="1" max="999" value="1" inputmode="numeric"></label>
+              ${[5, 10, 50].map(n => `<button type="button" class="btn btn-outline btn-sm" data-act="buyQtySet" data-n="${n}">×${n}</button>`).join('')}<button type="button" class="btn btn-outline btn-sm" data-act="buyQtySet" data-n="max">Tối đa</button>
+              ${btn('Mua số lượng', 'buyQty', codeAttr(key), false, 'btn-gold')}</div></div>`
         });
       }).join('')}</div>
       ${card('Yêu đan và linh thạch', `${row('Giá trị yêu đan', moneyHTML(s.yaoValue))}${btn('Bán yêu đan', 'sellYao', '', s.yaoValue <= 0)}<p>Hấp thu linh thạch để đổi lấy tu vi với hiệu suất 15%; loại thấp hơn cảnh giới bị giảm hiệu quả.</p><div class="action-group coin-row">${F.COINS.map(([n, val], i) => btn('Hấp thu 1 ' + coinLabel(n), 'absorb', `data-index="${i}"`, s.stone < val, 'btn-outline')).join(' ')}</div>`)}`;
@@ -321,6 +324,21 @@
   UI.action('buy', async (el, d) => {
     await UI.command('buy', { code: d.code });
     UI.toast('Đã mua ' + H.item(d.code).name + '.', { type: 'loot', title: 'Cửa hàng' });
+    UI.vfx?.stage({ kind: 'chien_dau', variant: 'linh_phu', fps: 12, size: 'clamp(100px,16vw,170px)', style: { left: '50%', bottom: '24%', transform: 'translateX(-50%)' } });
+  });
+  const qtyBox = el => el.closest('.buy-qty') || el.closest('.pop-detail')?.querySelector('.buy-qty');
+  UI.action('buyQtySet', (el, d) => {
+    const box = qtyBox(el), input = box?.querySelector('.buy-qty-input');
+    if (!input) return UI.KEEP;
+    const unit = Math.max(1, Number(box.dataset.unit) || 1);
+    input.value = d.n === 'max' ? Math.max(1, Math.min(999, Math.floor(UI.s().stone / unit))) : d.n;
+    return UI.KEEP;
+  });
+  UI.action('buyQty', async (el, d) => {
+    const box = qtyBox(el), n = Math.floor(Number(box?.querySelector('.buy-qty-input')?.value));
+    if (!Number.isInteger(n) || n < 1 || n > 999) throw Error('Nhập số lượng từ 1 đến 999.');
+    await UI.command('buy', { code: d.code, count: n });
+    UI.toast('Đã mua ' + n + ' ' + H.item(d.code).name + '.', { type: 'loot', title: 'Cửa hàng' });
     UI.vfx?.stage({ kind: 'chien_dau', variant: 'linh_phu', fps: 12, size: 'clamp(100px,16vw,170px)', style: { left: '50%', bottom: '24%', transform: 'translateX(-50%)' } });
   });
   UI.action('npcGift', async (el, d) => {

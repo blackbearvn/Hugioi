@@ -2,7 +2,7 @@
 (function (root) {
   'use strict';
   const UI = root.HU_UI;
-  const { card, tabs } = UI.kit;
+  const { card, tabs, btn } = UI.kit;
 
   const TABS = [
     { id: 'season', label: 'Tứ thời', icon: '✿' },
@@ -94,8 +94,9 @@
   }
 
   function account() {
-    return '<div class="screen-grid">' + card('Xóa nhân vật', '<p>Xóa đạo thân hiện tại để tạo lại từ đầu. Cảnh giới, trang bị, vật phẩm và thứ hạng của nhân vật sẽ mất; Thiên Tinh và nâng cấp Thiên Mệnh Các được giữ lại. Tin nhắn do nhân vật gửi cũng bị xóa.</p><p>Tài khoản đăng nhập được giữ. Lượt gieo nhân vật sẽ được đặt lại.</p><button type="button" class="btn btn-danger" data-act="deleteCharacter">Xóa nhân vật</button>', { eyebrow: 'NHÂN VẬT' }) + '</div>';
+    return '<div class="screen-grid">' + card('Tài khoản', '<p>Đăng xuất hoặc đổi sang tài khoản khác. Tiến trình đã được tự động lưu trên máy chủ.</p>' + btn('Đăng xuất / Đổi tài khoản', 'accountLogout', '', false, 'btn-outline'), { eyebrow: 'PHIÊN ĐĂNG NHẬP' }) + card('Xóa nhân vật', '<p>Xóa đạo thân hiện tại để tạo lại từ đầu. Cảnh giới, trang bị, vật phẩm và thứ hạng của nhân vật sẽ mất; Thiên Tinh và nâng cấp Thiên Mệnh Các được giữ lại. Tin nhắn do nhân vật gửi cũng bị xóa.</p><p>Tài khoản đăng nhập được giữ. Lượt gieo nhân vật sẽ được đặt lại.</p><button type="button" class="btn btn-danger" data-act="deleteCharacter">Xóa nhân vật</button>', { eyebrow: 'NHÂN VẬT' }) + '</div>';
   }
+  UI.action('accountLogout', () => { root.document.getElementById('accountExit')?.click(); return UI.KEEP; });
   UI.action('deleteCharacter', () => {
     const name = UI.kit.esc(UI.s().name);
     UI.modal('Xóa nhân vật?', '<p>Bạn sắp xóa vĩnh viễn <b>' + name + '</b> cùng toàn bộ tiến trình, vật phẩm, thứ hạng và tin nhắn đã gửi.</p><p>Tài khoản đăng nhập, Thiên Tinh và nâng cấp Thiên Mệnh Các vẫn được giữ. Thao tác này không thể hoàn tác.</p>', async () => {
