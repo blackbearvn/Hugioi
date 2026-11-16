@@ -92,9 +92,9 @@
             if (got <= 0) throw Error('Đã đầy tu vi hoặc đạt trần đan trong cảnh giới.');
             s.pillRealmExp += got; s.pillUses++;
             message = 'Tu vi +' + F.fmt(got);
-          } else if (x.effect === 'HOI_PHUC') {
-            s.hp = Math.min(this.stats().HP, s.hp + this.stats().HP * e.hoi_phan_tram_HP * (1 + this.rootEffects().heal));
-            s.mp = Math.min(this.maxMp(), s.mp + this.maxMp() * e.hoi_phan_tram_HP);
+          } else if (x.effect === 'HOI_PHUC' || x.effect === 'HOI_HP' || x.effect === 'HOI_MP') {
+            if (e.hoi_phan_tram_HP) s.hp = Math.min(this.stats().HP, s.hp + this.stats().HP * e.hoi_phan_tram_HP * (1 + this.rootEffects().heal));
+            if (e.hoi_phan_tram_MP) s.mp = Math.min(this.maxMp(), s.mp + this.maxMp() * e.hoi_phan_tram_MP);
           } else if (x.effect === 'BUFF_TOC') s.buffs.push({ type: 'rate', points: e.diem, end: now + e.thoi_luong * 1000 });
           else if (x.effect === 'DOT_PHA') s.breakBonus = Math.min(10, s.breakBonus + e.diem);
           else if (x.effect === 'KIEP') { s.shield = Math.max(s.shield, e.khien_theo_HP); s.reduction = Math.max(s.reduction, e.giam_sat_thuong); }
@@ -102,8 +102,15 @@
           else if (x.effect === 'CUNG_CO') {
             if (s.permanent >= e.tran_moi_canh_gioi) throw Error('Đã đạt trần củng cố cảnh giới.');
             s.permanent = Math.min(e.tran_moi_canh_gioi, s.permanent + e.cong_gop);
-          } else if (x.effect === 'GIAI_DOC') { s.debuffs = []; this.addTamMa(-H.TAM_MA_CLEANSE); }
-          else if (x.effect === 'CHIEN_DAU') s.buffs.push({ type: 'attack', points: e.tang_ATK, end: now + e.thoi_luong * 1000 });
+          } else if (x.effect === 'GIAI_DOC') {
+            s.debuffs = [];
+            s.designCombat.bleed = null;
+            this.addTamMa(-H.TAM_MA_CLEANSE);
+          } else if (x.effect === 'KHANG_HIEU_UNG') {
+            s.debuffs = [];
+            s.designCombat.bleed = null;
+            s.designCombat.ward = { end: now + e.thoi_luong * 1000, reduce: e.giam_thoi_gian };
+          } else if (x.effect === 'CHIEN_DAU') s.buffs.push({ type: 'attack', points: e.tang_ATK, end: now + e.thoi_luong * 1000 });
           else if (x.effect === 'TRONG_SINH') s.rebirthKeep = Math.max(s.rebirthKeep, e.giu_tien_do);
         } else if (x.kind === 'HERB' && x.design?.['cách dùng']?.includes('ăn trực tiếp')) {
           const amount = String(x.design['hiệu quả']).match(/hồi\s+(\d+(?:[.,]\d+)?)\s*hp/i);

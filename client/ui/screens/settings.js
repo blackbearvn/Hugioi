@@ -80,7 +80,7 @@
       ${card('Mẹo tu hành', `
         <p>• Bán yêu đan ở Lịch luyện hoặc Thế giới → Cửa hàng để lấy linh thạch.</p>
         <p>• Đan cấp thấp vẫn dùng được nhưng hiệu quả giảm theo chênh lệch cảnh giới.</p>
-        <p>• Độ kiếp đại cảnh giới thất bại khiến đạo thân tử vong. Hãy chuẩn bị trước khi dẫn lôi.</p>
+        <p>• Độ kiếp đại cảnh giới: hộ kiếp không đủ khiến đạo thân tử vong; nếu lôi kiếp đã qua mà xác suất phá cảnh trượt, đạo thân chỉ mất một phần tu vi và tích lũy may mắn.</p>
         <p>• Tông môn mang lại linh thạch định kỳ và chúc phúc +10% tốc độ hấp thụ linh khí.</p>
         <p>• Khi nhân vật <b>tọa hóa</b>, bạn có thể trở về Khởi Nguyên để tạo nhân vật mới. Tiến trình và quyền lợi kiếp cũ bị xóa; tài khoản đăng nhập được giữ.</p>`, { eyebrow: 'GHI NHỚ' })}
     </div>`;

@@ -36,7 +36,7 @@
       ${row('Trợ lực từ đan dược', num(s.breakBonus))}
       ${row('Chúc phúc tông môn', s.sect.blessing ? '+10%' : 'Chưa bật')}
       ${row('Hệ số chịu kiếp của linh căn', '×' + (F.LINH_CAN_TRIB[s.rootType] || 1))}
-      <p class="info-note">Thất bại khiến đạo thân tọa hóa ngay lập tức: mất toàn bộ tiến trình nhân vật, không hồi sinh, không có lần thử kế tiếp. Xác suất không vượt quá 98%; Vận Khí vẫn hỗ trợ khi xác suất đã đạt 95%.</p>`, { eyebrow: 'TỈ LỆ' });
+      <p class="info-note">Hộ kiếp không đủ sức chịu lôi kiếp khiến đạo thân tọa hóa ngay lập tức: mất toàn bộ tiến trình, không hồi sinh. Nếu lôi kiếp đã qua nhưng xác suất phá cảnh trượt, đạo thân chỉ mất ${pct(F.P.FAIL_EXP_LOSS)} tu vi và tích lũy may mắn đột phá. Xác suất không vượt quá 98%; Vận Khí vẫn hỗ trợ khi xác suất đã đạt 95%.</p>`, { eyebrow: 'TỈ LỆ' });
   }
 
   function defenseCard() {
@@ -105,7 +105,7 @@
       const next = s.realm < 13 ? F.REALMS[s.realm + 1] : 'Đạo Tổ';
       UI.modal('Thiên kiếp giáng thế',
         `<p>Đại cảnh giới <b>${esc(F.REALMS[s.realm])}</b> đã đủ duyên. Thiên đạo triệu hồi lôi kiếp để bước vào <b>${esc(next)}</b>.</p>` +
-        `<p>Nhận kiếp sẽ mở Độ kiếp đài. Thất bại khiến đạo thân tọa hóa vĩnh viễn và xóa toàn bộ tiến trình kiếp này; đan và phù chỉ hỗ trợ trước khi nhập kiếp.</p>`,
+        `<p>Nhận kiếp sẽ mở Độ kiếp đài. Hộ kiếp không đủ khiến đạo thân tọa hóa vĩnh viễn; nếu chỉ trượt xác suất phá cảnh, đạo thân mất một phần tu vi và tích lũy may mắn. Đan và phù chỉ hỗ trợ trước khi nhập kiếp.</p>`,
         () => UI.go('tribulation'), 'Nhận thiên kiếp', 'THIÊN ĐẠO',
         { type: 'gold', symbol: '⚡', vfx: ['loi_kiep', 'ha_gioi'] });
       return UI.KEEP;
@@ -129,7 +129,7 @@
     } else {
       UI.vfx?.effect('hit', target);
       UI.vfx?.screenFlash('flash-red', 420);
-      UI.vfx?.float('Thất bại · tọa hóa vĩnh viễn', target);
+      UI.vfx?.float(result.died ? 'Thất bại · tọa hóa vĩnh viễn' : 'Thất bại · tu vi tổn hại', target);
     }
     return undefined;
   }

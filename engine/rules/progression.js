@@ -147,13 +147,24 @@
         if (s.qi + this.need() * 1e-12 < this.need()) throw Error('Tu vi chưa đầy.');
         if (!this.isPeakStage()) { this.autoStage(); return { success: true, chance: 1, events: [], auto: true }; }
         const chance = this.chance(), events = this.tribulation();
-        const success = this.rng() < chance && events.every(x => x.success);
+        const survived = events.every(x => x.success);
+        const success = survived && this.rng() < chance;
         s.breakBonus = 0; s.shield = 0; s.reduction = 0;
-        if (!success) {
+        /* Hộ kiếp vỡ mới đoạt mạng. Nếu lôi kiếp đã qua nhưng xác suất phá cảnh
+           trượt, đạo thân chỉ tổn thương: mất một phần tu vi và tích lũy may mắn
+           để lần sau chắc hơn. Nhờ vậy cơ chế pity của đột phá mới có tác dụng. */
+        if (!survived) {
           s.pity = 0;
           s.death = { cause: 'tribulation', at: now };
-          this.log('Độ kiếp thất bại. Đạo thân tọa hóa; toàn bộ tiến trình kiếp này chấm dứt.');
+          this.log('Hộ kiếp vỡ trong lôi kiếp. Đạo thân tọa hóa; toàn bộ tiến trình kiếp này chấm dứt.');
           return { success: false, died: true, chance, events };
+        }
+        if (!success) {
+          s.qi = Math.max(0, this.need() * (1 - F.P.FAIL_EXP_LOSS));
+          s.pity = Math.min(F.P.PITY_MAX, (s.pity || 0) + 1);
+          s.hp = this.stats().HP; s.mp = this.maxMp(); s.enemyHp = 0; s.combatClock = 0;
+          this.log('Đột phá thất bại nhưng giữ được đạo thân. Tu vi tổn hại, may mắn đột phá tích lũy (' + s.pity + '/' + F.P.PITY_MAX + ').');
+          return { success: false, died: false, survived: true, chance, events, pity: s.pity };
         }
         s.qi = 0; s.pity = 0; s.pillUses = 0; s.progress.breaks++;
         if (s.stage < F.STAGES[s.realm]) s.stage++;

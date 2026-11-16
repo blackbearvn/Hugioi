@@ -2,6 +2,7 @@
 (function(root){
 'use strict';
 const D=typeof module!=='undefined'&&module.exports?require('./balance.js'):root.HU_BALANCE;
+const S=typeof module!=='undefined'&&module.exports?require('./schema.js'):root.HU_SCHEMA;
 const {P,REALMS,STAGES}=D;
 /* Trúc Cơ → Kết Đan có lôi kiếp theo đặc tả mới. */
 const BOLTS=D.BOLTS.map((n,i)=>i===1?3:n);
@@ -31,7 +32,7 @@ F.monster_cp=(r,s,kind='thường')=>{const x=F.stats(r,s);return F.combat_power
 F.p_base=r=>Math.max(P.P_FLOOR,P.P_START-P.P_DROP*r);
 F.p_breakthrough=(r,s,bonus=0,pity=0,rootBonus=0)=>Math.min(P.P_CAP,(s===STAGES[r]-1?F.p_base(r)*P.P_REALM_FACTOR:Math.min(.99,F.p_base(r)+P.P_STAGE_BONUS))+F.diminishing(bonus,P.BONUS_MAX,P.BONUS_K)+rootBonus+Math.min(pity,P.PITY_MAX)*P.PITY_STEP);
 F.on_breakthrough_fail=exp=>exp*(1-P.FAIL_EXP_LOSS);
-F.tribulation_total=(r,rootType=null,mult=1.5)=>F.stats(r,STAGES[r]-1).HP*mult*(D.LINH_CAN_TRIB[rootType]||1);
+F.tribulation_total=(r,rootType=null,mult=P.TRIB_MULT)=>F.stats(r,STAGES[r]-1).HP*mult*(D.LINH_CAN_TRIB[rootType]||1);
 F.tribulation_bolts=(r,rootType=null)=>{const n=Math.min(BOLTS[r],999);return range(n).map(k=>F.tribulation_total(r,rootType)/n*(.5+k/n))};
 function survive(bolts,hp,shield,red,heal,reported){let cur=hp+shield;for(let i=0;i<bolts.length;i++){cur-=bolts[i]*(1-red);if(cur<=0)return [false,i];cur=Math.min(cur+heal,hp+shield)}return [true,reported]}
 F.survive_tribulation=(r,hp,shield=0,red=0,heal=0,rootType=null)=>survive(F.tribulation_bolts(r,rootType),hp,shield,red,heal,BOLTS[r]);
@@ -53,7 +54,7 @@ F.exp_for_dao_van=target=>F.prestige_k()*target**(1/P.PRESTIGE_POW);
 F.price_ha=(tier,sub=0)=>P.PRICE0*P.PRICE_STEP**tier*2**sub;
 F.craft_time=tier=>30*2.2**tier;
 F.craft_success=(tier,skill)=>clamp(.90-.12*(tier-skill),.05,.95);
-F.craft_quality=(tier,skill,rng=Math.random)=>{const u=Math.max(Number.MIN_VALUE,rng()),v=rng();const q=clamp(.5+.15*(skill-tier)+Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)*.15,0,1);return q<.4?0:q<.7?1:q<.9?2:3};
+F.craft_quality=(tier,skill,rng=Math.random)=>{const u=Math.max(Number.MIN_VALUE,rng()),v=rng();const q=clamp(.5+.15*(skill-tier)+Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)*.15,0,1);return S.subForQuality(S.qualityForRoll(q))};
 F.lifespan=r=>sum(range(r+1).map(i=>P.LIFE_BASE*P.LIFE_GROWTH**i));
 F.realm_time=r=>sum(range(STAGES[r]).map(s=>F.stage_time(r,s)));
 F.aging_speed=r=>P.LIFE_BASE*P.LIFE_GROWTH**r*P.LIFE_USE/F.realm_time(r);
@@ -83,8 +84,15 @@ F.dan_effect=(type,r,s,sub=0,used=0,diff=0)=>{const m=P.DAN_MISMATCH**diff,q=2**
 case 'TU_VI':return {exp:F.dan_exp_gain(r,s,sub,used,diff)};
 case 'BUFF_TOC':return {diem:P.DAN_BUFF_PT*q,buff_neu_mot_minh:F.dan_buff(P.DAN_BUFF_PT*q),thoi_luong:Math.max(60,P.DAN_BUFF_DUR*F.avg_stage_time(r))};
 case 'DOT_PHA':return {diem:P.DOTPHA_PT*q,cong_xac_suat:F.diminishing(P.DOTPHA_PT*q,P.BONUS_MAX,P.BONUS_K)};
-case 'KIEP':return {khien_theo_HP:P.KIEP_SHIELD*q,giam_sat_thuong:Math.min(P.KIEP_RED_MAX,P.KIEP_RED*q)};
-case 'HOI_PHUC':return {hoi_phan_tram_HP:Math.min(1,P.HOIPHUC*q)};
+/* Hộ kiếp chỉ phụ thuộc phẩm chất đan/phù, không bị giảm vì lệch cảnh giới:
+   đan hộ kiếp cấp thấp vẫn là vật phẩm dự phòng hợp lệ khi lên cao. */
+case 'KIEP':{const k=2**sub;return {khien_theo_HP:P.KIEP_SHIELD*k,giam_sat_thuong:Math.min(P.KIEP_RED_MAX,P.KIEP_RED*k)}};
+case 'HOI_PHUC':{const v=Math.min(1,P.HOIPHUC*q);return {hoi_phan_tram_HP:v,hoi_phan_tram_MP:v}};
+case 'HOI_HP':return {hoi_phan_tram_HP:Math.min(1,P.HOIPHUC*q)};
+case 'HOI_MP':return {hoi_phan_tram_MP:Math.min(1,P.HOIPHUC*q)};
+/* Kháng hiệu ứng xấu là vật phẩm phòng thân: giống hộ kiếp, không giảm theo
+   cảnh giới lệch để đan cấp thấp vẫn dùng được như phương án dự phòng. */
+case 'KHANG_HIEU_UNG':{const k=2**sub;return {giam_thoi_gian:Math.min(P.WARD_RED_MAX,P.WARD_RED*k),thoi_luong:Math.max(8,P.WARD_DUR*(1+.25*sub))}}
 case 'THO_NGUYEN':return {nam:P.THONGUYEN*P.LIFE_BASE*P.LIFE_GROWTH**r*q};
 case 'CUNG_CO':return {cong_gop:P.CUNGCO*q,tran_moi_canh_gioi:P.CUNGCO_CAP};
 case 'GIAI_DOC':return {giai_hieu_ung_xau:true};

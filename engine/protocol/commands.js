@@ -45,6 +45,7 @@
     activateArtifact: { code },
     startExploration: {},
     exploreChoice: { index: integer(0, 2) },
+    battleAct: { action: oneOf(['attack', 'power', 'guard', 'heal', 'manual', 'artifact', 'item', 'flee', 'continue']), code: optional(string) },
     setEnemyKind: { kind: oneOf(Object.keys(F.MONSTER_MULT)) },
     travel: { zone: integer(0, D.ZONES.length - 1) },
     // world
@@ -84,7 +85,7 @@
 
   const trainingActions = new Set(['absorb', 'upgrade', 'craft', 'mixCraft', 'forge', 'garden', 'startDungeon', 'enterDungeon',
     'startExploration', 'startSectMission', 'breakthrough', 'manualEncounter', 'setAuto', 'startRetreat']);
-  const legacyEscape = new Set(['exploreChoice', 'abortDungeon', 'dungeonAct', 'abortSectMission', 'setPreference']);
+  const legacyEscape = new Set(['exploreChoice', 'battleAct', 'abortDungeon', 'dungeonAct', 'abortSectMission', 'setPreference']);
   function activityConflict(state, type) {
     if (state.retreat?.active && !['stopRetreat', 'setPreference'].includes(type))
       return 'Đang bế quan: hãy kết thúc phiên trước khi làm việc khác.';

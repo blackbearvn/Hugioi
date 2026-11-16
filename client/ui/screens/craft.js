@@ -103,7 +103,7 @@
     const cardOf = x => {
       const r = recipeOf.get(x.code), ok = canMake(r);
       return `<section class="recipe ${ok ? 'ready' : ''}">
-        <div class="row-wrap">${img(x.code, 'recipe-img')}<div><h3>${UI.kit.itemName(x)}</h3><small class="muted">${x.realm} · ${x.grade}</small></div></div>
+        <div class="row-wrap">${img(x.code, 'recipe-img')}<div><h3>${UI.kit.itemName(x)}</h3><small class="muted">${x.realm} · ${UI.kit.rankLabelOf ? UI.kit.rankLabelOf(x) : x.grade}</small></div></div>
         <p>${esc(x.description)}</p>
         ${Object.entries(r.herbs).map(([key, n]) => row(esc(H.item(key).name), `<span class="${g.ingredientCount(key) >= n ? 'green-text' : 'danger-text'}">${g.ingredientCount(key)} / ${n}</span>`)).join('')}
         ${row('Chi phí', moneyHTML(r.stone))}${row('Thời gian', duration(r.time))}${row('Thành công', pct(g.craftChance(x.tier)))}

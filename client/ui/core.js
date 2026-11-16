@@ -110,13 +110,119 @@
   const img = (key, cls = '') => {
     const x = H.item(key);
     const v = A.itemImg(x);
-    const q = x && Number.isInteger(x.sub) && x.sub >= 0 && x.sub <= 3 ? ` data-q="${x.sub}"` : '';
+    const q = x && Number.isInteger(x.sub) && x.sub >= 0 && x.sub <= 4 ? ` data-q="${x.sub}"` : '';
     return `<img class="${cls}"${q} loading="lazy" decoding="async" src="${v.src}"${v.style ? ` style="${esc(v.style)}"` : ''} alt="${esc(x?.name || '')}">`;
   };
-  /* Tên vật phẩm có hiệu ứng theo phẩm chất (hạ xanh dương, trung tím, thượng vàng, cực ngũ sắc). */
+  /* Tên vật phẩm có hiệu ứng theo phẩm chất (hạ lục, trung tím, thượng vàng, cực ngũ sắc, tuyệt đen trắng). */
   const itemName = x => {
     const L = root.HU_LABELS;
     return L && x && Number.isInteger(x.sub) && F.SUBPHAM[x.sub] ? L.span(x.name, 'quality', F.SUBPHAM[x.sub]) : esc(x?.name || '');
+  };
+  /* Hai trục độc lập: rank 1-7 và quality 1-5. Luôn đọc qua schema tập trung,
+     không tự suy lại từ grade/quality cũ trong từng màn hình. */
+  const rankOf = x => H.SCHEMA?.rankOf?.(x) || x?.rank || 1;
+  const rankLabelOf = x => H.SCHEMA?.rankLabel?.(rankOf(x)) || 'Phàm giai';
+  const qualityOf = x => H.SCHEMA?.qualityOf?.(x) || (Number.isInteger(x?.sub) ? x.sub + 1 : 1);
+  const qualityLabelOf = x => H.SCHEMA?.qualityLabel?.(qualityOf(x)) || (F.SUBPHAM[qualityOf(x) - 1] || 'Hạ') + ' phẩm';
+  const useCondition = x => {
+    if (!x) return '';
+    const parts = [];
+    if (Number.isInteger(x.useReq?.realmMin) && F.REALMS[x.useReq.realmMin]) parts.push('Cảnh giới tối thiểu: ' + F.REALMS[x.useReq.realmMin]);
+    if (x.kind === 'EQ') parts.push('Tối đa cao hơn cảnh giới hiện tại 1 bậc');
+    if (x.kind === 'BT') parts.push('Cần lĩnh ngộ; tối đa cao hơn cảnh giới hiện tại 1 bậc');
+    if (x.kind === 'QITEM') parts.push('Vật phẩm nhiệm vụ, không bán');
+    if (Array.isArray(x.tags) && x.tags.includes('dan-hiem')) parts.push('Cần bí tịch luyện đan cấp cao');
+    return parts.join(' · ') || 'Không có điều kiện đặc biệt';
+  };
+  /* Giá trị thực của đan/phù ở cảnh giới hiện tại. Dùng đúng F.dan_effect
+     như lúc sử dụng nên tooltip, cửa hàng và kết quả dùng luôn khớp nhau.
+     `state` chỉ để kiểm thử; mặc định đọc nhân vật đang chơi. */
+  const pillEffectText = (x, state) => {
+    if (!x || (x.kind !== 'PILL' && x.kind !== 'TAL')) return '';
+    let s = state;
+    if (!s) { try { s = UI.s?.(); } catch { s = null; } }
+    const realm = Number.isInteger(s?.realm) ? s.realm : x.tier;
+    const stage = Number.isInteger(s?.stage) ? Math.max(0, s.stage - 1) : 0;
+    const diff = Math.max(0, realm - x.tier);
+    const used = Number.isFinite(s?.pillUses) ? s.pillUses : 0;
+    const levelled = diff > 0 ? ` · lệch ${diff} cảnh giới` : '';
+    if (x.kind === 'TAL') {
+      if (x.effect === 'KIEP') {
+        const e = F.dan_effect('KIEP', realm, stage, x.sub, 0, diff);
+        return `Khiên ${pct(e.khien_theo_HP)} sinh lực · giảm ${pct(e.giam_sat_thuong)} sát thương · không giảm vì lệch cảnh giới`;
+      }
+      if (x.effect === 'STRIKE') {
+        const mult = (x.code === 'TAL-PL-001' ? 1.2 : 2) * 2 ** x.sub;
+        return `Sát thương ×${num(mult)} một đòn đánh thường`;
+      }
+      return H.SCHEMA?.EFFECTS?.[x.effect] || x.description || '—';
+    }
+    const e = F.dan_effect(x.effect, realm, stage, x.sub, used, diff);
+    switch (x.effect) {
+      case 'TU_VI': {
+        const base = F.dan_exp_gain(realm, stage, x.sub, used, diff);
+        const gain = Number.isFinite(s?.pillRealmExp)
+          ? F.dan_exp_gain_capped(realm, stage, x.sub, used, s.pillRealmExp, diff) : base;
+        return `Tu vi +${num(gain)}${gain < base ? ' · đã chạm trần đan cảnh giới' : ''}${levelled}`;
+      }
+      case 'HOI_PHUC':
+        return `Hồi ${pct(e.hoi_phan_tram_HP)} sinh lực và linh lực${levelled}`;
+      case 'HOI_HP':
+        return `Hồi ${pct(e.hoi_phan_tram_HP)} sinh lực${levelled}`;
+      case 'HOI_MP':
+        return `Hồi ${pct(e.hoi_phan_tram_MP)} linh lực${levelled}`;
+      case 'BUFF_TOC':
+        return `Tốc độ hấp thụ linh khí +${pct(e.buff_neu_mot_minh)} trong ${duration(e.thoi_luong)}${levelled}`;
+      case 'DOT_PHA':
+        return `Xác suất đột phá +${pct(e.cong_xac_suat)} (trợ lực ${num(e.diem)} điểm)${levelled}`;
+      case 'KIEP':
+        return `Khiên ${pct(e.khien_theo_HP)} sinh lực · giảm ${pct(e.giam_sat_thuong)} sát thương${diff > 0 ? ' · không giảm vì lệch cảnh giới' : ''}`;
+      case 'THO_NGUYEN':
+        return `Thọ nguyên +${num(e.nam)} năm${levelled}`;
+      case 'CUNG_CO': {
+        const have = Number.isFinite(s?.permanent) ? s.permanent : 0;
+        const gain = Math.min(e.cong_gop, Math.max(0, e.tran_moi_canh_gioi - have));
+        return gain > 0
+          ? `Củng cố vĩnh viễn +${pct(gain)} · trần ${pct(e.tran_moi_canh_gioi)} mỗi cảnh giới${levelled}`
+          : `Đã đạt trần củng cố ${pct(e.tran_moi_canh_gioi)} của cảnh giới này`;
+      }
+      case 'GIAI_DOC':
+        return `Giải đóng băng, choáng, độc, chảy máu · giảm ${num(H.TAM_MA_CLEANSE || 20)} Tâm ma`;
+      case 'KHANG_HIEU_UNG':
+        return `Giải hiệu ứng xấu · giảm ${pct(e.giam_thoi_gian)} thời gian đóng băng/choáng/độc/chảy máu trong ${duration(e.thoi_luong)}${diff > 0 ? ' · không giảm vì lệch cảnh giới' : ''}`;
+      case 'CHIEN_DAU':
+        return `Công kích +${pct(e.tang_ATK)} trong ${duration(e.thoi_luong)}${levelled}`;
+      case 'TRONG_SINH':
+        return `Giữ ${pct(e.giu_tien_do)} tiến độ khi trọng sinh${levelled}`;
+      default:
+        return H.SCHEMA?.EFFECTS?.[x.effect] || x.description || '—';
+    }
+  };
+
+  /* Một dòng thuộc tính/công dụng ngắn cho tooltip. Chi tiết đầy đủ vẫn nằm
+     trong cửa sổ vật phẩm; ở đây chỉ lấy dữ liệu thiết kế đang có và bỏ qua
+     trường thiếu thay vì in "NaN". */
+  const itemEffectText = x => {
+    if (!x) return '';
+    if (x.kind === 'PILL' || x.kind === 'TAL') return pillEffectText(x) || H.SCHEMA?.EFFECTS?.[x.effect] || x.description || '—';
+    const d = x.design, base = H.BY_ID?.[x.code];
+    const scale = Number.isInteger(x.sub) && Number.isInteger(base?.sub) ? 2 ** (x.sub - base.sub) : 1;
+    const stats = (pairs, suffix = '') => pairs
+      .filter(([, v]) => Number.isFinite(v))
+      .map(([k, v]) => `${k} +${num(v * scale)}${suffix}`)
+      .join(' · ');
+    if (d?.group === 'pháp bảo') {
+      const main = stats([['Sinh lực', d['hp cộng']], ['Linh lực', d['mp cộng']], ['Công kích', d['atk cộng']], ['Phòng thủ', d['def cộng']]]);
+      const extra = stats([['Né tránh', d['eva cộng (%)']], ['Bạo kích', d['crit cộng (%)']]], '%');
+      const e = H.DESIGN?.effects?.[x.code];
+      return [main, extra, e ? `${e['hiệu ứng']} · ${e['điều kiện kích hoạt']}` : ''].filter(Boolean).join(' · ');
+    }
+    if (d?.group === 'công pháp') return [d['hệ'], d['công dụng'], Number.isFinite(d['tiêu hao mp']) ? d['tiêu hao mp'] + ' linh lực' : '', Number.isFinite(d['hồi chiêu (giây)']) ? d['hồi chiêu (giây)'] + ' giây' : ''].filter(Boolean).join(' · ');
+    if (d?.group === 'bí tịch') return [d['thể loại'], d['công dụng']].filter(Boolean).join(' · ');
+    if (d?.group === 'linh thảo') return [d['cách dùng'], d['hiệu quả']].filter(Boolean).join(' · ');
+    if (d?.group === 'hạt giống') return [d['độ khó'], Number.isFinite(d['thời gian trồng (phút)']) ? d['thời gian trồng (phút)'] + ' phút' : '', Number.isFinite(d['sản lượng tối đa']) ? 'tối đa ' + d['sản lượng tối đa'] + ' cây' : ''].filter(Boolean).join(' · ');
+    if (d?.group === 'phù lục') return [d['hệ'], d['hiệu quả']].filter(Boolean).join(' · ');
+    return x.description || '—';
   };
   const codeAttr = key => `data-code="${esc(key)}"`;
   const bar = (percent, cls = '', id = '') =>
@@ -142,7 +248,7 @@
     return Object.entries(effects || {}).map(([k, v]) => (labels[k] || k) + ' +' + (v * weight * 100).toLocaleString('vi-VN', { maximumFractionDigits: 2 }) +
       (['crit', 'dodge', 'regen'].includes(k) ? ' điểm %' : '%')).join(' · ');
   };
-  UI.kit = { itemName, $, $$, esc, clamp, num, money, moneyHTML, coinLabel, pct, duration, abs, row, btn, img, codeAttr, bar, card, empty, tabs, live };
+  UI.kit = { itemName, rankOf, rankLabelOf, qualityOf, qualityLabelOf, useCondition, itemEffectText, pillEffectText, $, $$, esc, clamp, num, money, moneyHTML, coinLabel, pct, duration, abs, row, btn, img, codeAttr, bar, card, empty, tabs, live };
 
   /* ======================================================================
      2. DỮ LIỆU HIỂN THỊ

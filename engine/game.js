@@ -5,6 +5,7 @@
   'use strict';
   const node = typeof module !== 'undefined' && module.exports;
   const F = node ? require('../data/formulas.js') : root.HU_FORMULAS;
+  const SCHEMA = node ? require('../data/schema.js') : root.HU_SCHEMA;
   const C = node ? require('../data/character.js') : root.HU_CHARACTER;
   const D = node ? require('../data/catalog.js') : root.HU_CATALOG;
   const social = node ? require('../data/social.js') : root.HU_SOCIAL_DATA;
@@ -54,7 +55,7 @@
   [...P.types, ...REQUIRED_METHODS].forEach(name => { Game.prototype[name] = notImplemented(name); });
 
   const API = {
-    F, ...C, ...D, ...social, ...adventures, STORY: story, MANUALS: manuals,
+    F, SCHEMA, ...C, ...D, ...social, ...adventures, STORY: story, MANUALS: manuals,
     VERSION: S.VERSION,
     SUPPORTED_VERSIONS: S.SUPPORTED_VERSIONS,
     Game,

@@ -53,6 +53,42 @@ test('bắt useReq.realmMin ngoài phạm vi REALMS', async () => {
   assert.ok(errors.some(e => /useReq\.realmMin ngoài phạm vi 0-13, nhận: 14/.test(e)), errors.join('\n'));
 });
 
+test('bắt grade sai thang, chưa chuẩn hóa hoặc lệch gradeId', async () => {
+  const errors = await run([
+    herb('HERB-T1'),
+    pill({ grade: 'huyền', gradeId: 'huyen' }),
+    pill({ code: 'PILL-T2', grade: 'Huyền phẩm', gradeId: 'pham' }),
+    { code: 'EQ-T1', name: 'Kiếm thử', kind: 'EQ', tier: 0, grade: 'Luyện Khí' },
+    { code: 'EQ-T2', name: 'Kiếm thử', kind: 'EQ', tier: 0, grade: 'Thiên' }
+  ]);
+  assert.ok(errors.some(e => /PILL-T1: grade chưa chuẩn hóa/.test(e)), errors.join('\n'));
+  assert.ok(errors.some(e => /PILL-T2: gradeId không khớp grade/.test(e)), errors.join('\n'));
+  assert.ok(errors.some(e => /EQ-T1: grade ngoài thang độ hiếm/.test(e)), errors.join('\n'));
+  assert.ok(errors.some(e => /EQ-T2: grade chưa chuẩn hóa/.test(e)), errors.join('\n'));
+});
+
+test('bắt rank/quality ngoài phạm vi, lệch tier, lệch sub hoặc lệch nhãn', async () => {
+  const errors = await run([
+    herb('HERB-T1'),
+    pill({ code: 'PILL-R1', rank: 8, quality: 1, qualityLabel: 'Hạ phẩm', sub: 0 }),
+    pill({ code: 'PILL-R2', rank: 1, quality: 6, qualityLabel: 'Hạ phẩm', sub: 0 }),
+    pill({ code: 'PILL-R3', rank: 2, quality: 1, qualityLabel: 'Hạ phẩm', sub: 0 }),
+    pill({ code: 'PILL-R4', rank: 1, quality: 3, qualityLabel: 'Hạ phẩm', sub: 2 }),
+    pill({ code: 'PILL-R5', rank: 1, quality: 3, qualityLabel: 'Thượng phẩm', sub: 0 })
+  ]);
+  assert.ok(errors.some(e => /PILL-R1: rank phải là số nguyên 1-7/.test(e)), errors.join('\n'));
+  assert.ok(errors.some(e => /PILL-R2: quality phải là số nguyên 1-5/.test(e)), errors.join('\n'));
+  assert.ok(errors.some(e => /PILL-R3: rank không khớp cảnh giới/.test(e)), errors.join('\n'));
+  assert.ok(errors.some(e => /PILL-R4: qualityLabel không khớp quality/.test(e)), errors.join('\n'));
+  assert.ok(errors.some(e => /PILL-R5: sub phải bằng quality - 1/.test(e)), errors.join('\n'));
+});
+
+test('strict bắt buộc rank và quality', async () => {
+  const errors = await run([herb('HERB-T1'), pill()], { strict: true });
+  assert.ok(errors.some(e => /PILL-T1: rank thiếu/.test(e)), errors.join('\n'));
+  assert.ok(errors.some(e => /PILL-T1: quality thiếu/.test(e)), errors.join('\n'));
+});
+
 test('non-strict bỏ qua khóa mới còn thiếu, strict thì bắt buộc đủ bốn khóa', async () => {
   const bare = { code: 'PILL-T1', name: 'Đan thử', kind: 'PILL', tier: 0, effect: 'TU_VI' };
   assert.deepEqual(await run([herb('HERB-T1'), bare]), []);

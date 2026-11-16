@@ -42,7 +42,7 @@
       ${bar(0, 'qi', 'idleQiBar')}
       ${row('Còn lại', '<span id="idleEta">—</span>')}
       ${row('Xác suất đột phá', '<span id="idleChance">—</span>')}
-      ${row('Thiên kiếp', '<span id="idlePity">Thất bại = tọa hóa</span>')}`, { eyebrow: 'ĐẠO CẢNH', cls: 'qi-card' });
+      ${row('Thiên kiếp', '<span id="idlePity">Hộ kiếp vỡ = tọa hóa</span>')}`, { eyebrow: 'ĐẠO CẢNH', cls: 'qi-card' });
   }
 
   function boostCard() {
@@ -51,7 +51,7 @@
     const upgrade = `<div class="boost-row"><div><b>Hấp thụ linh khí +2% · ${n}/20</b><small>Chi phí bậc kế ${moneyHTML(one)}</small></div>
       <div class="action-group">${[1, 10, 'max'].map(k => btn(k === 'max' ? 'Tối đa' : '×' + k, 'upgrade', `data-index="1" data-count="${k}"`, capped || s.stone < one, 'btn-outline')).join('')}</div></div>`;
     const pills = [...pillsBy('TU_VI').slice(0, 2), ...pillsBy('BUFF_TOC').slice(0, 1)].map(x =>
-      `<div class="boost-row">${img(x.key, 'mini-img')}<div><b>${UI.kit.itemName(x)} <em>×${g.count(x.key)}</em></b><small>${x.effect === 'TU_VI' ? 'Bồi bổ tu vi ngay' : 'Tăng tốc độ hấp thụ linh khí có thời hạn'}</small></div>${btn('Dùng', 'consume', codeAttr(x.key), false, 'btn-outline')}</div>`).join('');
+      `<div class="boost-row">${img(x.key, 'mini-img')}<div><b>${UI.kit.itemName(x)} <em>×${g.count(x.key)}</em></b><small>${UI.kit.pillEffectText ? UI.kit.pillEffectText(x) : (x.effect === 'TU_VI' ? 'Bồi bổ tu vi ngay' : 'Tăng tốc độ hấp thụ linh khí có thời hạn')}</small></div>${btn('Dùng', 'consume', codeAttr(x.key), false, 'btn-outline')}</div>`).join('');
     const coins = F.COINS.slice(0, 3).map(([name, value], i) => btn('Hấp thu 1 ' + coinLabel(name), 'absorb', `data-index="${i}"`, s.stone < value || s.qi >= g.need(), 'btn-outline')).join('');
     return card('Bồi dưỡng đạo cơ', upgrade + (pills || '<p class="info-note">Chưa có đan tăng tu vi trong túi. Mua ở Thế giới → Cửa hàng hoặc tự luyện ở Nghề phụ.</p>') + `<div class="action-group coin-row">${coins}</div>`, { eyebrow: 'ĐAN DƯỢC · TỤ LINH' });
   }
@@ -128,7 +128,7 @@
     $('idleQiBar').style.width = p + '%';
     $('idleEta').textContent = s.completed ? '—' : p >= 100 ? 'Đã đầy' : duration(F.time_to_goal(need, s.qi, g.rate()));
     $('idleChance').textContent = pct(g.chance());
-    $('idlePity').textContent = 'Thất bại = tọa hóa';
+    $('idlePity').textContent = 'Hộ kiếp vỡ = tọa hóa · lỡ xác suất = mất tu vi';
   }
 
   const signature = () => {

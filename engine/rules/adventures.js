@@ -22,8 +22,8 @@
 
     Object.assign(H.Game.prototype, {
       dungeonEnemy(d, floor) {
-        const boss = floor === d.floors && H.DESIGN.raw.boss.find(x => x['tên boss'] === d.boss);
-        if (boss) return F.combat_power(boss.hp, boss.atk, boss.def, boss['crit (%)'] / 100, boss['crit_dame (%)'] / 100);
+        /* Bí cảnh dùng cùng thang sức mạnh với quái theo cảnh giới; thủ lĩnh chỉ
+           nhận thêm hệ số tầng cuối thay vì HP tuyệt đối từ design-raw. */
         const st = F.stats(d.realm, 0), mult = (.48 + .12 * (floor - 1)) * (floor === d.floors ? 1.5 : 1);
         return F.combat_power(st.HP, st.ATK, st.DEF) * mult;
       },
@@ -35,7 +35,7 @@
           if (hp < st.HP * .25) break;
           const enemy = this.dungeonEnemy(d, floor), ratio = enemy / Math.max(1, power), mitigation = enemy / (enemy + .6 * st.DEF);
           const boss = floor === d.floors && H.DESIGN.raw.boss.find(x => x['tên boss'] === d.boss);
-          let enemyHp = boss ? boss.hp : enemy * 3;
+          let enemyHp = enemy * (boss ? 4 : 3);
           const enemyMax = enemyHp;
           for (let turn = 0; turn < 40 && hp > 0 && enemyHp > 0; turn++) {
             enemyHp -= power * (.85 + rng() * .3) * (rng() < st.CRIT ? 1.5 : 1);

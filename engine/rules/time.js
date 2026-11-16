@@ -101,6 +101,7 @@
               if (effect.last && effect.last > 0) effect.last = shift(effect.last);
             }
             if (combat.shieldEnd) combat.shieldEnd = shift(combat.shieldEnd);
+            if (combat.ward && combat.ward.end > start) combat.ward.end = shift(combat.ward.end);
             for (const timers of [combat.itemCooldowns, combat.manualCooldowns])
               for (const key of Object.keys(timers || {})) if (timers[key] > start) timers[key] = shift(timers[key]);
           }
@@ -118,6 +119,18 @@
         s.auto = false; // Không còn tự chiến khi nhập định.
         const exploring = s.exploration?.active;
         if (exploring) {
+          // Giao chiến theo lượt tạm dừng đồng hồ lịch luyện: người chơi không bị
+          // trừ thời gian khi suy nghĩ hay xem kết quả trận đấu.
+          const battle = exploring.battle;
+          if (battle) {
+            const remain = Math.max(0, Number.isFinite(battle.remaining) ? battle.remaining : exploring.end - now);
+            exploring.end = now + remain;
+            exploring.start = exploring.end - 600000;
+            battle.remaining = remain;
+            s.lastUpdate = now;
+            s.lastSaved = now;
+            return { ...empty(), exploring: true, battle: true, remaining: remain };
+          }
           // Mỗi khoảng thời gian chỉ được tạm dừng đúng một lần, cả khi thoát game.
           const pauseMs = Math.max(0, Math.min(now, exploring.end) - Math.max(start, exploring.start));
           if (pauseMs > 0) {

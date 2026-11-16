@@ -30,6 +30,7 @@ Game idle tu tiên tiếng Việt, chơi online trên trình duyệt. Mỗi tài
 | `supabase/` | Edge Function `api` (Deno) và migration. |
 | `client/`, `css/`, `index.html` | Giao diện web (script thường, không bundler). |
 | `tools/` | Build, kiểm tra, server CI cục bộ. |
+| `docs/` | Quy chuẩn thiết kế; xem `docs/item-rank-quality.md` cho cấp bậc/phẩm chất vật phẩm và `docs/balance.md` cho mô hình thuộc tính, đối thủ, lôi kiếp và kinh tế. |
 | `tests/` | Test `node:test`, mỗi file một mảng tính năng. |
 
 Production: Cloudflare Workers phục vụ `dist/`; Supabase Auth + Edge Function + PostgreSQL (schema `game`). Test dùng kho in-memory (`tests/helpers/memory-players.js`) và PGlite.
@@ -47,6 +48,7 @@ Dashboard quản trị là repo riêng, chỉ gọi RPC `public.hu_admin_*`; quy
 npm ci
 npm test            # toàn bộ test
 npm run check       # kiểm tra cú pháp và ranh giới engine
+npm run balance     # in báo cáo cân bằng (thêm --json để lấy dữ liệu máy đọc)
 npm run build:min   # build dist, gộp và xác thực CSS
 npm run build:edge  # bundle Edge Function
 ```

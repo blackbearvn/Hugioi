@@ -1345,12 +1345,30 @@
     UI.skillDock?.update();
     UI.combatFx?.sync(mode);
     UI.environment?.update(s);
-    $('stageTag').textContent = exploring ? 'Lịch luyện · ' + H.ZONES[s.zone].name : F.realm_map(s.zone) + ' · ' + H.ZONES[s.zone].name;
-    $('rateText').textContent = exploring ? 'Trở về sau ' + explorationCountdown(exploring.end) : '+' + num(g.rate()) + ' tu vi/giây';
+    const battle = exploring?.battle;
+    $('stageTag').textContent = battle ? 'Giao chiến · ' + exploring.name
+      : exploring ? 'Lịch luyện · ' + H.ZONES[s.zone].name : F.realm_map(s.zone) + ' · ' + H.ZONES[s.zone].name;
+    $('rateText').textContent = battle
+      ? (battle.state === 'active'
+        ? 'Lượt ' + battle.turn + ' · địch còn ' + Math.round(Math.max(0, battle.enemyHp) / Math.max(1, battle.enemyMax) * 100) + '% sinh lực'
+        : battle.state === 'won' ? 'Thắng lợi · chờ xác nhận' : battle.state === 'fled' ? 'Đã rút lui' : 'Thất bại')
+      : exploring ? 'Trở về sau ' + explorationCountdown(exploring.end) : '+' + num(g.rate()) + ' tu vi/giây';
     $('stageHeroName').textContent = s.name;
     const enemyActor = $('enemyActor');
-    // Sân khấu lịch luyện chỉ có đạo thân, không tạo/sinh ảnh yêu thú.
-    if (enemyActor) enemyActor.hidden = true;
+    if (enemyActor) {
+      enemyActor.hidden = !battle;
+      if (battle) {
+        const labels = H.BATTLE_LABELS || {};
+        const lvl = g.enemy?.()?.level;
+        const nameEl = $('enemyName'), levelEl = $('enemyLevel'), bar = $('enemyBar');
+        if (nameEl) nameEl.textContent = exploring.name || 'Yêu thú';
+        if (levelEl) levelEl.textContent = (labels[s.enemyKind] || 'Yêu thú') + (lvl ? ' · Cấp ' + lvl : '');
+        if (bar) bar.style.width = Math.max(0, Math.min(100, battle.enemyMax > 0 ? battle.enemyHp / battle.enemyMax * 100 : 0)) + '%';
+        enemyActor.classList.toggle('boss', ['boss', 'boss kiếp'].includes(s.enemyKind));
+        enemyActor.classList.toggle('defeated', battle.state === 'won');
+        enemyActor.dataset.battle = battle.state;
+      }
+    }
     stageFrame(frameCount, isReduced());
   }
 
@@ -1377,16 +1395,23 @@
   function stageFrame(n, reduced) {
     const s = UI.s();
     if (!s.created) return;
-    const exploring = s.exploration?.active;
+    const exploring = s.exploration?.active, battle = exploring?.battle;
     const hero = $('heroSprite');
     if (hero) {
-      const action = exploring ? explorationPose(exploring.start) : 'dung_yen';
+      const action = exploring && !battle ? explorationPose(exploring.start) : 'dung_yen';
       A.preloadHero(s.gender, s.realm, action);
       const src = A.heroSrc(s.gender, s.realm, action, reduced ? 0 : n);
       hero.dataset.action = action;
       hero.alt = action === 'di_chuyen' ? 'Đạo thân đang đi bộ lịch luyện' :
-        exploring ? 'Đạo thân đang ngồi thiền nghỉ ngơi giữa đường' : 'Đạo thân đang nhập định';
+        battle ? 'Đạo thân đang giao chiến' :
+          exploring ? 'Đạo thân đang ngồi thiền nghỉ ngơi giữa đường' : 'Đạo thân đang nhập định';
       if (hero.getAttribute('src') !== src) hero.src = src;
+    }
+    const foe = $('enemySprite');
+    if (foe && battle) {
+      const src = A.enemySrc(s.zone, s.enemyKind, 'dung_yen', reduced ? 0 : n);
+      if (foe.getAttribute('src') !== src) foe.src = src;
+      foe.alt = (exploring.name || 'Yêu thú') + ' đang đối đầu';
     }
   }
 
@@ -1424,12 +1449,18 @@
     if (!tip || !x) return;
     const g = UI.g();
     const count = g.count(key);
-    const quality = [x.grade || x.quality, F.SUBPHAM[x.sub]].filter(Boolean).join(' · ') || 'Phàm phẩm';
+    const rankLabel = UI.kit.rankLabelOf(x), qualityLabel = UI.kit.qualityLabelOf(x);
+    const rankHtml = L ? L.span(rankLabel, 'rank', rankLabel, { variant: 'badge' }) : esc(rankLabel);
+    const qualityHtml = L ? L.span(qualityLabel, 'quality', qualityLabel, { variant: 'badge' }) : esc(qualityLabel);
+    const requiredRealm = Number.isInteger(x.useReq?.realmMin) ? F.REALMS[x.useReq.realmMin] : (x.realm || '—');
+    const effect = UI.kit.itemEffectText ? UI.kit.itemEffectText(x) : '';
     const price = moneyHTML(F.shop_sell_price(g.price(key)));
     const v = A.itemImg(x);
-    tip.innerHTML = `<div class="item-tip-head"><img src="${v.src}"${v.style ? ` style="${esc(v.style)}"` : ''} alt="" decoding="async"><div><b>${esc(x.name)}</b><span>${esc(quality)}</span></div></div>` +
+    tip.innerHTML = `<div class="item-tip-head"><img src="${v.src}"${v.style ? ` style="${esc(v.style)}"` : ''} alt="" decoding="async"><div><b>${esc(x.name)}</b><span class="item-tip-badges">${qualityHtml}</span><small>${esc(x.category || '—')}</small></div></div>` +
       `<p class="item-tip-desc">${esc(x.description || 'Không có mô tả.')}</p>` + (x.lore ? `<p class="item-tip-lore">${esc(x.lore)}</p>` : '') +
-      `<div class="item-tip-meta"><span>Cảnh giới <b>${esc(x.realm || '—')}</b></span><span>Số lượng <b>×${num(count)}</b></span><span>Giá bán <b>${price}</b></span></div>`;
+      (effect ? `<p class="item-tip-effect"><span>Thuộc tính / công dụng</span> ${esc(effect)}</p>` : '') +
+      `<div class="item-tip-meta"><span>Cấp bậc <b>${rankHtml}</b></span><span>Cảnh giới yêu cầu <b>${esc(requiredRealm)}</b></span><span>Số lượng <b>×${num(count)}</b></span><span>Giá bán <b>${price}</b></span></div>` +
+      `<p class="item-tip-cond"><span>Điều kiện</span> ${esc(UI.kit.useCondition(x))}</p>`;
     tip.hidden = false;
     tip.setAttribute('aria-hidden', 'false');
     if (tipCell && tipCell !== cell) tipCell.removeAttribute('aria-describedby');
@@ -1598,14 +1629,14 @@
       $('tribEyebrow').textContent = s.completed ? 'THIÊN ĐẠO · ĐẠO QUẢ VIÊN MÃN' : major ? 'THIÊN ĐẠO · ĐẠI CẢNH GIỚI' : 'TIÊN LỘ · TIỂU CẢNH GIỚI';
       $('tribTitle').textContent = s.completed ? 'Đạo Tổ viên mãn' : major ? 'Thiên kiếp' : 'Đột phá tầng';
       $('tribSubtitle').textContent = this.nextLabel();
-      $('tribHeadTags').innerHTML = `<span${odds.doomed ? ' class="danger-text"' : ''}>${odds.doomed ? '0% · chưa đủ hộ kiếp' : pct(odds.chance) + ' xác suất'}</span><span>Thất bại = tọa hóa</span><span>${events.reduce((n, e) => n + e.bolts, 0) || 0} đạo lôi</span><span>${pct(s.shield)} hộ thuẫn</span>`;
+      $('tribHeadTags').innerHTML = `<span${odds.doomed ? ' class="danger-text"' : ''}>${odds.doomed ? '0% · chưa đủ hộ kiếp' : pct(odds.chance) + ' xác suất'}</span><span>Hộ kiếp vỡ = tọa hóa</span><span>${events.reduce((n, e) => n + e.bolts, 0) || 0} đạo lôi</span><span>${pct(s.shield)} hộ thuẫn</span>`;
       this.actor = { gender: s.gender, realm: s.realm };
       this.heroFrame();
       $('tribOverlayChance').textContent = odds.doomed ? '0% (chưa đủ hộ kiếp)' : pct(odds.chance);
       $('tribOverlayChance').classList.toggle('danger-text', odds.doomed);
       $('tribReduction').textContent = pct(s.reduction);
       $('tribShieldSummary').textContent = pct(s.shield) + ' sinh lực';
-      $('tribPitySummary').textContent = 'Không tích lũy';
+      $('tribPitySummary').textContent = s.pity + '/15';
       $('tribHpText').textContent = num(s.hp) + ' / ' + num(st.HP);
       $('tribHpFill').style.width = clamp(s.hp / st.HP * 100, 0, 100) + '%';
       $('tribShieldText').textContent = pct(s.shield) + ' sinh lực';
@@ -1619,7 +1650,7 @@
       $('tribStatus').textContent = s.completed ? 'Đạo Tổ đã chứng đạo · kiếp này viên mãn.'
         : !major ? 'Tầng này không có lôi kiếp. Đột phá tại chỗ, ghi vào nhật ký.'
           : !can ? 'Tu vi chưa đầy. Hãy tiếp tục nhập định và chuẩn bị hộ kiếp.'
-            : odds.doomed ? 'Hộ kiếp chưa đủ cho: ' + odds.failing.join(', ') + '. Dẫn lôi lúc này chắc chắn thất bại và mất 15% tu vi. Hãy dùng đan/phù hộ kiếp phẩm cao hơn trước.'
+            : odds.doomed ? 'Hộ kiếp chưa đủ cho: ' + odds.failing.join(', ') + '. Dẫn lôi lúc này chắc chắn tọa hóa. Hãy dùng đan/phù hộ kiếp phẩm cao hơn trước.'
               : events.length ? 'Lôi vân đã tụ · chuẩn bị nghênh đón thiên kiếp.' : 'Tĩnh tâm vận khí · chuẩn bị vượt đại cảnh giới.';
       $('tribStageHint').textContent = s.completed ? 'Đạo quả viên mãn' : major ? 'Thiên đạo vô tình · đạo tâm bất diệt' : 'Tiểu cảnh giới · đột phá tại chỗ';
       $('tribResult').hidden = true;
@@ -1705,8 +1736,10 @@
       this.closePage();
       UI.go('idle');
       if (UI.pendingDeathReport) { const report = UI.pendingDeathReport; UI.pendingDeathReport = null; UI.onDeath?.(report); }
-      if (result) UI.toast(ok ? 'Thiên kiếp thành công · ' + UI.g().realmLabel() : 'Thiên kiếp thất bại · đạo thân tọa hóa vĩnh viễn.',
-        { type: ok ? 'tribulation' : 'danger', title: ok ? 'Đột phá thành công' : 'Thiên kiếp thất bại' });
+      if (result) UI.toast(ok ? 'Thiên kiếp thành công · ' + UI.g().realmLabel()
+        : result.died ? 'Hộ kiếp vỡ · đạo thân tọa hóa vĩnh viễn.'
+          : 'Lôi kiếp đã qua nhưng phá cảnh chưa thành · tu vi tổn hại, may mắn tích lũy.',
+        { type: ok ? 'tribulation' : 'danger', title: ok ? 'Đột phá thành công' : 'Đột phá thất bại' });
       if (ok && H.STORY?.TRIBULATION) {
         const key = departedWorld === 'linh_gioi' ? 'linh' : departedWorld === 'tien_gioi' ? 'tien' : 'ha';
         UI.toast(H.STORY.TRIBULATION[key], { type: 'info', title: 'Thiên Thư · Vượt kiếp' });
@@ -1849,34 +1882,51 @@
         UI.vfx?.burst('trib', '#ffe29a', 24);
         UI.vfx?.ring('trib');
         UI.vfx?.screenFlash('flash-gold', 900);
-      } else {
+      } else if (result?.died) {
         $('tribTitle').textContent = 'Đột phá thất bại';
         $('tribEyebrow').textContent = 'THIÊN ĐẠO · LÔI KIẾP VÔ TÌNH';
         $('tribSubtitle').textContent = g.realmLabel() + ' · đạo cơ chấn động';
-        $('tribStatus').textContent = 'Đạo cơ chấn động, tu vi tổn hại.';
+        $('tribStatus').textContent = 'Hộ kiếp vỡ, đạo cơ chấn động.';
         $('tribResult').className = 'trib-result failure';
-        $('tribResult').innerHTML = `<h3 class="danger">Tọa hóa</h3><p>Thất bại độ kiếp đồng nghĩa mất mạng vĩnh viễn. Kiếp này chấm dứt, không có lần thử lại.</p>`;
+        $('tribResult').innerHTML = `<h3 class="danger">Tọa hóa</h3><p>Hộ kiếp không đủ sức chịu lôi kiếp nên đạo thân mất mạng vĩnh viễn. Kiếp này chấm dứt, không có lần thử lại.</p>`;
         $('tribHpText').textContent = num(s.hp) + ' / ' + num(g.stats().HP);
         $('tribHpFill').style.width = clamp(s.hp / g.stats().HP * 100, 0, 100) + '%';
         $('tribShieldText').textContent = 'Đã tiêu hao';
         $('tribShieldFill').style.width = '0%';
         $('tribStage').classList.add('is-failure');
-        $('tribStageHint').textContent = result.events.some(e => !e.success) ? 'Lôi kiếp xuyên thấu · đạo cơ tổn hại' : 'Phá cảnh chưa thành · tiếp tục tích lũy';
+        $('tribStageHint').textContent = 'Lôi kiếp xuyên thấu · đạo cơ tổn hại';
         UI.vfx?.effect('hit', 'trib');
         UI.vfx?.screenFlash('flash-red', 700);
+      } else {
+        $('tribTitle').textContent = 'Đột phá chưa thành';
+        $('tribEyebrow').textContent = 'THIÊN ĐẠO · ĐẠO TÂM CHƯA VIÊN';
+        $('tribSubtitle').textContent = g.realmLabel() + ' · đạo cơ chấn động';
+        $('tribStatus').textContent = 'Lôi kiếp đã qua, nhưng đạo cơ chưa chuyển hóa.';
+        $('tribResult').className = 'trib-result failure';
+        $('tribResult').innerHTML = `<h3 class="danger">Tu vi tổn hại</h3><p>Đạo thân giữ được mạng nhưng mất ${pct(F.P.FAIL_EXP_LOSS)} tu vi. May mắn đột phá tích lũy thêm; lần sau xác suất sẽ cao hơn.</p>`;
+        $('tribHpText').textContent = num(s.hp) + ' / ' + num(g.stats().HP);
+        $('tribHpFill').style.width = clamp(s.hp / g.stats().HP * 100, 0, 100) + '%';
+        $('tribShieldText').textContent = 'Đã tiêu hao';
+        $('tribShieldFill').style.width = '0%';
+        $('tribStage').classList.add('is-failure');
+        $('tribStageHint').textContent = 'Phá cảnh chưa thành · tiếp tục tích lũy';
+        UI.vfx?.effect('hit', 'trib');
+        UI.vfx?.screenFlash('flash-red', 420);
       }
       $('tribRealmChip').textContent = g.realmLabel();
       this.actor = { gender: s.gender, realm: s.realm };
       this.heroFrame();
       const events = result?.events || [];
-      $('tribHeadTags').innerHTML = `<span>${pct(result.chance)} xác suất</span><span>Thất bại = tọa hóa</span><span>${events.reduce((n, e) => n + e.bolts, 0)} đạo lôi</span><span>Hộ kiếp đã tiêu hao</span>`;
+      $('tribHeadTags').innerHTML = `<span>${pct(result.chance)} xác suất</span><span>${result.died ? 'Hộ kiếp vỡ = tọa hóa' : result.success ? 'Thiên kiếp đã qua' : 'Lỡ xác suất = mất tu vi'}</span><span>${events.reduce((n, e) => n + e.bolts, 0)} đạo lôi</span><span>Hộ kiếp đã tiêu hao</span>`;
       $('tribOverlayChance').textContent = pct(result?.chance ?? g.chance());
       $('tribReduction').textContent = pct(s.reduction);
       $('tribShieldSummary').textContent = 'Đã tiêu hao';
       $('tribPitySummary').textContent = s.pity + '/15';
       $('tribCounter').textContent = result.success ? 'Đạo tâm bất diệt' : 'Tĩnh tâm dưỡng sức';
       this.updateQi();
-      $('tribEligibility').textContent = result.success ? 'Kết quả đã lưu · trở lại tu luyện.' : 'Đạo thân đã tọa hóa · khép lại kiếp này.';
+      $('tribEligibility').textContent = result.success ? 'Kết quả đã lưu · trở lại tu luyện.'
+        : result.died ? 'Đạo thân đã tọa hóa · khép lại kiếp này.'
+          : 'Đạo thân còn sống · tiếp tục tích lũy tu vi và may mắn đột phá.';
       $('tribResult').focus({ preventScroll: true });
       store.write();
     },
@@ -2053,7 +2103,19 @@
     if (!store.ready || !UI.s().created || !$('modalLayer').hidden || ['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement?.tagName) || e.ctrlKey || e.altKey || e.metaKey) return;
     const key = e.key.toLowerCase();
     if (['1', '2', '3', '4'].includes(key)) {
-      // Lịch luyện không còn thanh kỹ năng chiến đấu.
+      const battle = UI.s().exploration?.active?.battle;
+      if (battle?.state === 'active' && UI.actions?.battleAct) {
+        const action = ['attack', 'power', 'guard', 'heal'][Number(key) - 1];
+        run('battleAct', { dataset: { action } });
+      }
+      return;
+    }
+    if (key === 'enter') {
+      const battle = UI.s().exploration?.active?.battle;
+      if (battle && ['won', 'fled'].includes(battle.state) && UI.actions?.battleAct) {
+        e.preventDefault();
+        run('battleAct', { dataset: { action: 'continue' } });
+      }
       return;
     }
     const map = { t: 'idle', l: 'combat', n: 'craft', c: 'character', i: 'character:bag', m: 'world' };

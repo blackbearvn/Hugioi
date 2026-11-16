@@ -115,6 +115,19 @@
   });
 
   function position(target = 'hero') {
+    /* Trong bảng giao chiến theo lượt, hiệu ứng phải bám theo ảnh địch/hồi máu
+       ngay trong bảng vì trang Lịch luyện che sân khấu phía sau. */
+    if (target === 'battleFoe' || target === 'battleSelf') {
+      const host = hostOf('#battleVfx');
+      const actor = hostOf(target === 'battleFoe' ? '#battleFoeSprite' : '#battleSelf');
+      if (host?.getClientRects().length && actor?.getClientRects().length) {
+        const r = host.getBoundingClientRect(), a = actor.getBoundingClientRect();
+        return { host, x: a.left + a.width / 2 - r.left,
+          y: (target === 'battleFoe' ? a.top + a.height * .28 : a.top + a.height * .35) - r.top,
+          height: target === 'battleFoe' ? a.height : 44 };
+      }
+      target = target === 'battleFoe' ? 'enemy' : 'hero';
+    }
     const onTrib = target === 'trib' || (target === 'hero' && UI.tribulation?.pageOpen);
     const host = hostOf(onTrib ? '#tribStageVfx' : '#stageVfx');
     if (!host || !host.getClientRects().length) return null;

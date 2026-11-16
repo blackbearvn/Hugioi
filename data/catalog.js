@@ -3,6 +3,7 @@
 'use strict';
 const node=typeof module!=='undefined'&&module.exports;
 const F=node?require('./formulas.js'):root.HU_FORMULAS;
+const S=node?require('./schema.js'):root.HU_SCHEMA;
 const BASE=node?require('./items.js'):root.TIEN_VAN_ITEMS;
 const DESIGN=node?require('./design.js'):root.HU_DESIGN;
 const EXTRA=[
@@ -11,9 +12,26 @@ const EXTRA=[
  ['TAL-PL-001','PL001','TAL','STRIKE','TAL-002']
 ].map(([code,id,kind,effect,imageCode])=>{const d=DESIGN.byLegacy[code],tier=Math.max(0,['luyện khí','trúc cơ','kim đan','nguyên anh','hóa thần'].indexOf(d['yêu cầu']||d['yêu cầu học']));return {code,name:d['tên bí tịch']||d['tên công pháp']||d['tên phù'],
  category:kind==='BT'?'Công pháp':'Phù lục',kind,tier,sub:0,source:'Thiết kế mới',description:d['mô tả']||d['công dụng']||d['hiệu quả'],
- effect,map:'Hạ Giới',realm:F.REALMS[tier],quality:'Hạ phẩm',grade:d['độ hiếm']||'Linh',originalName:d['tên bí tịch']||d['tên công pháp']||d['tên phù'],
+ effect,map:'Hạ Giới',realm:F.REALMS[tier],quality:1,grade:d['độ hiếm']||'Linh',originalName:d['tên bí tịch']||d['tên công pháp']||d['tên phù'],
  design:d,designId:id,designOnly:true,imageCode};});
-const ITEMS=[...BASE.map(x=>{const d=DESIGN.byCode(x.code);return d?{...x,design:d,designId:d.designId,grade:d['độ hiếm']||x.grade}:x}),...EXTRA];
+/* Chuẩn hóa `grade`: đan dùng thang 14 bậc phẩm chất, mọi loại khác dùng
+   8 bậc độ hiếm. Dữ liệu cũ từng trộn tên cảnh giới và tên 8 bậc viết hoa,
+   nên luôn suy lại từ độ hiếm thiết kế, grade gốc hoặc tier. */
+const gradeOf=(x,d)=>{
+ if(x.kind==='PILL')return S.gradeLabel(S.gradeIdFor(x.grade)||x.gradeId)||x.grade;
+ const id=S.rarityIdFor(d?.['độ hiếm'])||S.rarityIdFor(x.grade)||S.rarityForTier(x.tier);
+ return S.rarityLabel(id)||x.grade;
+};
+/* Hai trục mới, độc lập nhau: `rank` 1-7 suy từ cảnh giới yêu cầu (tier),
+   `quality` 1-5 suy từ `sub` 0-4. `sub` vẫn giữ nguyên vai trò chỉ số phẩm
+   chất trong inventory/giá/công thức để dữ liệu cũ không đổi hành vi. */
+const rankOf=x=>S.rankForTier(x.tier)||1;
+const qualityOf=x=>S.qualityOf(x)||S.qualityForSub(x.sub)||1;
+const normalizeRanks=x=>{
+ const quality=qualityOf(x);
+ return {...x,rank:rankOf(x),quality,qualityLabel:S.qualityLabel(quality),sub:quality-1};
+};
+const ITEMS=[...BASE.map(x=>{const d=DESIGN.byCode(x.code);const item=d?{...x,design:d,designId:d.designId}:{...x};item.grade=gradeOf(item,d);return normalizeRanks(item);}),...EXTRA.map(x=>normalizeRanks({...x,grade:gradeOf(x,x.design)}))];
 const BY_ID=Object.fromEntries(ITEMS.map(x=>[x.code,x]));
 /* Chỉ mục đan dựng một lần khi load, dùng cho tra cứu và lọc giao diện.
    PILLS xếp theo number để kết quả ổn định, không phụ thuộc thứ tự items.js. */
@@ -25,7 +43,7 @@ for(const x of PILLS){
   for(const tag of x.tags||[])(BY_TAG[tag]??=[]).push(x);
 }
 const pills=(filter={})=>{const {tier,effect,tag}=filter||{};return PILLS.filter(x=>(tier==null||x.tier===tier)&&(effect==null||x.effect===effect)&&(tag==null||(x.tags||[]).includes(tag)))};
-const item=key=>{if(typeof key!=='string')return null;const [code,q,...rest]=key.split('@'),base=Object.hasOwn(BY_ID,code)?BY_ID[code]:null;if(!base||rest.length||q!==undefined&&!/^[0-3]$/.test(q))return null;return {...base,key,sub:q===undefined?base.sub:Number(q)}};
+const item=key=>{if(typeof key!=='string')return null;const [code,q,...rest]=key.split('@'),base=Object.hasOwn(BY_ID,code)?BY_ID[code]:null;if(!base||rest.length||q!==undefined&&!/^[0-4]$/.test(q))return null;const sub=q===undefined?base.sub:Number(q),quality=S.qualityForSub(sub)??base.quality;return {...base,key,sub,quality,qualityLabel:S.qualityLabel(quality)}};
 const keyFor=(code,sub)=>sub===BY_ID[code]?.sub?code:code+'@'+sub;
 const pill=n=>ITEMS.find(x=>x.kind==='PILL'&&x.sourceNumber===n).code;
 const ZONES=[

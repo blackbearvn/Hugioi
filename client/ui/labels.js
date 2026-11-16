@@ -64,18 +64,39 @@
   /* Mỗi mục: name = chữ hiển thị, color = màu dự phòng, fx = hiệu ứng,
      gradient = gradient chữ (tuỳ chọn), aliases = tên gọi khác để tra cứu. */
   const DOMAINS = {
-    /* Bốn bậc phẩm chất vật phẩm (F.SUBPHAM). */
+    /* Năm bậc phẩm chất vật phẩm (F.SUBPHAM). Màu theo new_schema.txt phần
+       giao diện: Hạ = Lục, Trung = Tím, Thượng = Vàng, Cực = Ngũ sắc,
+       Tuyệt = Đen trắng. Đây là nguồn màu duy nhất cho phẩm chất. */
     quality: {
       name: 'Phẩm chất vật phẩm',
       keys: {
-        ha: { name: 'Hạ', color: '#5fb0ff', fx: 'soft', glow: '#3da5ff88', aliases: ['Hạ phẩm', 'common'] },
-        trung: { name: 'Trung', color: '#c58bff', fx: 'glow', glow: '#b873ffaa', aliases: ['Trung phẩm', 'uncommon'] },
-        thuong: { name: 'Thượng', color: '#ffd23d', fx: 'glow', glow: '#ffd23dbb', aliases: ['Thượng phẩm', 'rare'] },
+        ha: { name: 'Hạ', color: '#6fcf7a', fx: 'soft', glow: '#43b85f88', aliases: ['Hạ phẩm', 'common'] },
+        trung: { name: 'Trung', color: '#b98cff', fx: 'glow', glow: '#b873ffaa', aliases: ['Trung phẩm', 'uncommon'] },
+        thuong: { name: 'Thượng', color: '#f3ca72', fx: 'glow', glow: '#f3ca72bb', aliases: ['Thượng phẩm', 'rare'] },
         cuc: {
           name: 'Cực', color: '#ffe6a8', fx: 'rainbow', duration: '4.5s', glow: '#ffffff77',
           gradient: 'linear-gradient(90deg,#ff4d6d,#ffd23d,#3df08c,#3dc8ff,#b873ff,#ff4d6d)',
           aliases: ['Cực phẩm', 'epic']
+        },
+        tuyet: {
+          name: 'Tuyệt', color: '#f4f4f2', fx: 'shimmer', duration: '6s', glow: '#ffffff88',
+          gradient: 'linear-gradient(90deg,#f8f8f8,#111,#f8f8f8,#111,#f8f8f8)',
+          aliases: ['Tuyệt phẩm', 'legendary', 'mythic']
         }
+      }
+    },
+    /* Bảy cấp bậc vật phẩm. Cấp bậc dùng nhãn/huy hiệu riêng, không dùng
+       cùng bảng màu với phẩm chất để người chơi không nhầm hai hệ thống. */
+    rank: {
+      name: 'Cấp bậc vật phẩm',
+      keys: {
+        pham: { name: 'Phàm giai', color: '#c9d2c5', fx: 'tint', aliases: ['Phàm', 'Phàm giai', 'rank 1'] },
+        linh: { name: 'Linh giai', color: '#8fd3b6', fx: 'soft', aliases: ['Linh', 'Linh giai', 'rank 2'] },
+        huyen: { name: 'Huyền giai', color: '#7fb8e6', fx: 'soft', aliases: ['Huyền', 'Huyền giai', 'rank 3'] },
+        dia: { name: 'Địa giai', color: '#c9a24f', fx: 'tint', aliases: ['Địa', 'Địa giai', 'rank 4'] },
+        thien: { name: 'Thiên giai', color: '#e0b46a', fx: 'glow', glow: '#e0b46a66', aliases: ['Thiên', 'Thiên giai', 'rank 5'] },
+        tien: { name: 'Tiên giai', color: '#d8b4fe', fx: 'shimmer', duration: '6s', aliases: ['Tiên', 'Tiên giai', 'rank 6'] },
+        than: { name: 'Thần giai', color: '#f0e6c8', fx: 'aurora', duration: '8s', aliases: ['Thần', 'Thần giai', 'rank 7'] }
       }
     },
     /* Năm bậc độ hiếm của kinh mạch/cổ vật (data/meridians.js). */

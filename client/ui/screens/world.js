@@ -260,7 +260,7 @@
         const key = ['PILL', 'EQ', 'BT', 'TAL'].includes(x.kind) ? H.keyFor(x.code, v.quality) : x.code;
         return UI.kit.peekRow('shop:' + key, x.name, {
           titleHtml: UI.kit.itemName(H.item(key)), eyebrow: 'CỬA HÀNG', mark: '◈', img: img(key),
-          body: `<div class="pop-detail">${img(key, 'detail-img')}<p>${x.category} · ${x.realm} · ${F.SUBPHAM[H.item(key).sub]} phẩm</p><p>${esc(x.description)}</p><div class="detail-actions">${btn('Mua · ' + moneyHTML(F.shop_buy_price(g.price(key))), 'buy', codeAttr(key))}</div>
+          body: `<div class="pop-detail">${img(key, 'detail-img')}<p>${x.category} · ${x.realm} · ${F.SUBPHAM[H.item(key).sub]} phẩm</p><p>${esc(x.description)}</p>${UI.kit.pillEffectText && ['PILL','TAL'].includes(x.kind) ? `<p class="item-tip-effect"><span>Thuộc tính / công dụng</span> ${esc(UI.kit.pillEffectText(H.item(key)))}</p>` : ''}<div class="detail-actions">${btn('Mua · ' + moneyHTML(F.shop_buy_price(g.price(key))), 'buy', codeAttr(key))}</div>
             <div class="buy-qty" ${codeAttr(key)} data-unit="${F.shop_buy_price(g.price(key))}"><label>Số lượng<input type="number" class="buy-qty-input" min="1" max="999" value="1" inputmode="numeric"></label>
               ${[5, 10, 50].map(n => `<button type="button" class="btn btn-outline btn-sm" data-act="buyQtySet" data-n="${n}">×${n}</button>`).join('')}<button type="button" class="btn btn-outline btn-sm" data-act="buyQtySet" data-n="max">Tối đa</button>
               ${btn('Mua số lượng', 'buyQty', codeAttr(key), false, 'btn-gold')}</div></div>`
@@ -298,7 +298,7 @@
     update: tab => { UI.adventure.update(); if (tab === 'exploration') UI.screens.combat.update(); },
     signature: tab => {
       const s = UI.s(), e = s.exploration?.active;
-      return [tab,s.craftQueue.length,s.realm,s.stage,s.rootType,s.rootSub,s.sect.joined,s.sect.id,s.sect.discipleClass,UI.sectMeasured?.(),s.sect.earned,s.sect.contribution,s.adventurePoints || 0,s.borrowedBook || '',s.sect.mission?.id,s.sect.mission?.end,s.sect.last?.at,s.sect.repeat,s.hp,s.stone,s.dungeon.active?.end,s.dungeon.run?.floor,s.dungeon.run?.turn,e?.start,e?.choice,s.exploration?.last?.end].join('|');
+      return [tab,s.craftQueue.length,s.realm,s.stage,s.rootType,s.rootSub,s.sect.joined,s.sect.id,s.sect.discipleClass,UI.sectMeasured?.(),s.sect.earned,s.sect.contribution,s.adventurePoints || 0,s.borrowedBook || '',s.sect.mission?.id,s.sect.mission?.end,s.sect.last?.at,s.sect.repeat,s.hp,s.stone,s.dungeon.active?.end,s.dungeon.run?.floor,s.dungeon.run?.turn,e?.start,e?.choice,e?.battle ? [e.battle.state,e.battle.turn,Math.round(e.battle.enemyHp),e.battle.intent].join(',') : '',s.exploration?.last?.end].join('|');
     }
   });
 

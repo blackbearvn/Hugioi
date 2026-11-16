@@ -126,6 +126,10 @@ body.in-game{overflow:hidden}
 #stage .enemy-label span{color:var(--gold);font:700 12.5px var(--font)}
 #stage .enemy-health{border:1px solid #7a4241;background:#090b0e;overflow:hidden;width:140px;margin-top:6px}
 #stage .enemy-health i{display:block;height:100%;width:100%;background:#de5946;transition:width .3s}
+#stage .enemy-wrap.boss img{width:180px;height:160px;filter:drop-shadow(0 0 14px #d5914a99)}
+#stage .enemy-wrap.boss .enemy-label b{color:var(--gold)}
+#stage .enemy-wrap.defeated img{filter:grayscale(1) brightness(.55);animation:none}
+#stage .enemy-wrap.hurt{animation:shake .32s ease-in-out}
 #game[data-stage="combat"] .hero-wrap{left:32%;bottom:23%}
 #game[data-stage="combat"] .enemy-wrap{left:64%}
 #game[data-stage="combat"] .idle-aura{opacity:.35}
@@ -667,15 +671,24 @@ body.in-game.log-collapsed{--log-panel-h:31px}
 .technique-compact p{font-size:12.5px;line-height:1.35}
 .technique-compact .technique-desc{color:#9599a3;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
 .technique-compact .btn{padding:5px 10px;font-size:12.5px;min-height:32px}
-/* Độ hiếm vật phẩm: vầng sáng neon nằm sau ảnh (hạ xanh dương, trung tím, thượng vàng, cực ngũ sắc). */
-img[data-q]{--q-neon:#3da5ff;border-radius:14%;background:radial-gradient(circle at 50% 54%,color-mix(in srgb,var(--q-neon) 68%,transparent) 0,color-mix(in srgb,var(--q-neon) 30%,transparent) 50%,transparent 74%);box-shadow:inset 0 0 12px -3px var(--q-neon),0 0 9px -3px var(--q-neon)}
+/* Phẩm chất vật phẩm: vầng sáng neon nằm sau ảnh (hạ lục, trung tím, thượng vàng, cực ngũ sắc, tuyệt đen trắng). */
+img[data-q]{--q-neon:#6fd36f;border-radius:14%;background:radial-gradient(circle at 50% 54%,color-mix(in srgb,var(--q-neon) 68%,transparent) 0,color-mix(in srgb,var(--q-neon) 30%,transparent) 50%,transparent 74%);box-shadow:inset 0 0 12px -3px var(--q-neon),0 0 9px -3px var(--q-neon)}
 img[data-q="1"]{--q-neon:#b873ff}
 img[data-q="2"]{--q-neon:#ffd23d;box-shadow:inset 0 0 14px -2px var(--q-neon),0 0 14px -2px var(--q-neon)}
 img[data-q="3"]{background:radial-gradient(circle at 20% 22%,#ff4d6dcc 0,transparent 56%),radial-gradient(circle at 80% 22%,#ffd23dcc 0,transparent 56%),radial-gradient(circle at 86% 76%,#3df08ccc 0,transparent 56%),radial-gradient(circle at 50% 96%,#3dc8ffcc 0,transparent 56%),radial-gradient(circle at 14% 76%,#b873ffcc 0,transparent 56%);box-shadow:inset 0 0 12px -3px #fff9,-4px -3px 12px -4px #ff4d6d,4px -3px 12px -4px #ffd23d,4px 4px 12px -4px #3df08c,-4px 4px 12px -4px #b873ff}
+img[data-q="4"]{background:radial-gradient(circle at 50% 50%,#f8f8f8 0,#111 48%,#f8f8f8 72%,#111 100%);box-shadow:inset 0 0 14px -2px #fff,0 0 14px -2px #000,0 0 8px -2px #fff}
 @media (prefers-reduced-motion:no-preference){
   img[data-q="3"]{animation:q-rainbow 4.5s ease-in-out infinite}
+  img[data-q="4"]{animation:q-mono 5s ease-in-out infinite}
   @keyframes q-rainbow{50%{box-shadow:inset 0 0 16px -2px #ffffffcc,4px 3px 16px -3px #ff4d6d,-4px 3px 16px -3px #ffd23d,-4px -4px 16px -3px #3df08c,4px -4px 16px -3px #b873ff}}
+  @keyframes q-mono{50%{box-shadow:inset 0 0 18px -1px #fff,0 0 18px -1px #000,0 0 10px -1px #fff}}
 }
+.item-tip-badges{display:flex;flex-wrap:wrap;gap:5px;margin-top:2px}
+.item-tip-head small{display:block;color:#b9ad8c;font-size:.78em;margin-top:1px}
+.item-tip-effect{margin:7px 0 0;font-size:.8em;line-height:1.4;color:#d9cfb6}
+.item-tip-effect span{color:#b9ad8c;text-transform:uppercase;letter-spacing:.08em;font-size:.88em;margin-right:.35em}
+.item-tip-cond{margin:7px 0 0;font-size:.8em;line-height:1.4;color:#d9cfb6}
+.item-tip-cond span{color:#b9ad8c;text-transform:uppercase;letter-spacing:.08em;font-size:.88em;margin-right:.35em}
 .item-tip-lore{margin:6px 0 0;font-size:.82em;font-style:italic;line-height:1.45;color:#b9ad8c;opacity:.9}
 /* Sách lật: công thức đan phương và luyện khí */
 .book-wrap{display:grid;gap:10px;perspective:1600px}

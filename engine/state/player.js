@@ -32,7 +32,7 @@
     'EQ-001': 1, 'EQ-005': 1, 'BT-001': 1, 'SEED-HERB-001': 2, 'MAT-002': 4
   });
   const designCombatDefault = () => ({
-    shield: 0, shieldEnd: 0, heal: null, bleed: null,
+    shield: 0, shieldEnd: 0, heal: null, bleed: null, ward: null,
     buffs: [], enemyEffects: [], itemCooldowns: {}, manualCooldowns: {}
   });
   const metaDefault = () => ({ points: 0, totalPoints: 0, upgrades: { exp: 0, stone: 0, life: 0, luck: 0 }, achievements: {}, history: [] });
@@ -261,13 +261,47 @@
     x.auto = false; // Chế độ tự chiến cũ đã bỏ khỏi game.
     const ex = raw.exploration, active = ex?.active;
     const validKind = ['monster', 'npc', 'encounter'];
+    const cleanStatus = x => object(x) && ['đóng băng', 'choáng', 'độc', 'chảy máu'].includes(x.type)
+      ? { type: x.type, turns: Math.max(0, integer(x.turns, 0, 99)), stacks: Math.max(1, integer(x.stacks, 1, 9)),
+        pct: finite(x.pct, 0, 1), damage: finite(x.damage, 0, MAX) } : null;
+    /* Trận đấu theo lượt nằm trong sự kiện quái. Chỉ giữ trường cần thiết để
+       tải lại giữa trận mà không phục hồi buff ngoài ý muốn. */
+    const cleanBattle = rawB => {
+      if (!object(rawB) || !['active', 'won', 'lost', 'fled'].includes(rawB.state)) return null;
+      const enemyMax = Math.max(1, finite(rawB.enemyMax, 1, MAX)), cd = {};
+      if (object(rawB.cd)) for (const [k, v] of Object.entries(rawB.cd).slice(0, 24)) {
+        const n = integer(v, 0, 99);
+        if (n > 0) cd[String(k).slice(0, 80)] = n;
+      }
+      const out = {
+        state: rawB.state, turn: Math.max(1, integer(rawB.turn, 1, 1e6)), enemyMax,
+        enemyHp: Math.min(enemyMax, finite(rawB.enemyHp, enemyMax, enemyMax)),
+        intent: rawB.intent === 'heavy' ? 'heavy' : 'light', guard: !!rawB.guard,
+        healCd: integer(rawB.healCd, 0, 99), powerCd: integer(rawB.powerCd, 0, 99),
+        shield: finite(rawB.shield, 0, MAX), damageCut: finite(rawB.damageCut, 0, .9),
+        bonusDef: finite(rawB.bonusDef, 0, MAX), bonusDodge: finite(rawB.bonusDodge, 0, 1), cd,
+        statuses: Array.isArray(rawB.statuses) ? rawB.statuses.map(cleanStatus).filter(Boolean).slice(0, 16) : [],
+        enemyStatuses: Array.isArray(rawB.enemyStatuses) ? rawB.enemyStatuses.map(cleanStatus).filter(Boolean).slice(0, 16) : [],
+        remaining: finite(rawB.remaining, 0, 600000), result: String(rawB.result || '').slice(0, 300),
+        log: Array.isArray(rawB.log) ? rawB.log.filter(v => typeof v === 'string').slice(0, 8).map(v => v.slice(0, 240)) : []
+      };
+      if (object(rawB.ward) && integer(rawB.ward.turns, 0, 99) > 0)
+        out.ward = { turns: integer(rawB.ward.turns, 1, 99), reduce: finite(rawB.ward.reduce, 0, 1) };
+      if (object(rawB.atkBuff) && integer(rawB.atkBuff.turns, 0, 99) > 0)
+        out.atkBuff = { turns: integer(rawB.atkBuff.turns, 1, 99), points: finite(rawB.atkBuff.points, 0, 10) };
+      if (object(rawB.regen) && integer(rawB.regen.turns, 0, 99) > 0)
+        out.regen = { amount: finite(rawB.regen.amount, 0, MAX), turns: integer(rawB.regen.turns, 1, 99) };
+      return out;
+    };
     const cleanEvent = e => {
       if (!object(e) || !validKind.includes(e.kind)) return null;
-      return { kind: e.kind, eventId: ENCOUNTERS.some(v => v.id === e.eventId) ? e.eventId : '',
+      const body = { kind: e.kind, eventId: ENCOUNTERS.some(v => v.id === e.eventId) ? e.eventId : '',
         npcId: typeof e.npcId === 'string' && Object.hasOwn(DESIGN.npc, e.npcId) ? e.npcId : '',
         text: String(e.text || '').slice(0, 500), name: String(e.name || '').slice(0, 100),
         cleared: !!e.cleared, choice: Number.isInteger(e.choice) && e.choice >= 0 && e.choice <= 2 ? e.choice : -1,
         start: finite(e.start, 0, now), end: finite(e.end, 0, now + 600000) };
+      body.battle = e.kind === 'monster' ? cleanBattle(e.battle) : null;
+      return body;
     };
     x.exploration = { active: cleanEvent(active), last: cleanEvent(ex?.last) };
     if (x.exploration.active && (x.exploration.active.end <= x.exploration.active.start ||
@@ -296,6 +330,8 @@
       x.designCombat.heal = { amount: finite(dc.heal.amount), last: finite(dc.heal.last, now, now), end: finite(dc.heal.end, now, now + 86400000) };
     if (object(dc.bleed) && Number.isFinite(Number(dc.bleed.end)) && dc.bleed.end > now)
       x.designCombat.bleed = { pct: finite(dc.bleed.pct, 0, 1), last: finite(dc.bleed.last, now, now), end: finite(dc.bleed.end, now, now + 86400000) };
+    if (object(dc.ward) && Number.isFinite(Number(dc.ward.end)) && dc.ward.end > now)
+      x.designCombat.ward = { reduce: finite(dc.ward.reduce, 0, 1), end: finite(dc.ward.end, now, now + 86400000) };
     if (Array.isArray(dc.buffs)) x.designCombat.buffs = dc.buffs
       .filter(b => object(b) && ['def', 'dodge'].includes(b.type) && Number.isFinite(Number(b.end)) && b.end > now)
       .slice(0, 32)
@@ -448,7 +484,7 @@
       .slice(0, 3)
       .map(j => ({
         code: j.code, end: finite(j.end, now, now + F.craft_time(13) * 1000),
-        success: Math.max(.05, finite(j.success, .9, .95)), quality: integer(j.quality, 0, 3)
+        success: Math.max(.05, finite(j.success, .9, .95)), quality: integer(j.quality, 0, 4)
       })) : [];
 
     const terrains = ['đất thường', 'linh điền', 'hỏa địa', 'hàn đàm', 'linh điền có trận pháp'];

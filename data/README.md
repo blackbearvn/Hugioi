@@ -7,7 +7,7 @@ Dữ liệu thiết kế và mô hình cân bằng. Thuần dữ liệu và hàm
 | `balance.js` | Bảng hằng số cân bằng (cảnh giới, hệ số, tiền tệ, đan, bảng giá). |
 | `formulas.js` | Mô hình số học `F` (tu vi cần, tốc độ tu, sát thương, xác suất đột phá, thọ nguyên, giá…). Phụ thuộc `balance.js`. |
 | `items.js` | Danh mục vật phẩm gốc. |
-| `schema.js` | Enum chuẩn: `EFFECTS`, `GRADES`, `TAGS` và hàm suy ra `gradeId`, tag cho đan dược. |
+| `schema.js` | Nguồn cấu hình tập trung: `EFFECTS`, `GRADES` (14 bậc phẩm chất cũ cho đan), `RARITIES` (8 bậc độ hiếm cũ), `RANKS` (7 cấp bậc), `QUALITIES` (5 phẩm chất), `TAGS`; hàm suy ra `rank`, `quality`, `grade`, tag và ngưỡng quay phẩm chất. |
 | `design-raw.js` | Snapshot dữ liệu thiết kế (snapshot đã lưu; công cụ `tools/import-game-design.mjs` cũ hiện không còn). |
 | `design.js` | Lớp ánh xạ từ snapshot thiết kế sang mã game. |
 | `catalog.js` | Tra cứu vật phẩm hợp nhất (`item()`, `ITEMS`, `ZONES`…). |
@@ -19,5 +19,7 @@ Dữ liệu thiết kế và mô hình cân bằng. Thuần dữ liệu và hàm
 | `story.js` | Thiên Thư, 14 chương và hội thoại NPC; dữ liệu không tự cấp thưởng. |
 
 Quy ước: file này không `require` bất cứ thứ gì ngoài `data/`.
+
+Mọi chỉ số đối thủ, lôi kiếp và kinh tế suy ra từ `formulas.js`; không dùng HP/ATK/DEF tuyệt đối trong `design-raw.js`. Xem `docs/balance.md` và chạy `npm run balance` để kiểm tra mô hình.
 
 `balance.js` giữ `DAN_TABLE` tĩnh vì `index.html` nạp `balance.js` trước `items.js`; `tests/data.test.cjs` so khớp tuyệt đối 60 dòng với `items.js` để không lệch.

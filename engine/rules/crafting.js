@@ -141,8 +141,8 @@
       gardenInfo(p, now = this.s.lastUpdate) {
         const progress = Math.max(0, Math.min(1, (now - p.plantedAt) / Math.max(1, p.end - p.plantedAt)));
         const ratio = p.good / Math.max(1, p.steps);
-        const quality = Math.max(0, (ratio >= 1.1 ? 3 : ratio >= .9 ? 2 : ratio >= .6 ? 1 : 0) - (p.pest ? 1 : 0));
-        const def = DESIGN.seedsByHerb[item(p.herb).code], count = 2 + (quality >= 2 ? 1 : 0) + (quality === 3 ? 1 : 0);
+        const quality = Math.max(0, (ratio >= 1.25 ? 4 : ratio >= 1.05 ? 3 : ratio >= .85 ? 2 : ratio >= .55 ? 1 : 0) - (p.pest ? 1 : 0));
+        const def = DESIGN.seedsByHerb[item(p.herb).code], count = 2 + (quality >= 2 ? 1 : 0) + (quality >= 3 ? 1 : 0) + (quality >= 4 ? 1 : 0);
         return { progress, ripe: now >= p.end && !p.wilt, quality, count, min: def?.['sản lượng tối thiểu'] ?? count, max: def?.['sản lượng tối đa'] ?? count };
       },
       syncGarden(now, offline = false) {

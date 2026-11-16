@@ -191,7 +191,7 @@
       case 'novice_peak':
         return { page: 'idle', target: '.status-progress', text: 'Tiếp tục tu luyện đến tầng cuối Luyện Khí. Chuẩn bị sinh lực và vật phẩm hộ kiếp trước khi độ kiếp.', action: 'Xem tu luyện' };
       case 'novice_foundation':
-        return { page: s.qi >= UI.g().need() ? 'tribulation' : 'idle', target: s.qi >= UI.g().need() ? '#tribStart' : '.status-progress', text: s.qi >= UI.g().need() ? 'Tu vi đã đủ. Xem kỹ xác suất và hộ kiếp trước khi dẫn lôi: thất bại khiến nhân vật tử vong.' : 'Tích đủ tu vi ở đỉnh Luyện Khí trước khi chuẩn bị độ kiếp. Thất bại khiến nhân vật tử vong.', action: s.qi >= UI.g().need() ? 'Xem chuẩn bị độ kiếp' : 'Xem tu luyện' };
+        return { page: s.qi >= UI.g().need() ? 'tribulation' : 'idle', target: s.qi >= UI.g().need() ? '#tribStart' : '.status-progress', text: s.qi >= UI.g().need() ? 'Tu vi đã đủ. Xem kỹ xác suất và hộ kiếp trước khi dẫn lôi: hộ kiếp không đủ khiến nhân vật tử vong.' : 'Tích đủ tu vi ở đỉnh Luyện Khí trước khi chuẩn bị độ kiếp. Hộ kiếp không đủ khiến nhân vật tử vong.', action: s.qi >= UI.g().need() ? 'Xem chuẩn bị độ kiếp' : 'Xem tu luyện' };
       default: return { page: q.go, target: '', text: q.desc, action: 'Đi thực hiện' };
     }
   }

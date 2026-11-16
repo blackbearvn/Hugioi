@@ -1,0 +1,524 @@
+# NHIỆM VỤ: TÁI THIẾT KẾ TOÀN BỘ HỆ THỐNG CẤP BẬC VÀ PHẨM CHẤT VẬT PHẨM GAME TU TIÊN
+
+Bạn là Game System Designer chuyên thiết kế hệ thống vật phẩm cho game Idle RPG chủ đề tiên hiệp (Xianxia).
+
+Nhiệm vụ của bạn là kiểm tra hệ thống hiện tại, sau đó xây dựng lại quy chuẩn CẤP BẬC và PHẨM CHẤT cho toàn bộ vật phẩm trong game.
+
+Đây không phải nhiệm vụ đổi tên hoặc đổi màu sắc đơn thuần. Bạn phải xây dựng một hệ thống phân loại có ý nghĩa về lore, sức mạnh, tiến trình phát triển nhân vật và cân bằng gameplay.
+
+**Ưu tiên tuyệt đối dữ liệu và cấu trúc thực tế của dự án. Không tự ý thay đổi hệ thống cảnh giới hiện có.**
+
+---
+
+# I. HỆ THỐNG CẢNH GIỚI HIỆN TẠI – NGUỒN DỮ LIỆU CHUẨN
+
+Game hiện có 3 giới và 14 cảnh giới. Đây là hệ thống cảnh giới chính thức, phải được giữ nguyên.
+
+## 1. Hạ Giới
+
+| Thứ tự | Cảnh giới | Số tầng | Lỗi kiếp khi đột phá |
+|---|---|---:|---:|
+| 0 | Luyện Khí | 13 | 0 |
+| 1 | Trúc Cơ | 4 | 3 |
+| 2 | Kết Đan | 4 | 3 |
+| 3 | Nguyên Anh | 4 | 9 |
+| 4 | Hóa Thần | 4 | 27 (+36 Phi Thăng) |
+
+## 2. Linh Giới
+
+| Thứ tự | Cảnh giới | Số tầng | Lỗi kiếp khi đột phá |
+|---|---|---:|---:|
+| 5 | Luyện Hư | 4 | 36 |
+| 6 | Hợp Thể | 4 | 72 |
+| 7 | Đại Thừa | 4 | 81 |
+| 8 | Độ Kiếp | 9 | 99 |
+
+## 3. Tiên Giới
+
+| Thứ tự | Cảnh giới | Số tầng | Lỗi kiếp khi đột phá |
+|---|---|---:|---:|
+| 9 | Chân Tiên | 4 | 108 |
+| 10 | Kim Tiên | 4 | 360 |
+| 11 | Thái Ất | 4 | 500 |
+| 12 | Đại La | 4 | 999 |
+| 13 | Đạo Tổ | 3 | 9.999 |
+
+Đạo Tổ là điểm kết thúc của hệ thống cảnh giới hiện tại, đã viên mãn.
+
+### Quy định bắt buộc
+
+- Không thêm cảnh giới mới.
+- Không đổi tên cảnh giới.
+- Không đổi thứ tự cảnh giới.
+- Không thay đổi số tầng.
+- Không thay đổi số liệu lỗi kiếp.
+- Không tự tạo thêm giới thứ tư.
+- Không tự ý thay đổi cơ chế Phi Thăng.
+- Không mặc định tồn tại cảnh giới cao hơn Đạo Tổ.
+- Nếu nhận thấy cấu trúc dữ liệu trong mã nguồn khác với bảng trên, phải báo cáo sự khác biệt, không tự ý ghi đè.
+
+Bảng trên là căn cứ để xây dựng quan hệ giữa cảnh giới nhân vật và cấp bậc vật phẩm.
+
+---
+
+# II. HỆ THỐNG 7 CẤP BẬC VẬT PHẨM
+
+Sử dụng cố định 7 cấp bậc:
+
+| Mã | Cấp bậc | Thứ tự |
+|---|---|---:|
+| 1 | Phàm giai | Thấp nhất |
+| 2 | Linh giai | 2 |
+| 3 | Huyền giai | 3 |
+| 4 | Địa giai | 4 |
+| 5 | Thiên giai | 5 |
+| 6 | Tiên giai | 6 |
+| 7 | Thần giai | Cao nhất |
+
+Không được thêm cấp bậc thứ tám hoặc đổi tên các cấp bậc này.
+
+## 1. Phân bổ cấp bậc theo cảnh giới
+
+Sử dụng bảng phân bổ ban đầu sau đây làm phương án thiết kế:
+
+| Cấp bậc vật phẩm | Cảnh giới tương ứng |
+|---|---|
+| Phàm giai | Luyện Khí |
+| Linh giai | Trúc Cơ – Kết Đan |
+| Huyền giai | Nguyên Anh – Hóa Thần |
+| Địa giai | Luyện Hư – Hợp Thể |
+| Thiên giai | Đại Thừa – Độ Kiếp |
+| Tiên giai | Chân Tiên – Kim Tiên – Thái Ất – Đại La |
+| Thần giai | Đạo Tổ |
+
+Đây là định hướng phân bổ ban đầu, không phải quy tắc máy móc.
+
+Bạn phải kiểm tra hệ thống sức mạnh, tiến trình người chơi, chỉ số vật phẩm, nguồn rơi, yêu cầu sử dụng và kinh tế game để đánh giá sự phù hợp.
+
+Nếu phát hiện phân bổ chưa hợp lý, hãy đề xuất phương án tối ưu hơn nhưng phải:
+
+- Giữ nguyên 7 tên cấp bậc.
+- Giữ nguyên 14 cảnh giới.
+- Không làm đảo lộn tiến trình phát triển nhân vật.
+- Không khiến cấp bậc vật phẩm mất ý nghĩa.
+- Giải thích rõ lý do thay đổi và tác động gameplay.
+
+## 2. Định nghĩa bản chất từng cấp bậc
+
+Mỗi cấp bậc cần có định nghĩa riêng về:
+
+- Nguồn năng lượng.
+- Bản chất vật liệu hoặc sức mạnh.
+- Mức độ tinh luyện.
+- Giới hạn sức mạnh.
+- Khả năng tương thích với cảnh giới người chơi.
+- Công dụng trong gameplay.
+- Giá trị trao đổi và chế tạo.
+- Vị thế trong thế giới quan tiên hiệp.
+
+Đặc biệt phân biệt rõ:
+
+**Phàm giai:** Vật phẩm nền tảng, gắn với giai đoạn sơ nhập tiên đạo.
+
+**Linh giai:** Vật phẩm bắt đầu chứa linh khí ổn định, phù hợp với tu sĩ đã có căn cơ.
+
+**Huyền giai:** Vật phẩm sở hữu linh tính và huyền diệu, vượt xa vật phẩm thông thường.
+
+**Địa giai:** Vật phẩm có nền tảng sức mạnh sâu, đủ khả năng tác động đến quy luật và môi trường tu luyện ở cấp độ cao.
+
+**Thiên giai:** Vật phẩm mang uy năng vượt trội, phù hợp với những cường giả đỉnh cao của Linh Giới.
+
+**Tiên giai:** Vật phẩm đã thoát khỏi giới hạn linh lực thông thường, mang bản chất tiên lực.
+
+**Thần giai:** Cấp bậc cao nhất trong hệ thống vật phẩm, gắn với cảnh giới Đạo Tổ, đạo vận và những tồn tại có sức mạnh đặc biệt.
+
+Không được diễn giải Thần giai thành bằng chứng rằng game có Thần Giới hoặc cảnh giới cao hơn Đạo Tổ.
+
+---
+
+# III. HỆ THỐNG 5 PHẨM CHẤT
+
+Sử dụng cố định 5 phẩm chất:
+
+| Mã | Phẩm chất | Màu nhận diện |
+|---|---|---|
+| 1 | Hạ phẩm | Trắng |
+| 2 | Trung phẩm | Lục |
+| 3 | Thượng phẩm | Lam |
+| 4 | Cực phẩm | Tím |
+| 5 | Tuyệt phẩm | Vàng |
+
+Không thêm phẩm chất thứ sáu.
+
+## Định nghĩa phẩm chất
+
+Phải xây dựng ý nghĩa riêng cho từng phẩm chất dựa trên:
+
+- Độ tinh thuần.
+- Mức độ hoàn thiện.
+- Chất lượng chế tạo.
+- Khả năng phát huy công dụng.
+- Độ ổn định.
+- Số lượng và chất lượng thuộc tính phụ.
+- Khả năng xuất hiện hiệu ứng đặc biệt.
+- Độ hiếm trong quá trình tìm kiếm, thu thập hoặc chế tạo.
+
+Phẩm chất phải có tác động gameplay thực tế, không chỉ là tên gọi hoặc màu sắc.
+
+Lưu ý: Phẩm chất cao không làm thay đổi bản chất cấp bậc. Một vật phẩm Phàm giai Tuyệt phẩm vẫn là vật phẩm Phàm giai, không tự động trở thành Linh giai.
+
+---
+
+# IV. QUY TẮC KẾT HỢP CẤP BẬC VÀ PHẨM CHẤT
+
+Mọi vật phẩm được phân loại theo hai thuộc tính độc lập:
+
+- `rank`: Cấp bậc, từ 1 đến 7.
+- `quality`: Phẩm chất, từ 1 đến 5.
+
+Ví dụ:
+
+- Phàm giai Hạ phẩm.
+- Phàm giai Tuyệt phẩm.
+- Linh giai Thượng phẩm.
+- Huyền giai Cực phẩm.
+- Địa giai Hạ phẩm.
+- Thiên giai Tuyệt phẩm.
+- Tiên giai Thượng phẩm.
+- Thần giai Tuyệt phẩm.
+
+Về lý thuyết có 35 tổ hợp, nhưng không bắt buộc mọi vật phẩm đều tồn tại đủ 35 tổ hợp.
+
+Phải xác định phạm vi xuất hiện hợp lý theo tiến trình game.
+
+Ví dụ:
+
+- Giai đoạn Luyện Khí: Chủ yếu Phàm giai.
+- Giai đoạn Trúc Cơ – Kết Đan: Phàm giai và Linh giai.
+- Giai đoạn Nguyên Anh – Hóa Thần: Linh giai và Huyền giai.
+- Giai đoạn Luyện Hư – Hợp Thể: Huyền giai và Địa giai.
+- Giai đoạn Đại Thừa – Độ Kiếp: Địa giai và Thiên giai.
+- Giai đoạn Tiên Giới: Thiên giai và Tiên giai.
+- Giai đoạn Đạo Tổ: Tiên giai và Thần giai.
+
+Đây là phạm vi xuất hiện tham khảo, cần cân bằng theo nguồn cung và sức mạnh thực tế.
+
+Không được để người chơi nhận được quá nhiều vật phẩm cấp cao khi chưa đạt đến giai đoạn tương ứng.
+
+Đồng thời, không nên khiến vật phẩm cấp thấp hoàn toàn mất giá trị ở cuối game nếu chúng vẫn còn công dụng chế tạo, nâng cấp hoặc trao đổi.
+
+---
+
+# V. QUY TẮC ẢNH HƯỞNG ĐẾN GAMEPLAY
+
+## 1. Cấp bậc quyết định
+
+- Sức mạnh nền.
+- Giới hạn sức mạnh.
+- Phạm vi cảnh giới có thể sử dụng.
+- Giá trị cơ bản.
+- Nguyên liệu chế tạo.
+- Điều kiện xuất hiện.
+- Khả năng nâng cấp.
+- Mức độ ảnh hưởng đến tiến trình nhân vật.
+
+## 2. Phẩm chất quyết định
+
+- Hệ số chỉ số bổ sung.
+- Độ tinh thuần và hoàn thiện.
+- Số lượng thuộc tính phụ.
+- Khả năng có hiệu ứng đặc biệt.
+- Hiệu suất sử dụng.
+- Giá trị mua bán và thu hồi.
+- Tỷ lệ xuất hiện khi rơi hoặc chế tạo.
+
+## 3. Quy tắc cân bằng
+
+Không mặc định một vật phẩm cấp bậc thấp nhưng phẩm chất cao luôn mạnh hơn vật phẩm cấp bậc cao nhưng phẩm chất thấp.
+
+Không mặc định phẩm chất cao chỉ đơn giản là nhân toàn bộ chỉ số với một hệ số lớn.
+
+Phải tạo ra sự khác biệt hợp lý giữa hai hệ thống, tránh khiến một trong hai trở nên thừa thãi.
+
+Đề xuất công thức cân bằng có thể áp dụng vào game.
+
+Phân biệt rõ:
+- Giá trị đang tồn tại trong mã nguồn.
+- Giá trị đề xuất mới.
+- Giá trị cần kiểm tra thêm trước khi triển khai.
+
+Không tự ý ghi đè các chỉ số hiện có mà chưa đánh giá tác động.
+
+---
+
+# VI. QUY TẮC RIÊNG THEO DANH MỤC VẬT PHẨM
+
+Áp dụng hệ thống thống nhất cho các danh mục hiện có:
+
+1. Công pháp.
+2. Bí thuật.
+3. Đan dược.
+4. Linh dược.
+5. Dược liệu.
+6. Pháp bảo.
+7. Vũ khí.
+8. Trang bị.
+9. Bí tịch.
+10. Nguyên liệu luyện chế.
+11. Tài nguyên tu luyện.
+12. Phù lục.
+13. Trận pháp.
+14. Vật phẩm nhiệm vụ.
+15. Các danh mục vật phẩm khác trong dự án.
+
+Không áp dụng máy móc cùng một công thức cho tất cả danh mục.
+
+Ví dụ:
+
+**Đan dược**
+- Cấp bậc: Quyết định phạm vi cảnh giới sử dụng và loại đan dược.
+- Phẩm chất: Quyết định độ tinh thuần, hiệu quả, thời lượng và tác dụng phụ nếu có.
+
+**Công pháp**
+- Cấp bậc: Quyết định tiềm năng tu luyện và giới hạn sức mạnh.
+- Phẩm chất: Quyết định mức độ hoàn thiện, hiệu quả vận hành và khả năng phát huy công pháp.
+
+**Pháp bảo**
+- Cấp bậc: Quyết định uy năng nền và điều kiện sử dụng.
+- Phẩm chất: Quyết định độ hoàn mỹ, thuộc tính phụ và hiệu ứng đặc biệt.
+
+**Nguyên liệu**
+- Cấp bậc: Quyết định phạm vi công thức luyện chế.
+- Phẩm chất: Quyết định độ tinh thuần, hiệu suất và chất lượng thành phẩm.
+
+**Vật phẩm nhiệm vụ**
+- Phải xét đến vai trò cốt truyện.
+- Không bắt buộc gán cấp bậc và phẩm chất cao chỉ vì vật phẩm quan trọng đối với nhiệm vụ.
+- Không làm thay đổi khả năng hoàn thành nhiệm vụ của người chơi.
+
+Với mỗi danh mục, hãy xây dựng bảng quy định cụ thể và có ví dụ minh họa.
+
+---
+
+# VII. QUY CHUẨN GIAO DIỆN
+
+Phải thống nhất cách hiển thị trên toàn game.
+
+## Màu sắc phẩm chất
+
+- Hạ phẩm: Lục.
+- Trung phẩm: Tím.
+- Thượng phẩm: Vàng.
+- Cực phẩm: Ngũ sắc.
+- Tuyệt phẩm: Đen trắng.
+
+Phẩm chất là yếu tố nhận diện màu sắc chính trên icon và khung vật phẩm.
+
+Cấp bậc được nhận diện bằng tên gọi, huy hiệu hoặc nhãn cấp bậc riêng.
+
+Không dùng một màu duy nhất cho cả hai hệ thống khiến người chơi nhầm cấp bậc với phẩm chất.
+
+Phải áp dụng đồng bộ trong:
+
+- Túi đồ.
+- Trang bị.
+- Cửa hàng.
+- Phần thưởng.
+- Chế tạo.
+- Cường hóa.
+- Luyện đan.
+- Kho vật phẩm.
+- Tooltip.
+- Các giao diện khác đang sử dụng item.
+
+Tooltip phải hiển thị:
+- Tên vật phẩm.
+- Danh mục.
+- Cấp bậc.
+- Phẩm chất.
+- Cảnh giới yêu cầu.
+- Thuộc tính và công dụng.
+- Điều kiện sử dụng nếu có.
+
+---
+
+# VIII. QUY CHUẨN DỮ LIỆU
+
+Đề xuất schema thống nhất:
+
+```json
+{
+  "id": "sword_001",
+  "name": "Tử Tiêu Linh Kiếm",
+  "category": "weapon",
+  "rank": 3,
+  "quality": 5
+}
+```
+
+Quy định:
+
+- `id`: Giữ nguyên ID vật phẩm hiện tại.
+- `name`: Giữ nguyên tên vật phẩm nếu không thuộc phạm vi cần sửa.
+- `category`: Danh mục vật phẩm hiện tại.
+- `rank`: Số nguyên từ 1 đến 7.
+- `quality`: Số nguyên từ 1 đến 5.
+
+Có thể bổ sung các trường dữ liệu cần thiết nếu dự án thực sự cần, nhưng phải kiểm tra khả năng tương thích trước.
+
+Không tự ý đổi tên các trường hiện có hoặc thay đổi cấu trúc gây lỗi dữ liệu cũ.
+
+Tạo một nguồn cấu hình tập trung để tất cả module cùng sử dụng.
+
+Không định nghĩa bảng cấp bậc và phẩm chất độc lập ở nhiều file khác nhau.
+
+---
+
+# IX. QUY TRÌNH THỰC HIỆN
+
+## Bước 1: Kiểm tra dự án
+
+Rà soát toàn bộ mã nguồn và dữ liệu hiện tại.
+
+Tìm kiếm:
+- Các file định nghĩa cảnh giới.
+- Các file chứa danh sách vật phẩm.
+- Các trường cấp bậc và phẩm chất.
+- Các module tính toán sức mạnh.
+- Điều kiện sử dụng vật phẩm.
+- Hệ thống rơi vật phẩm.
+- Hệ thống chế tạo.
+- Hệ thống mua bán.
+- Các thành phần giao diện hiển thị vật phẩm.
+
+Không được dựa vào tên file để phỏng đoán nội dung mà phải kiểm tra dữ liệu thực tế.
+
+## Bước 2: Đối chiếu bảng cảnh giới
+
+Kiểm tra hệ thống trong mã nguồn với bảng 14 cảnh giới ở phần I.
+
+Xác nhận:
+- Tên và thứ tự.
+- Số tầng.
+- Giới tương ứng.
+- Lỗi kiếp khi đột phá.
+- Cơ chế Phi Thăng.
+- Điểm kết thúc Đạo Tổ.
+
+Không tự chỉnh sửa các thông số này.
+
+## Bước 3: Xây dựng quy chuẩn mới
+
+Định nghĩa đầy đủ:
+- 7 cấp bậc.
+- 5 phẩm chất.
+- Mối quan hệ giữa cấp bậc vật phẩm và 14 cảnh giới.
+- Tác động gameplay.
+- Quy tắc phân loại riêng từng danh mục.
+- Màu sắc giao diện.
+- Quy tắc dữ liệu.
+
+## Bước 4: Lập bảng chuyển đổi
+
+Nếu hệ thống cũ đã có cấp bậc hoặc phẩm chất, hãy tạo bảng ánh xạ.
+
+Mỗi vật phẩm cần có:
+- ID cũ.
+- Tên vật phẩm.
+- Cấp bậc cũ.
+- Phẩm chất cũ.
+- Cấp bậc mới.
+- Phẩm chất mới.
+- Lý do chuyển đổi.
+
+Không được tự ý xóa hoặc đổi ID.
+
+Những trường hợp chưa đủ thông tin phải đưa vào danh sách cần xử lý thủ công.
+
+## Bước 5: Triển khai
+
+Sau khi có quy chuẩn và bảng ánh xạ, tiến hành cập nhật dự án.
+
+Ưu tiên:
+- Tính tương thích dữ liệu.
+- Tính thống nhất giữa các module.
+- Không phá vỡ gameplay hiện tại.
+- Không sửa các phần không liên quan.
+- Không thay đổi nội dung lore của vật phẩm nếu không cần thiết.
+
+## Bước 6: Kiểm thử
+
+Kiểm tra:
+- Giá trị rank hợp lệ từ 1 đến 7.
+- Giá trị quality hợp lệ từ 1 đến 5.
+- Tính nhất quán dữ liệu.
+- Quan hệ cảnh giới và cấp bậc vật phẩm.
+- Điều kiện sử dụng.
+- Thuộc tính và công thức tính sức mạnh.
+- Màu sắc giao diện.
+- Tooltip.
+- Rơi đồ và chế tạo.
+- Mua bán và thu hồi.
+- Tương thích dữ liệu cũ.
+- Các trường hợp vật phẩm đặc biệt.
+
+---
+
+# X. ĐẦU RA BẮT BUỘC
+
+Trả kết quả theo đúng thứ tự:
+
+1. Đánh giá hệ thống cấp bậc và phẩm chất cũ.
+2. Xác nhận bảng 3 giới, 14 cảnh giới hiện tại.
+3. Bảng định nghĩa 7 cấp bậc vật phẩm.
+4. Bảng định nghĩa 5 phẩm chất.
+5. Bảng liên kết cấp bậc vật phẩm với cảnh giới.
+6. Giải thích quy tắc phân bổ và những trường hợp ngoại lệ.
+7. Quy tắc gameplay cho từng danh mục.
+8. Công thức và hệ số cân bằng đề xuất.
+9. Quy chuẩn màu sắc và giao diện.
+10. Schema dữ liệu chuẩn.
+11. Bảng chuyển đổi dữ liệu cũ sang mới.
+12. Danh sách file cần chỉnh sửa.
+13. Báo cáo triển khai.
+14. Báo cáo kiểm thử và các vấn đề chưa giải quyết.
+
+---
+
+# XI. CÁC ĐIỀU TUYỆT ĐỐI KHÔNG ĐƯỢC LÀM
+
+1. Không sửa hoặc thay thế hệ thống 14 cảnh giới hiện tại.
+2. Không thêm giới thứ tư hoặc cảnh giới sau Đạo Tổ.
+3. Không thêm cấp bậc vật phẩm thứ tám.
+4. Không thêm phẩm chất thứ sáu.
+5. Không đồng nhất cấp bậc với phẩm chất.
+6. Không tự ý thay đổi ID vật phẩm.
+7. Không tự ý đổi tên vật phẩm.
+8. Không xóa dữ liệu cũ khi chưa có phương án chuyển đổi.
+9. Không sửa nội dung mô tả và truyền thuyết vật phẩm ngoài phạm vi nhiệm vụ.
+10. Không tự ý điều chỉnh toàn bộ chỉ số gameplay khi chưa đánh giá tác động.
+11. Không tạo nhiều quy chuẩn mâu thuẫn giữa các module.
+12. Không chỉ sửa giao diện mà bỏ quên logic dữ liệu.
+13. Không tuyên bố đã hoàn thành hoặc kiểm thử nếu chưa thực sự thực hiện.
+
+---
+
+# XII. YÊU CẦU CUỐI CÙNG
+
+Hãy biến hệ thống này thành quy chuẩn phân loại vật phẩm chính thức của game.
+
+Bảy cấp bậc phải có quan hệ logic với tiến trình tu luyện từ Luyện Khí đến Đạo Tổ.
+
+Năm phẩm chất phải tạo ra sự khác biệt thực tế giữa những vật phẩm cùng cấp bậc.
+
+Toàn bộ danh mục vật phẩm phải tuân theo một hệ thống thống nhất nhưng vẫn giữ được đặc điểm riêng về bản chất, công dụng và lore.
+
+Ưu tiên theo thứ tự:
+
+1. Không phá vỡ hệ thống game hiện tại.
+2. Đảm bảo logic tiên hiệp.
+3. Đảm bảo cân bằng gameplay.
+4. Đảm bảo dữ liệu nhất quán.
+5. Dễ mở rộng trong tương lai.
+
+**Trước khi sửa mã nguồn, phải hoàn thành việc kiểm tra và đưa ra phương án chuyển đổi. Nếu có đủ quyền truy cập dự án, tiếp tục triển khai theo phương án đã xác định và báo cáo chính xác những gì đã làm được.**

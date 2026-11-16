@@ -46,8 +46,8 @@
     return 'dan';
   }
 
-  /* Phẩm chất sách nhân lên độ mạnh chiêu thức: hạ 1.0, trung 1.3, thượng 1.6, cực 1.9. */
-  const quality = x => 1 + .3 * Math.max(0, Math.min(3, Number(x?.sub) || 0));
+  /* Phẩm chất sách nhân lên độ mạnh chiêu thức: hạ 1.0, trung 1.3, thượng 1.6, cực 1.9, tuyệt 2.2. */
+  const quality = x => 1 + .3 * Math.max(0, Math.min(4, Number(x?.sub) || 0));
 
   /* Chiêu thức của ngoại tu. Trả về mô tả thuần: engine nhân thêm độ thuần thục và lệch cảnh giới.
      kind: attack | guard | heal | evade. mpPct là phần trăm linh lực tối đa. */

@@ -192,9 +192,20 @@
     else if(d?.group==='công pháp')detail=row('Hệ',esc(d['hệ']))+row('Kỹ năng',esc(d['công dụng'])+' · '+d['tiêu hao mp']+' linh lực · '+d['hồi chiêu (giây)']+' giây');
     else if(d?.group==='bí tịch')detail=row('Thể loại',esc(d['thể loại']))+row('Công dụng',esc(d['công dụng']));
     else if(d?.group==='linh thảo')detail=row('Cách dùng',esc(d['cách dùng']))+row('Hiệu quả',esc(d['hiệu quả']));
-    const quality = F.SUBPHAM[x.sub];
-    const qualityHtml = L ? L.span(quality, 'quality', quality) : esc(quality);
-    return `<p>${esc(x.description)}</p>${x.lore ? `<p class="item-tip-lore">${esc(x.lore)}</p>` : ''}${row('Cảnh giới',esc(x.realm))}${row('Phẩm chất',esc((x.grade || x.quality || '') + ' · ') + qualityHtml)}${x.age ? row('Tuổi dược liệu', esc(x.age)) : ''}${row('Nguồn gốc', 'Chưa có dữ liệu nguồn nhận')}${detail}`;
+    else if(x.kind==='PILL'||x.kind==='TAL'){
+      const effectText=UI.kit.pillEffectText?UI.kit.pillEffectText(x):'';
+      if(effectText)detail=row('Thuộc tính / công dụng',esc(effectText));
+      if(x.kind==='PILL'&&x.effect==='TU_VI')detail+='<p class="info-note">Đan tăng tu vi giảm dần theo số viên đã dùng trong tầng hiện tại; tổng tu vi từ đan mỗi cảnh giới có trần.</p>';
+    }
+    const quality = H.SCHEMA?.qualityOf(x) || (Number.isInteger(x.sub) ? x.sub + 1 : 1);
+    const qualityText = H.SCHEMA?.qualityLabel(quality) || (F.SUBPHAM[quality - 1] || 'Hạ') + ' phẩm';
+    const rank = H.SCHEMA?.rankOf(x) || x.rank || 1;
+    const rankText = H.SCHEMA?.rankLabel(rank) || 'Phàm giai';
+    const qualityHtml = L ? L.span(qualityText, 'quality', qualityText, { variant: 'badge' }) : esc(qualityText);
+    const rankHtml = L ? L.span(rankText, 'rank', rankText, { variant: 'badge' }) : esc(rankText);
+    const requiredRealm = Number.isInteger(x.useReq?.realmMin) ? F.REALMS[x.useReq.realmMin] : x.realm;
+    const condition = UI.kit.useCondition ? UI.kit.useCondition(x) : (x.kind === 'QITEM' ? 'Vật phẩm nhiệm vụ, không bán' : 'Không có điều kiện đặc biệt');
+    return `<p>${esc(x.description)}</p>${x.lore ? `<p class="item-tip-lore">${esc(x.lore)}</p>` : ''}${row('Danh mục',esc(x.category||'—'))}${row('Cấp bậc',rankHtml)}${row('Phẩm chất',qualityHtml)}${row('Cảnh giới yêu cầu',esc(requiredRealm||'—'))}${row('Điều kiện',esc(condition))}${x.age ? row('Tuổi dược liệu', esc(x.age)) : ''}${row('Nguồn gốc', 'Chưa có dữ liệu nguồn nhận')}${detail}`;
   }
 
   /* ---------- Cửa sổ nổi: trang bị, công pháp, chi tiết vật phẩm ---------- */
@@ -404,10 +415,11 @@
     const bad = /thất bại|không thể|không đủ|chưa đủ/i.test(msg);
     UI.toast(msg, { type: bad ? 'danger' : 'success', title: bad ? 'Không thể dùng' : 'Sử dụng vật phẩm' });
     if (['PILL', 'TAL'].includes(x?.kind)) {
+      const healing = ['HOI_PHUC', 'HOI_HP', 'HOI_MP'].includes(x.effect);
       if (x.effect === 'KIEP') UI.vfx?.hero({ kind: 'chien_dau', variant: 'ho_thuan', fps: 12 });
-      else if (x.effect === 'HOI_PHUC') UI.vfx?.effect('heal');
+      else if (healing) UI.vfx?.effect('heal');
       else UI.vfx?.effect(x.effect === 'DOT_PHA' ? 'break' : 'qi');
-      UI.vfx?.ring('hero', x.effect === 'HOI_PHUC' ? '#63d6a3' : '#e6c164');
+      UI.vfx?.ring('hero', healing ? '#63d6a3' : '#e6c164');
     }
   });
   UI.action('sell', async (el, d) => {
