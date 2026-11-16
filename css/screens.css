@@ -56,7 +56,7 @@ body.in-tribulation{overflow:hidden}
 .trib-realm-chip{justify-self:end;max-width:100%;border:1px solid #8a733a;border-radius:30px;background:#13161dd9;color:var(--gold);padding:6px 12px;font-size:13px;font-weight:750;box-shadow:0 0 18px #d9a12c1f;text-align:center}
 .trib-content{display:flex;flex-direction:column;flex:1;min-height:0}
 .trib-head{text-align:center;max-width:900px;margin:18px auto 0;text-shadow:0 2px 8px #000}
-.trib-head h2{font-size:clamp(30px,4vw,50px);margin:4px 0;text-shadow:0 3px 26px #000,0 0 42px #e6c16444}
+.trib-head h2{font-size:clamp(30px,4vw,50px);margin:4px 0;text-shadow:0 2px 10px #000}
 .trib-head p{color:#c0c2c8;font-size:clamp(14px,1.5vw,16px)}
 .trib-head-tags{display:flex;justify-content:center;flex-wrap:wrap;gap:6px;margin-top:9px}
 .trib-head-tags span{border:1px solid #47536f;border-radius:30px;background:#101217b8;color:#c0c3c9;padding:4px 10px;font-size:13px;backdrop-filter:blur(6px)}

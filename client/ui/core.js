@@ -266,9 +266,9 @@
     const menuId = 'tabbarMenu' + (++tabbarSeq);
     return `<div class="tabbar">` +
       `<button type="button" class="tabbar-toggle" aria-haspopup="true" aria-expanded="false" aria-controls="${menuId}" aria-label="Chọn mục, đang xem ${esc(current.label)}">` +
-      `<span class="tabbar-toggle-ico" aria-hidden="true">${esc(current.icon || '☰')}</span><span class="tabbar-toggle-current">${esc(current.label)}</span><span class="tabbar-toggle-chevron" aria-hidden="true">⌄</span></button>` +
+      `<span class="tabbar-toggle-current">${esc(current.label)}</span><span class="tabbar-toggle-chevron" aria-hidden="true">⌄</span></button>` +
       `<div id="${menuId}" class="tabbar-menu" role="tablist">${items.map(t =>
-      `<button role="tab" class="tab ${t.id === active ? 'active' : ''}" aria-selected="${t.id === active}" data-tab="${t.id}">${t.icon ? `<span aria-hidden="true">${t.icon}</span>` : ''}${t.label}${t.badge ? `<em>${t.badge}</em>` : ''}</button>`).join('')}</div></div>`;
+      `<button role="tab" class="tab ${t.id === active ? 'active' : ''}" aria-selected="${t.id === active}" data-tab="${t.id}">${t.label}${t.badge ? `<em>${t.badge}</em>` : ''}</button>`).join('')}</div></div>`;
   };
   const live = end => `<span class="live" data-end="${end}"></span>`;
 

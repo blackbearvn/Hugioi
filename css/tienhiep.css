@@ -565,7 +565,6 @@ body.journal-in-chat #game[data-layout="wide"]{grid-template-rows:minmax(0,1fr) 
 #game:not([data-layout="wide"]) .win.page .tabbar-toggle:focus-visible,
 #game:not([data-layout="wide"]) .win.page .tabbar.open .tabbar-toggle{border-color:var(--gold);color:var(--gold)}
 #game:not([data-layout="wide"]) .win.page .tabbar-toggle:focus-visible{outline:2px solid #f9df9a;outline-offset:2px}
-.tabbar-toggle-ico{flex:none;font-size:16px;color:#d8c08a}
 .tabbar-toggle-current{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tabbar-toggle-chevron{flex:none;font-size:11px;line-height:1;transition:transform .15s}
 .tabbar-toggle[aria-expanded="true"] .tabbar-toggle-chevron{transform:rotate(180deg)}
