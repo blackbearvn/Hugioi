@@ -8,7 +8,7 @@ const ROOT = fs.realpathSync(path.resolve(__dirname, '..', '..'));
 const MIME = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8',
   '.json': 'application/json; charset=utf-8', '.gif': 'image/gif', '.webp': 'image/webp', '.png': 'image/png', '.jpg': 'image/jpeg',
-  '.svg': 'image/svg+xml', '.mp3': 'audio/mpeg', '.ogg': 'audio/ogg', '.wav': 'audio/wav', '.woff2': 'font/woff2'
+  '.bin': 'application/octet-stream', '.svg': 'image/svg+xml', '.mp3': 'audio/mpeg', '.ogg': 'audio/ogg', '.wav': 'audio/wav', '.woff2': 'font/woff2'
 };
 
 /* Chỉ các thư mục tài nguyên chạy game và index.html ở gốc. So khớp không phân biệt hoa/thường. */

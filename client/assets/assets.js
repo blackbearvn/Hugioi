@@ -31,6 +31,48 @@
         typeof root.fetch === 'function' && typeof root.URL?.createObjectURL === 'function';
     } catch { return false; }
   };
+  /* ---- gói tài nguyên mã hóa ----
+   * Bản dựng phát hành (tools/pack-media.cjs) gom một số thư mục ảnh thành tệp .bin mã hóa AES-GCM
+   * và ghi cấu hình vào client/assets/packs.js. Ảnh trong gói không còn là tệp rời trên máy chủ:
+   * trình duyệt tải một tệp, giải mã trong bộ nhớ rồi dùng blob URL. Môi trường phát triển để
+   * HU_PACKS rỗng nên vẫn đọc tệp rời. Khóa nằm trong mã client nên đây chỉ là rào cản. */
+  const PLACEHOLDER = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
+  const packJobs = new Map();
+  const unb64 = s => Uint8Array.from(root.atob(s), c => c.charCodeAt(0));
+  const cleanPath = src => String(src).replace(/^\//, '');
+  const packOf = src => (root.HU_PACKS || []).find(p => cleanPath(src).startsWith(p.prefix));
+  function openPack(pack) {
+    if (!packJobs.has(pack.file)) {
+      const job = (async () => {
+        const subtle = root.crypto?.subtle;
+        if (!subtle) throw new Error('Thiếu WebCrypto');
+        const [a, b] = [unb64(pack.k[0]), unb64(pack.k[1])];
+        const key = await subtle.importKey('raw', a.map((v, i) => v ^ b[i]), 'AES-GCM', false, ['decrypt']);
+        const response = await root.fetch(pack.file, { cache: 'force-cache', credentials: 'same-origin' });
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        const cipher = new Uint8Array(await response.arrayBuffer());
+        const plain = await subtle.decrypt({ name: 'AES-GCM', iv: cipher.subarray(0, 12) }, key, cipher.subarray(12));
+        const headLen = new DataView(plain).getUint32(0, true);
+        const index = JSON.parse(new TextDecoder().decode(new Uint8Array(plain, 4, headLen)));
+        return { plain, index, base: 4 + headLen };
+      })();
+      job.catch(() => packJobs.delete(pack.file));
+      packJobs.set(pack.file, job);
+    }
+    return packJobs.get(pack.file);
+  }
+  async function packBlob(pack, src) {
+    const { plain, index, base } = await openPack(pack);
+    const entry = index[cleanPath(src).slice(pack.prefix.length)];
+    if (!entry) throw new Error('Không có trong gói');
+    return new Blob([new Uint8Array(plain, base + entry[0], entry[1])], { type: 'image/webp' });
+  }
+  const fetchLoose = src => root.fetch(src, { cache: 'force-cache', credentials: 'same-origin' })
+    .then(response => {
+      if (!response.ok) throw new Error('HTTP ' + response.status);
+      return response.blob();
+    });
+
   function mediaSrc(src, image) {
     const ready = objectUrls.get(src);
     if (ready) {
@@ -38,6 +80,7 @@
       return ready;
     }
     if (!canBlob() || !/^\/?media\//.test(src)) return src;
+    const pack = packOf(src);
     if (image) {
       let set = blobImages.get(src);
       if (!set) blobImages.set(src, set = new Set());
@@ -45,11 +88,7 @@
     }
     if (!blobJobs.has(src)) {
       const job = Promise.resolve()
-        .then(() => root.fetch(src, { cache: 'force-cache', credentials: 'same-origin' }))
-        .then(response => {
-          if (!response.ok) throw new Error('HTTP ' + response.status);
-          return response.blob();
-        })
+        .then(() => pack ? packBlob(pack, src).catch(() => fetchLoose(src)) : fetchLoose(src))
         .then(blob => {
           const url = root.URL.createObjectURL(blob);
           objectUrls.set(src, url);
@@ -64,7 +103,8 @@
         .finally(() => blobJobs.delete(src));
       blobJobs.set(src, job);
     }
-    return src;
+    /* Ảnh trong gói không có tệp rời: trả ảnh trong suốt trong lúc chờ giải mã thay vì một đường dẫn 404. */
+    return pack ? PLACEHOLDER : src;
   }
 
   /* ---- nhân vật: chỉ còn WebP bán hiện thực; mọi giới dùng chung đạo thân ---- */

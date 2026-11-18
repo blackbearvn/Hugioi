@@ -12,6 +12,7 @@ const { ALLOWED, DENIED_PART, DENIED_PATH } = require('./ci-server/static.js');
 const ROOT = path.resolve(__dirname, '..');
 const OUT = path.join(ROOT, 'dist');
 const minify = process.argv.includes('--minify');
+const pack = !process.argv.includes('--no-pack');
 /* Không đưa adapter offline/backup cũ vào frontend online. Giữ mã nguồn legacy
    trong repository chỉ để kiểm thử, kiểm toán và di trú thủ công về sau. */
 const htmlSource = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
@@ -130,6 +131,8 @@ if (minify) {
   console.log('CSS: ' + cssInputs.length + ' stylesheet → 1 tệp ' + href +
     ' (' + Buffer.byteLength(code) + ' bytes, chưa gzip/brotli).');
 }
+/* Gom ảnh nhân vật vào gói mã hóa: tệp rời bị gỡ khỏi dist/. Dùng --no-pack để giữ tệp rời. */
+if (pack) require('./pack-media.cjs').packMedia({ root: ROOT, out: OUT });
 /* _headers áp dụng cho Cloudflare Workers Static Assets, không áp dụng Node dev. */
 fs.writeFileSync(path.join(OUT, '_headers'), inject('_headers', fs.readFileSync(path.join(ROOT, '_headers'), 'utf8')));
 if (envUrl || envKey || envCaptcha) console.log('Public config từ biến môi trường: ' + [envUrl && 'SUPABASE_URL', envKey && 'SUPABASE_PUBLISHABLE_KEY', envCaptcha && 'HCAPTCHA_SITEKEY'].filter(Boolean).join(', ') + '.');
