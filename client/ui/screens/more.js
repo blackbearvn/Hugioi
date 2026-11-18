@@ -365,14 +365,30 @@
     UI.vfx?.ring('hero', '#70d4e8');
   });
 
+  /* Sinh Tử Đài: máy chủ định đoạt thắng/thua, sân khấu tái hiện trận theo lượt bằng
+     chính các công pháp ngoại tu đang đặt trong bốn ô của người chơi. */
   UI.action('moreDuel', async (el, d) => {
     const f = findRival(d.id);
     if (!f) throw Error('Không tìm thấy đối thủ này.');
+    const g = UI.g(), s0 = UI.s();
+    const skills = (s0.activeManuals || []).filter(k => H.MANUALS.school(H.item(k)) === 'ngoai').map(code => {
+      const sk = H.MANUALS.skillOf(H.item(code));
+      return sk ? { code, name: H.item(code).name, kind: sk.kind } : null;
+    }).filter(Boolean);
+    const myHp = g.stats().HP, name = s0.name, gender = s0.gender, realm = s0.realm, label = g.realmLabel();
     const r = await UI.command('duel', { id: d.id });
-    UI.toast((r.win ? 'Thắng ' : 'Thua · tọa hóa vĩnh viễn trước ') + f.name + ' · danh vọng ' + (r.delta > 0 ? '+' : '') + r.delta +
+    const toast = () => UI.toast((r.win ? 'Thắng ' : 'Thua · tọa hóa vĩnh viễn trước ') + f.name + ' · danh vọng ' + (r.delta > 0 ? '+' : '') + r.delta +
       (r.win ? ' · +' + money(r.reward) + ' · +' + num(r.exp) + ' tu vi' : '') + '.',
       { type: r.win ? 'success' : 'danger', title: r.win ? 'Sinh Tử Đài · thắng' : 'Sinh Tử Đài · thua' });
-    UI.vfx?.stage({ kind: 'chien_dau', variant: r.win ? 'phi_thang' : 'ha_gioi', fps: 14, size: 'clamp(120px,19vw,200px)', style: { left: '50%', bottom: '24%', transform: 'translateX(-50%)' } });
-    if (r.win) UI.vfx?.ring('hero', '#e6c164');
+    if (!UI.stage?.replay || UI.isReduced?.() || UI.s()?.settings?.combatEffects === false) { toast(); return; }
+    const B = root.HU_BOUT_SCRIPT;
+    const bout = B.build({ win: r.win, seed: B.seedOf(d.id, r.my, r.power, r.rating), myHp, foeHp: myHp * Math.max(.5, r.power / Math.max(1, r.my)), skills });
+    UI.stage.replay({
+      mode: 'pvp', label: 'SINH TỬ ĐÀI', title: name + ' đấu ' + f.name, bg: UI.kit.abs(root.HU_ASSETS.zoneBg?.(Math.min(realm, 8)) || ''),
+      bout, hero: { name, sub: label, gender, realm }, foe: { name: f.name, sub: f.school + ' · ' + H.F.REALMS[f.realm], tag: 'Đối thủ', gender: f.gender, realm: f.realm },
+      resultHtml: `<p>${r.win ? 'Danh vọng +' + r.delta + ' · +' + esc(money(r.reward)) + ' · +' + num(r.exp) + ' tu vi.' : 'Danh vọng ' + r.delta + '. Đạo thân tọa hóa, kiếp này chấm dứt.'}</p>`,
+      onClose: toast
+    });
+    if (r.win) UI.vfx?.ring?.('hero', '#e6c164');
   });
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -25,10 +25,8 @@ test('công pháp có chiêu thức là ngoại tu, sách tốc độ tu là n�
   assert.equal(M.trade(H.item('BT-001')), null);
 });
 
-test('số ô mỗi hệ tăng theo cảnh giới và không quá bốn', () => {
-  assert.deepEqual({ ...M.slots(0) }, { ngoai: 1, noi: 1 });
-  assert.ok(M.slots(5).ngoai >= M.slots(0).ngoai && M.slots(5).noi >= M.slots(0).noi);
-  assert.deepEqual({ ...M.slots(30) }, { ngoai: 4, noi: 4 });
+test('mỗi hệ luôn có đúng bốn ô ngoại tu và bốn ô nội tu, mọi cảnh giới', () => {
+  for (const realm of [0, 1, 5, 30]) assert.deepEqual({ ...M.slots(realm) }, { ngoai: 4, noi: 4 });
 });
 
 test('ngoại tu có chiêu thức, phẩm chất sách cao thì chiêu mạnh hơn', () => {
@@ -49,13 +47,14 @@ test('học sách: ngoại và nội tự vào ô, mỗi hệ có ô riêng, ngh
 });
 
 test('hết ô thì không vận hành thêm được cho đến khi dừng một công pháp cùng hệ', () => {
-  const g = newGame(), s = g.s, a = first('ngoai'), b = books.find(x => M.school(x) === 'ngoai' && x.tier === 0 && x.code !== a.code);
-  for (const x of [a, b]) { g.add(x.code); g.learn({ code: x.code }, NOW); }
-  assert.equal(M.slots(s.realm).ngoai, 1);
-  assert.deepEqual(s.activeManuals.filter(k => M.school(H.item(k)) === 'ngoai'), [a.code]);
-  assert.throws(() => g.activate({ code: b.code }), /Hết ô/);
-  g.activate({ code: a.code });
-  assert.equal(g.activate({ code: b.code }), true);
+  const g = newGame(), s = g.s, outs = books.filter(x => M.school(x) === 'ngoai' && x.tier <= 1 && !x.designOnly).slice(0, 5);
+  assert.equal(outs.length, 5);
+  for (const x of outs) { g.add(x.code); g.learn({ code: x.code }, NOW); }
+  assert.equal(M.slots(s.realm).ngoai, 4);
+  assert.deepEqual(s.activeManuals.filter(k => M.school(H.item(k)) === 'ngoai'), outs.slice(0, 4).map(x => x.code));
+  assert.throws(() => g.activate({ code: outs[4].code }), /Hết ô/);
+  g.activate({ code: outs[0].code });
+  assert.equal(g.activate({ code: outs[4].code }), true);
 });
 
 test('nội tu bị động tăng tốc độ tu luyện khi vận hành, ngoại tu thì không', () => {
@@ -93,10 +92,11 @@ test('đan hiếm cần bí tịch luyện đan đủ cấp; sách phẩm cao b�
 });
 
 test('bản lưu cũ có quá nhiều công pháp cùng hệ bị cắt theo số ô', () => {
-  const g = newGame(), outs = books.filter(x => M.school(x) === 'ngoai' && x.tier === 0).slice(0, 4);
+  const g = newGame(), outs = books.filter(x => M.school(x) === 'ngoai' && x.tier <= 1 && !x.designOnly).slice(0, 6);
   const raw = JSON.parse(JSON.stringify(g.s));
   raw.learned = Object.fromEntries(outs.map(x => [x.code, .5]));
   raw.activeManuals = outs.map(x => x.code);
   const back = H.normalize(raw, NOW);
+  assert.equal(outs.length, 6);
   assert.equal(back.activeManuals.length, M.slots(back.realm).ngoai);
 });

@@ -161,11 +161,11 @@
           if (run.healCd > 0) throw Error('Hồi phục còn ' + run.healCd + ' lượt nữa.');
           if (s.mp < healCost) throw Error('Không đủ linh khí.');
         }
-        let dealt = 0, healed = 0, taken = 0, guarding = false;
+        let dealt = 0, healed = 0, taken = 0, guarding = false, crit = false, takenCrit = false;
         if (action === 'attack' || action === 'power') {
           run.sta -= RUN[action];
           if (this.rng() >= enemy.DODGE) {
-            const crit = this.rng() < st.CRIT;
+            crit = this.rng() < st.CRIT;
             dealt = F.damage(st.ATK, enemy.DEF, (action === 'power' ? 2.2 : 1) * (1 + this.affinity(d.element)), 0, crit, st.CRIT_DMG);
             run.enemyHp = Math.max(0, run.enemyHp - dealt);
             say((action === 'power' ? 'Trọng kích' : 'Đánh') + (crit ? ' bạo kích' : '') + ' ' + enemy.name + ': −' + F.fmt(dealt) + '.');
@@ -183,7 +183,7 @@
         }
         if (run.enemyHp <= 0) {
           run.cleared = run.floor;
-          if (run.floor >= d.floors) { say('Hạ ' + enemy.name + '!'); return { dealt, healed, taken, ended: this._endRun(d, now, 'clear') }; }
+          if (run.floor >= d.floors) { say('Hạ ' + enemy.name + '!'); return { dealt, healed, taken, crit, ended: this._endRun(d, now, 'clear') }; }
           run.floor++;
           const next = this.runEnemy(d, run.floor);
           run.enemyMax = run.enemyHp = next.HP;
@@ -192,12 +192,13 @@
           run.healCd = Math.max(0, run.healCd - 1);
           run.turn++;
           say('Qua tầng ' + run.cleared + '. Tầng ' + run.floor + ': ' + next.name + '.');
-          return { dealt, healed, taken, floorCleared: run.cleared };
+          return { dealt, healed, taken, crit, floorCleared: run.cleared };
         }
         const heavy = run.intent === 'heavy';
         if (this.rng() >= st.DODGE) {
           const phase = enemy.id ? H.DESIGN.phase(enemy.id, run.enemyHp / run.enemyMax)?.multiplier || 1 : 1;
-          let hit = F.damage(enemy.ATK, st.DEF, (heavy ? 1.8 : 1) * phase * (1 - this.rootEffects().reduction), 0, this.rng() < enemy.CRIT, enemy.CRIT_DMG);
+          takenCrit = this.rng() < enemy.CRIT;
+          let hit = F.damage(enemy.ATK, st.DEF, (heavy ? 1.8 : 1) * phase * (1 - this.rootEffects().reduction), 0, takenCrit, enemy.CRIT_DMG);
           if (guarding) hit *= heavy ? .2 : .4;
           taken = this.absorbCombatDamage(hit, now);
           s.hp -= taken;
@@ -213,9 +214,9 @@
           s.dungeon.run = null;
           say('Sinh lực cạn trong bí cảnh. Đạo thân tọa hóa.');
           this.log('Bí cảnh đoạt mạng đạo thân; không có phần thưởng.');
-          return { dealt, healed, taken, died: true, ended: { why: 'combat', died: true } };
+          return { dealt, healed, taken, crit, takenCrit, died: true, ended: { why: 'combat', died: true } };
         }
-        return { dealt, healed, taken };
+        return { dealt, healed, taken, crit, takenCrit, counter: true };
       },
       encounterChance() {
         const t = this.s.talent;

@@ -42,6 +42,52 @@
     const v = Math.max(0, Math.min(max, value));
     return `<div class="run-meter"><span>${label}</span><div class="meter-bar ${cls}" role="meter" aria-label="${label}" aria-valuemin="0" aria-valuemax="${Math.round(max)}" aria-valuenow="${Math.round(v)}"><i style="width:${max > 0 ? v / max * 100 : 0}%"></i></div><b>${num(v)} / ${num(max)}</b></div>`;
   };
+  /* ---- Sân khấu bí cảnh: dùng chung bộ diễn hoạt với Lịch luyện ---- */
+  const A = root.HU_ASSETS;
+  const dKind = (d, floor) => floor >= d.floors ? 'boss' : floor >= Math.ceil(d.floors * .6) ? 'tinh anh' : 'thường';
+  const dZone = d => Math.max(0, Math.min((H.ZONES?.length || 1) - 1, d.realm));
+  const runDungeon = () => { const run = UI.s().dungeon.run; return run ? { run, d: H.DUNGEONS.find(x => x.id === run.id) } : null; };
+  const runStage = UI.stage.create({
+    heroFrames: action => { const s = UI.s(); return (A?.preloadHero?.(s.gender, s.realm, action) || []).map(im => im && im.src).filter(Boolean); },
+    foeFrames: action => {
+      const c = runDungeon(); if (!c) return [];
+      const z = dZone(c.d), k = dKind(c.d, c.run.floor), n = A.enemyFrames(z, k, action) || 1;
+      return Array.from({ length: n }, (_, i) => A.enemySrc(z, k, action, i));
+    },
+    foeIdle: step => {
+      const c = runDungeon(); if (!c) return '';
+      const z = dZone(c.d), k = dKind(c.d, c.run.floor);
+      return A.enemySrc(z, k, 'dung_yen', Math.floor(step / 3) % (A.enemyFrames(z, k, 'dung_yen') || 1));
+    },
+    active: () => !!UI.s().dungeon.run,
+    snapshot: () => {
+      const s = UI.s(), g = UI.g(), run = s.dungeon.run, st = g.stats();
+      return { hp: st.HP > 0 ? Math.max(0, Math.min(1, s.hp / st.HP)) : 0, mp: 0, enemy: run?.enemyMax > 0 ? Math.max(0, Math.min(1, run.enemyHp / run.enemyMax)) : 0 };
+    }
+  });
+  const runAuto = { ...UI.stage.autoKit.load(), timer: 0 };
+  const runAutoStop = () => { root.clearTimeout(runAuto.timer); runAuto.timer = 0; runAuto.on = false; };
+  function runAutoTick() {
+    root.clearTimeout(runAuto.timer); runAuto.timer = 0;
+    if (!runAuto.on) return;
+    const c = runDungeon();
+    if (!c || !document.querySelector('.run-panel')) { runAutoStop(); return; }
+    if (document.hidden || runStage.busy()) { runAuto.timer = root.setTimeout(runAutoTick, 400); return; }
+    const s = UI.s(), g = UI.g(), st = g.stats();
+    const pick = root.HU_AUTO_BATTLE.choose({ mode: 'dungeon', run: H.DUNGEON_RUN, hp: s.hp, maxHp: st.HP, mp: s.mp, maxMp: g.maxMp(),
+      sta: c.run.sta, healCd: c.run.healCd, heavy: c.run.intent === 'heavy' }, runAuto);
+    const el = pick && document.querySelector(`.run-panel [data-act="dungeonAct"][data-move="${pick.action}"]`);
+    if (el && !el.disabled) el.click();
+    else { const guard = document.querySelector('.run-panel [data-move="guard"]'); if (guard && !guard.disabled) guard.click(); else { runAutoStop(); return; } }
+    runAuto.timer = root.setTimeout(runAutoTick, 900);
+  }
+  /* Gọi sau mỗi lần vẽ lại màn có bảng chiến đấu bí cảnh. */
+  function mountRun() {
+    runStage.mount();
+    if (!document.querySelector('.run-panel')) { runAutoStop(); return; }
+    if (runAuto.on && !runAuto.timer) runAuto.timer = root.setTimeout(runAutoTick, 700);
+  }
+
   function runPanel() {
     const s = UI.s(), g = UI.g(), run = s.dungeon.run, R = H.DUNGEON_RUN;
     if (!run) return '';
@@ -50,22 +96,31 @@
     const heavy = run.intent === 'heavy', mpCost = g.maxMp() * R.healMp;
     const pips = Array.from({ length: d.floors }, (_, i) => `<i class="${i < run.cleared ? 'done' : i + 1 === run.floor ? 'now' : ''}" aria-hidden="true"></i>`).join('');
     const act = (move, label, hint, off, style) => btn(`${label}<small>${hint}</small>`, 'dungeonAct', `data-move="${move}" aria-keyshortcuts="${['attack', 'power', 'guard', 'heal'].indexOf(move) + 1}"`, off, style);
-    const body = `<div class="run-floors" role="img" aria-label="Đã vượt ${run.cleared}/${d.floors} tầng">${pips}</div>
-      <div class="run-enemy ${enemy.boss ? 'boss' : ''}"><b>${esc(enemy.name)}</b>${enemy.boss ? '<span class="pill">Thủ lĩnh</span>' : ''}</div>
+    const zone = dZone(d), kind = dKind(d, run.floor);
+    const arena = UI.stage.arenaHtml({
+      boss: enemy.boss, mode: 'dungeon', bg: UI.kit.abs(A?.zoneBg?.(zone) || A?.BG?.combat || ''),
+      hero: { name: s.name, sub: g.realmLabel(), hp: s.hp, max: st.HP, mp: s.mp, maxMp: g.maxMp(), src: A.heroSrc(s.gender, s.realm, 'di_chuyen', 0), alt: s.name + ' đang giao chiến' },
+      foe: { tag: enemy.boss ? 'Thủ lĩnh' : 'Hộ vệ', name: enemy.name, sub: 'Tầng ' + run.floor + '/' + d.floors, hp: run.enemyHp, max: run.enemyMax, src: A.enemySrc(zone, kind, 'dung_yen', 0), alt: enemy.name + ' đang đối đầu' },
+      center: { round: run.turn + 1, kind: `<span class="battle-kind">Tầng ${run.floor}/${d.floors}</span>` },
+      telegraph: `<p class="battle-telegraph${heavy ? ' heavy' : ''}" role="status"><i class="battle-pip" aria-hidden="true"></i><b>${esc(enemy.name)}</b> chuẩn bị ${heavy ? 'đòn nặng · thủ thế sẽ đỡ gần hết' : 'đòn thường'}</p>`,
+      ticker: run.log[0] || ''
+    });
+    const body = `${arena}
+      <div class="run-floors" role="img" aria-label="Đã vượt ${run.cleared}/${d.floors} tầng">${pips}</div>
       ${enemy.boss ? '<p class="hu-dungeon-lore">' + esc(H.STORY.DUNGEONS[d.id]?.boss || '') + '</p>' : ''}
-      ${meter('Địch', run.enemyHp, run.enemyMax, 'hp')}
-      <p class="run-intent ${heavy ? 'heavy' : ''}" role="status">${heavy ? '⚠ Địch dồn sức tung đòn nặng — thủ thế sẽ đỡ gần hết.' : 'Địch tung đòn thường.'}${phase ? ' <small>' + esc(phase['kỹ năng giai đoạn']) + '</small>' : ''}</p>
-      ${meter('Sinh lực', s.hp, st.HP, 'hp')}${meter('Thể lực', run.sta, run.staMax, 'sta')}${meter('Linh lực', s.mp, g.maxMp(), 'mp')}
+      ${phase ? '<p class="run-intent" role="status"><small>' + esc(phase['kỹ năng giai đoạn']) + '</small></p>' : ''}
+      ${meter('Thể lực', run.sta, run.staMax, 'sta')}
       <div class="run-actions action-group">
         ${act('attack', 'Xuất chiêu', '−' + R.attack + ' thể lực', run.sta < R.attack, 'btn-gold')}
         ${act('power', 'Trọng kích ×2,2', '−' + R.power + ' thể lực', run.sta < R.power, 'btn-gold')}
         ${act('guard', 'Thủ thế', '+' + R.guardGain + ' thể lực · đỡ đòn', false, 'btn-outline')}
         ${act('heal', 'Hồi phục', run.healCd > 0 ? 'còn ' + run.healCd + ' lượt' : Math.round(R.healMp * 100) + '% linh lực', run.healCd > 0 || s.mp < mpCost, 'btn-outline')}
       </div>
-      <p class="info-note">Phím tắt 1–4. Mỗi lượt thể lực tự hồi ${R.passiveGain}, qua tầng hồi thêm ${R.floorGain}. Đang đánh bí cảnh thì sinh lực và linh lực không tự hồi.</p>
+      ${UI.stage.autoKit.html(runAuto, { mode: 'dungeon', act: 'runAuto' })}
+      <p class="info-note">Phím tắt 1–4. Mỗi lượt thể lực tự hồi ${R.passiveGain}, qua tầng hồi thêm ${R.floorGain}. Đang đánh bí cảnh thì sinh lực và linh lực không tự hồi. Chế độ Tự động chọn xuất chiêu, trọng kích, thủ thế hoặc hồi phục thay bạn; trong bí cảnh chưa dùng được công pháp và đan phù.</p>
       <ol class="run-log" aria-live="polite" aria-label="Diễn biến lượt đánh">${run.log.map(v => `<li>${esc(v)}</li>`).join('')}</ol>
       <div class="action-group">${btn('Rút lui giữ thưởng đã vượt', 'dungeonRetreat', '', false, 'btn-outline')}</div>`;
-    return card('Chiến đấu · ' + d.name + ' · tầng ' + run.floor + '/' + d.floors, body, { eyebrow: 'TỰ TAY CHIẾN ĐẤU · LƯỢT ' + (run.turn + 1), cls: 'run-panel' });
+    return card('Chiến đấu · ' + d.name + ' · tầng ' + run.floor + '/' + d.floors, `<div class="battle-panel dungeon-battle${enemy.boss ? ' boss' : ''}">${body}</div>`, { eyebrow: 'TỰ TAY CHIẾN ĐẤU · LƯỢT ' + (run.turn + 1), cls: 'run-panel' });
   }
   function dungeons() {
     const s = UI.s(), g = UI.g(), a = s.dungeon.active, active = H.DUNGEONS.find(d => d.id === a?.id), run = s.dungeon.run;
@@ -255,7 +310,7 @@
     document.querySelectorAll('[data-act="sectMissionClaim"]').forEach(el => { el.disabled = !UI.s().sect.mission || UI.s().sect.mission.end > now; });
     document.querySelectorAll('[data-act="encounter"]').forEach(el => { el.disabled = UI.s().encounter.usedAt + 90000 > now; });
   }
-  UI.adventure = { dungeons, encounters, sect, roots, update, runPanel };
+  UI.adventure = { dungeons, encounters, sect, roots, update, runPanel, mountRun, runBusy: runStage.busy };
   UI.action('sectMeasure', () => {
     if (!UI.session?.playerId) throw Error('Chưa có đạo thân để đo linh căn.');
     measuredPlayer = UI.session.playerId;
@@ -266,9 +321,24 @@
     await UI.command('enterDungeon', { id: d.id });
     UI.toast('Vào bí cảnh. Thể lực cạn thì thủ thế để hồi sức; thấy cảnh báo đòn nặng nên thủ thế.', { type: 'gold', title: 'Bí cảnh' });
   });
+  UI.action('runAuto', (el, d) => {
+    if (d.auto !== 'on') return UI.KEEP;
+    runAuto.on = !runAuto.on;
+    if (!runAuto.on) runAutoStop(); else runAuto.timer = root.setTimeout(runAutoTick, 300);
+  });
   const RUN_KEYS = ['attack', 'power', 'guard', 'heal'];
+  const MOVE_LABEL = { attack: 'Xuất chiêu', power: 'Trọng kích', guard: 'Thủ thế', heal: 'Hồi phục' };
   UI.action('dungeonAct', async (el, d) => {
-    const r = await UI.command('dungeonAct', { action: d.move });
+    if (runStage.busy()) { UI.toast('Chiêu thức đang thi triển, hãy chờ một nhịp.', { type: 'info', title: 'Bí cảnh' }); return UI.KEEP; }
+    runStage.capture();
+    let r;
+    try { r = await UI.command('dungeonAct', { action: d.move }); } catch (error) { runStage.cancel(); throw error; }
+    if (!r) return UI.KEEP;
+    if (d.move !== 'retreat' && !r.ended) runStage.queue({
+      action: d.move, cry: MOVE_LABEL[d.move] || '', dealt: Math.max(0, Number(r.dealt) || 0), healed: Math.max(0, Number(r.healed) || 0),
+      taken: Math.max(0, Number(r.taken) || 0), crit: !!r.crit, takenCrit: !!r.takenCrit, counter: !!r.counter && !r.floorCleared, state: 'active'
+    });
+    if (r.ended || r.died) runAutoStop();
     if (r.ended) {
       UI.toast(r.ended.text, { type: r.ended.success ? 'loot' : r.ended.why === 'defeat' ? 'danger' : 'info', title: r.ended.success ? 'Thông quan bí cảnh' : 'Kết thúc chuyến bí cảnh' });
       if (r.ended.success) UI.vfx?.stage({ kind: 'chien_dau', variant: 'phi_thang', fps: 14, size: 'clamp(110px,18vw,190px)', style: { left: '50%', bottom: '24%', transform: 'translateX(-50%)' } });

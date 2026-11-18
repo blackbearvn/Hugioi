@@ -480,6 +480,42 @@ body.in-tribulation{overflow:hidden}
 .battle-ticker{position:absolute;left:12px;right:12px;bottom:9px;z-index:4;display:flex;align-items:center;gap:7px;margin:0;padding:5px 11px;border:1px solid #ffffff17;border-radius:9px;background:#06090fd9;color:#d6dae3;font-size:12px;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .battle-ticker .battle-pip{width:5px;height:5px}
 
+/* --- Đối thủ là người: dùng bộ ảnh đạo thân, lật hướng nhìn vào trong sân --- */
+.battle-flip{display:grid;place-items:end center;max-width:100%;max-height:100%;transform:scaleX(-1)}
+.battle-sprite.foe.human{height:196px}
+
+/* --- Tự động giao chiến --- */
+.auto-bar{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.auto-toggle{display:inline-flex;align-items:center;gap:8px;min-height:36px;padding:6px 14px;border:1px solid #5a6684;border-radius:999px;background:#131925;color:#dfe4ee;font:700 12.5px/1 var(--sans,inherit);cursor:pointer}
+.auto-toggle i{width:9px;height:9px;border-radius:50%;background:#59627a;box-shadow:0 0 0 2px #59627a33}
+.auto-toggle:hover{border-color:#c9a45f}
+.auto-toggle.on{border-color:#d9b360;background:linear-gradient(180deg,#3a2c12,#1c150a);color:#ffe3a1}
+.auto-toggle.on i{background:#ffd266;box-shadow:0 0 0 2px #ffd26655,0 0 10px #ffd266aa;animation:autoPulse 1.4s ease-in-out infinite}
+.auto-toggle:disabled{opacity:.5;cursor:default}
+.auto-chip{min-height:30px;padding:4px 11px;border:1px solid #3b445a;border-radius:999px;background:#0e131c;color:#9aa4b6;font:600 11.5px/1 var(--sans,inherit);cursor:pointer}
+.auto-chip.on{border-color:#4f8f78;background:#0f2019;color:#b8f0d2}
+.auto-chip:focus-visible,.auto-toggle:focus-visible{outline:2px solid #e6bd5c;outline-offset:2px}
+@keyframes autoPulse{50%{opacity:.45}}
+.battle-footactions{flex-wrap:wrap;gap:8px}
+
+/* --- Bí cảnh: bảng chiến đấu nằm trong thẻ --- */
+.dungeon-battle{border:0;background:none;box-shadow:none;display:grid;gap:10px}
+.dungeon-battle .battle-stage{border-radius:12px;min-height:360px}
+
+/* --- Màn phủ phát lại trận (Sinh Tử Đài, tỷ thí) --- */
+.stage-overlay{position:fixed;inset:0;z-index:90;display:grid;place-items:center;padding:12px;background:#04060bdd;backdrop-filter:blur(3px)}
+.stage-overlay-card{width:min(100%,760px);max-height:calc(100dvh - 24px);overflow:auto}
+.stage-overlay-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:10px 14px;background:linear-gradient(180deg,#141b29,#0d121b);border-bottom:1px solid #ffffff14}
+.stage-overlay-head h3{margin:2px 0 0;font:800 17px var(--serif);color:#f3e8d4}
+.stage-x{width:34px;height:34px;border:1px solid #46526e;border-radius:10px;background:#10151f;color:#dfe4ee;font-size:20px;line-height:1;cursor:pointer}
+.stage-x:hover{border-color:#c9a45f}
+.stage-controls{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 12px;background:linear-gradient(180deg,#0f1420,#0b0e15)}
+.stage-controls .btn{min-height:36px}
+.stage-result{margin:0}
+.stage-result[hidden]{display:none}
+.stage-note{margin:0;padding:6px 14px 10px;color:#8b96ab;font-size:11px}
+@media(prefers-reduced-motion:reduce){.auto-toggle.on i{animation:none}}
+
 .battle-figure.is-attacking{animation:battleLunge .46s ease-in-out;will-change:transform}
 .battle-unit.hero .battle-figure.is-attacking{animation-name:battleLungeRight}
 .battle-unit.foe .battle-figure.is-attacking{animation-name:battleLungeLeft}
@@ -749,6 +785,12 @@ body.in-tribulation{overflow:hidden}
 .manual-gear-panel{margin-top:12px;padding:14px;border:1px solid #7a6b49;border-radius:14px;background:linear-gradient(135deg,#131824,#0c0f15)}
 .manual-gear-panel h3{margin:4px 0 10px;color:#eed6a3;font:700 16px var(--serif)}
 .manual-gear-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.manual-gear-row+.manual-gear-row{margin-top:10px}
+.manual-gear-row>header{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin:0 0 5px}
+.manual-gear-row>header b{font:700 12px var(--serif);letter-spacing:.04em;color:#e8cf95}
+.manual-gear-row>header small{font-size:10.5px;color:#9aa4b6}
+.manual-gear-row.ngoai .manual-gear-slot{border-color:#a0794a}
+.manual-gear-row.noi .manual-gear-slot{border-color:#5f8f8a}
 .manual-gear-slot{min-width:0;min-height:70px;border:1px solid #8a7d57;border-radius:9px;background:#0f131e;color:#eadcbf;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer}
 .manual-gear-slot img{height:42px;width:42px;object-fit:contain}.manual-gear-slot small{font-size:10px;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.manual-gear-slot.empty span{font-size:22px;color:#9da4b2}
 .rarity-legend{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 10px;font-size:11px}

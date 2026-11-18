@@ -71,7 +71,7 @@
         if (x.tier > s.realm + 1) throw Error('Công pháp vượt quá một bậc cảnh giới.');
         if (s.activeManuals.includes(key)) s.activeManuals = s.activeManuals.filter(k => k !== key);
         else {
-          if (this.manualRoom(sc) <= 0) throw Error('Hết ô ' + H.MANUALS.SCHOOLS[sc].label.toLowerCase() + ' (' + H.MANUALS.slots(s.realm)[sc] + ' ô ở cảnh giới này).');
+          if (this.manualRoom(sc) <= 0) throw Error('Hết ô ' + H.MANUALS.SCHOOLS[sc].label.toLowerCase() + ' (' + H.MANUALS.slots(s.realm)[sc] + ' ô).');
           s.activeManuals.push(key);
         }
         s.hp = Math.min(s.hp, this.stats().HP);

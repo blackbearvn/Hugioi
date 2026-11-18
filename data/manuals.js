@@ -1,8 +1,8 @@
 /* Công pháp và bí tịch: phân hệ, số ô, chiêu thức ngoại tu, đan hiếm.
    Thuần dữ liệu và hàm tính, không đọc trạng thái người chơi. Engine và giao diện cùng dùng file này.
    Ba hệ:
-   - ngoai: ngoại tu, skill chủ động đặt vào ô, thi triển khi chiến đấu (tiêu hao linh lực, có hồi chiêu).
-   - noi:   nội tu, skill bị động, đặt vào ô thì luôn có hiệu lực (tốc độ tu, sinh lực, phòng ngự).
+   - ngoai: ngoại tu (4 ô), skill chủ động đặt vào ô, thi triển khi chiến đấu (tiêu hao linh lực, có hồi chiêu).
+   - noi:   nội tu (4 ô), skill bị động, đặt vào ô thì luôn có hiệu lực (tốc độ tu, sinh lực, phòng ngự).
    - nghe:  bí tịch nghề (luyện đan, luyện pháp bảo, vẽ phù), không chiếm ô; học xong là mở nghề.
    Phẩm chất sách (sub: 0 hạ, 1 trung, 2 thượng, 3 cực) và cảnh giới (tier) quyết định độ mạnh. */
 (function (root) {
@@ -17,13 +17,10 @@
   const QUALITY = Object.freeze(['Hạ phẩm', 'Trung phẩm', 'Thượng phẩm', 'Cực phẩm']);
   const MAX_SLOTS = 4;
 
-  /* Số ô theo cảnh giới (chỉ số từ 0). Ngoại tu mở sớm hơn nội tu một chút. */
-  function slots(realm) {
-    const r = Math.max(0, Math.floor(Number(realm) || 0));
-    return {
-      ngoai: Math.min(MAX_SLOTS, 1 + Math.floor((r + 2) / 3)),
-      noi: Math.min(MAX_SLOTS, 1 + Math.floor((r + 1) / 3))
-    };
+  /* Mỗi đạo thân có đủ bốn ô ngoại tu và bốn ô nội tu ngay từ đầu, không phụ thuộc cảnh giới.
+     Tham số realm giữ lại để các nơi gọi cũ không phải đổi chữ ký. */
+  function slots() {
+    return { ngoai: MAX_SLOTS, noi: MAX_SLOTS };
   }
 
   /* Sách thuộc hệ nào. x là vật phẩm kind 'BT'. */

@@ -316,15 +316,18 @@
   };
 
   UI.lorePanels = { npcs, encounter };
+  let heldWorld = '', heldSect = '';
   const body = { map, dungeons, sect, shop, auction };
   UI.register({
     id: 'world', label: 'Thế giới', icon: 'ICON-MENU-007', eyebrow: 'BA GIỚI', tabs: TABS,
     render: tab => `<header class="screen-title"><span class="eyebrow gold">BA GIỚI</span><h2>Thế giới</h2></header>${tabs(TABS, tab)}<div class="screen-body">${UI.release.notice(tab)}${body[tab]()}</div>`,
-    mount: mapMount,
+    mount: tab => { mapMount(tab); UI.adventure.mountRun?.(); },
     update: () => UI.adventure.update(),
+    /* Trong lúc chiêu thức bí cảnh đang diễn hoạt, giữ nguyên chữ ký để nhịp tick không vẽ lại giữa chừng. */
     signature: tab => {
+      if (UI.adventure.runBusy?.() && heldWorld) return heldWorld;
       const s = UI.s(), g = UI.g();
-      return [s.realm, s.stage, s.sect.joined, s.sect.id, s.sect.earned, s.sect.contribution, s.adventurePoints || 0, s.borrowedBook || '', s.sect.mission?.id || '', s.sect.mission?.end || 0, s.sect.blessing, s.sect.last?.at, s.sect.repeat, s.meta?.points || 0,
+      return heldWorld = [s.realm, s.stage, s.sect.joined, s.sect.id, s.sect.earned, s.sect.contribution, s.adventurePoints || 0, s.borrowedBook || '', s.sect.mission?.id || '', s.sect.mission?.end || 0, s.sect.blessing, s.sect.last?.at, s.sect.repeat, s.meta?.points || 0,
         s.dungeon.active?.end || 0, s.dungeon.last?.at || 0, s.dungeon.run ? [s.dungeon.run.floor, s.dungeon.run.turn, Math.round(s.hp), Math.round(s.dungeon.run.sta)].join(',') : '', tab === 'npc' ? [s.progress.kill, JSON.stringify(s.npcQuests), Object.values(s.npcAffinities).join(',')].join('/') : '', s.encounter.total, Math.floor(Date.now() / 864e5),
         tab === 'dungeons' || tab === 'sect' ? Math.floor(s.hp / g.stats().HP * 10) : '', s.stone >= F.price_ha(s.realm)].join('|');
     }
@@ -336,13 +339,14 @@
     pageBg: () => UI.kit.abs(root.HU_ASSETS.BG.sect),
     render: tab => '<header class="screen-title"><span class="eyebrow gold">TIÊN MÔN</span><h2>Tông môn</h2></header><div class="screen-body">' + UI.adventure.sect(tab) + '</div>',
     update: tab => { UI.adventure.update(); if (tab === 'exploration') UI.screens.combat.update(); },
-    mount: tab => { if (tab === 'exploration') UI.screens.combat.mount?.(); },
+    mount: tab => { if (tab === 'exploration') UI.screens.combat.mount?.(); UI.adventure.mountRun?.(); },
     /* Bảng Lịch luyện dùng chung chữ ký với màn giao chiến để hoạt ảnh
        không bị nhịp tick một giây vẽ lại giữa chừng. */
     signature: tab => {
       if (tab === 'exploration') return UI.screens.combat.signature?.() ?? '';
+      if (UI.adventure.runBusy?.() && heldSect) return heldSect;
       const s = UI.s(), e = s.exploration?.active;
-      return [tab,s.craftQueue.length,s.realm,s.stage,s.rootType,s.rootSub,s.sect.joined,s.sect.id,s.sect.discipleClass,UI.sectMeasured?.(),s.sect.earned,s.sect.contribution,s.adventurePoints || 0,s.borrowedBook || '',s.sect.mission?.id,s.sect.mission?.end,s.sect.last?.at,s.sect.repeat,s.hp,s.stone,s.dungeon.active?.end,s.dungeon.run?.floor,s.dungeon.run?.turn,e?.start,e?.choice,e?.battle ? [e.battle.state,e.battle.turn,Math.round(e.battle.enemyHp),e.battle.intent].join(',') : '',s.exploration?.last?.end].join('|');
+      return heldSect = [tab,s.craftQueue.length,s.realm,s.stage,s.rootType,s.rootSub,s.sect.joined,s.sect.id,s.sect.discipleClass,UI.sectMeasured?.(),s.sect.earned,s.sect.contribution,s.adventurePoints || 0,s.borrowedBook || '',s.sect.mission?.id,s.sect.mission?.end,s.sect.last?.at,s.sect.repeat,s.hp,s.stone,s.dungeon.active?.end,s.dungeon.run?.floor,s.dungeon.run?.turn,e?.start,e?.choice,e?.battle ? [e.battle.state,e.battle.turn,Math.round(e.battle.enemyHp),e.battle.intent].join(',') : '',s.exploration?.last?.end].join('|');
     }
   });
 

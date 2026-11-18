@@ -51,260 +51,82 @@
   const ACTION_LABEL = { attack: 'Tấn công', power: 'Trọng kích', guard: 'Thủ thế', heal: 'Hồi phục', flee: 'Rút lui' };
 
   /* ======================================================================
-     HIỆU ỨNG GIAO CHIẾN
-     Hoạt ảnh khung hình lấy từ thư mục media: nhân vật/tung_skill,
-     quái/tan_cong và các chuỗi chien_dau của bộ VFX. Trạng thái "đang
-     diễn hoạt" được giữ ở đây để lần vẽ lại kế tiếp không cắt ngang.
+     SÂN KHẤU
+     Hoạt ảnh nằm ở client/ui/battle-stage.js, dùng chung với Bí cảnh và PvP.
+     Ở đây chỉ cấp ảnh nhân vật, ảnh yêu thú theo địa điểm và thanh máu hiện tại.
      ====================================================================== */
-  const fx = { pending: null, busyUntil: 0, seq: 0, timers: [], idle: 0, before: null };
-  const reduced = () => !!UI.isReduced?.() || UI.s()?.settings?.combatEffects === false;
-  const clearTimers = () => { fx.timers.forEach(t => root.clearTimeout(t)); fx.timers = []; };
-  const later = (ms, fn) => fx.timers.push(root.setTimeout(fn, ms));
-
-  /* Bảng trận được dựng lại sau mỗi lượt, nhưng ảnh nhân vật/yêu thú thì không đổi.
-     Giữ lại chính phần tử ảnh của lượt trước để khung đã vẽ không bị trống một nhịp
-     khi DOM mới thay vào (Chrome vẽ lại ảnh mới chậm hơn khung hình đầu). */
-  const SPRITES = { battleSelf: null, battleFoeSprite: null };
-  function keepSprites(skipSrc) {
-    for (const id of Object.keys(SPRITES)) {
-      const fresh = document.getElementById(id);
-      if (!fresh) continue;
-      const old = SPRITES[id];
-      if (old && old !== fresh && !old.isConnected && fresh.parentNode) {
-        if (!skipSrc) {
-          const src = fresh.getAttribute('src');
-          if (src) old.setAttribute('src', src);
-        }
-        old.className = fresh.className;
-        old.alt = fresh.alt;
-        fresh.parentNode.replaceChild(old, fresh);
-        SPRITES[id] = old;
-      } else {
-        SPRITES[id] = fresh;
-      }
-    }
-  }
-
-  function playFrames(img, frames, interval, done) {
-    if (!img || !frames.length) { done?.(); return; }
-    if (reduced()) return;
-    img.dataset.anim = 'busy';
-    let i = 0;
-    const step = () => {
-      if (!img.isConnected) { img.dataset.anim = ''; return; }
-      img.src = frames[Math.min(i, frames.length - 1)];
-      i++;
-      if (i < frames.length) later(interval, step);
-      else { img.dataset.anim = ''; done?.(); }
-    };
-    step();
-  }
-
-  /* Bộ nhân vật thật lưu sẵn 6 ảnh cho mỗi động tác; lấy thẳng danh sách ảnh
-     đã nạp để chạy khung, tránh phụ thuộc đồng hồ dùng chung với sân khấu chính. */
-  function heroFrameSrcs(action) {
+  const heroFrameSrcs = action => {
     const s = UI.s();
     return (A?.preloadHero?.(s.gender, s.realm, action) || []).map(im => im && im.src).filter(Boolean);
-  }
-  function heroAttackFrames() { playFrames($('battleSelf'), heroFrameSrcs('tan_cong'), 120); }
-  function heroDeathFrames() { playFrames($('battleSelf'), heroFrameSrcs('tu_vong'), 150); }
-  function foeAttackFrames() {
-    const img = $('battleFoeSprite'), s = UI.s();
-    if (!img) return;
-    const n = A?.enemyFrames?.(s.zone, s.enemyKind, 'tan_cong') || 3;
-    playFrames(img, Array.from({ length: n }, (_, i) => A.enemySrc(s.zone, s.enemyKind, 'tan_cong', i)), 110);
-  }
-  function foeDeathFrames() {
-    const img = $('battleFoeSprite'), s = UI.s();
-    if (!img) return;
-    const n = A?.enemyFrames?.(s.zone, s.enemyKind, 'tu_vong') || 4;
-    playFrames(img, Array.from({ length: n }, (_, i) => A.enemySrc(s.zone, s.enemyKind, 'tu_vong', i)), 130);
-  }
-
-  /* Nhấp nháy trúng đòn trên khung hình, không đụng tới khung ảnh đang chạy. */
-  function jolt(el, cls = 'is-hurt', ms = 360) {
-    if (!el) return;
-    el.classList.remove(cls);
-    void el.offsetWidth;
-    el.classList.add(cls);
-    later(ms, () => el.classList.remove(cls));
-  }
-
-  /* Thanh máu chạy từ giá trị trước hành động tới giá trị mới thay vì nhảy. */
-  function animateBars(before) {
-    const arena = $('battleArena');
-    const panel = arena?.closest('.battle-panel') || arena;
-    if (!panel || !before || reduced()) return;
-    const nodes = [...panel.querySelectorAll('[data-bar]')];
-    const target = nodes.map(i => ({ i, to: i.style.width }));
-    nodes.forEach(i => { i.style.transition = 'none'; });
-    nodes.forEach(i => {
-      const key = i.dataset.bar, ratio = Math.max(0, Math.min(1, before[key] ?? 0));
-      i.style.width = (ratio * 100).toFixed(1) + '%';
-    });
-    void arena.offsetWidth;
-    nodes.forEach(i => { i.style.transition = ''; });
-    target.forEach(({ i, to }) => { i.style.width = to; });
-  }
-
-  /* Một hành động của người chơi được diễn hoạt theo nhịp:
-     ra chiêu → địch trúng đòn → địch phản kích → kết thúc. */
-  function playSequence(p) {
-    clearTimers();
-    const arena = $('battleArena');
-    if (!arena) return;
-    animateBars(p.before);
-    const heroImg = $('battleSelf'), foeImg = $('battleFoeSprite');
-    const heroFig = heroImg?.closest('.battle-figure'), foeFig = foeImg?.closest('.battle-figure');
-    const cry = arena.querySelector('.battle-cry');
-    if (cry && p.cry) { cry.textContent = p.cry; cry.classList.add('show'); arena.classList.add('is-crying'); }
-    later(1500, () => { cry?.classList.remove('show'); arena.classList.remove('is-crying'); });
-    if (reduced()) return;
-
-    const offensive = ['attack', 'power', 'flee'].includes(p.action) || p.dealt > 0;
-    /* Chọn hiệu ứng theo loại đòn: chém kiếm, luồng linh khí, phù lục, hộ thuẫn,
-       hồi sinh. Bộ chien_dau có sẵn cả bảy chuỗi nên không cần vẽ thêm. */
-    const isTalisman = p.action === 'item' && p.kind === 'TAL';
-    const isPill = p.action === 'item' && p.kind === 'PILL';
-    const strikeFx = isTalisman ? 'linh_phu' : p.action === 'attack' ? 'nhan_vat' : 'linh_khi';
-    if (offensive) {
-      later(0, () => {
-        heroFig?.classList.add('is-attacking');
-        heroAttackFrames();
-        if (p.dealt > 0) {
-          if (isTalisman) UI.vfx?.effect?.('linh_phu', 'battleSelf');
-          UI.vfx?.effect?.(isTalisman ? 'trung_don' : strikeFx, 'battleFoe', { size: 'clamp(112px,14vw,152px)' });
-        }
-      });
-      later(220, () => {
-        if (p.dealt > 0) {
-          jolt(foeFig);
-          UI.vfx?.floatNumber?.(p.dealt, 'battleFoe', p.crit ? 'crit' : 'damage');
-          UI.vfx?.effect?.('hit', 'battleFoe', { fps: 16, size: 'clamp(104px,13vw,140px)' });
-          arena.classList.add('is-shake');
-          later(360, () => arena.classList.remove('is-shake'));
-        }
-      });
-      later(470, () => heroFig?.classList.remove('is-attacking'));
-    } else if (p.action === 'guard') {
-      later(0, () => {
-        heroFig?.classList.add('is-guarding');
-        UI.vfx?.ring?.('battleSelf', '#e6bd5c');
-        UI.vfx?.effect?.('ho_thuan', 'battleSelf');
-      });
-      later(650, () => heroFig?.classList.remove('is-guarding'));
-    }
-    if (p.healed > 0) {
-      later(120, () => {
-        heroFig?.classList.add('is-guarding');
-        if (['manual', 'artifact', 'item'].includes(p.action)) heroAttackFrames();
-        UI.vfx?.effect?.(p.action === 'artifact' && p.effect === 'hồi máu' ? 'hoi_phuc' : 'hoi_sinh', 'battleSelf', { size: 'clamp(88px,12vw,126px)' });
-        UI.vfx?.floatNumber?.(p.healed, 'battleSelf', 'heal');
-      });
-      later(760, () => heroFig?.classList.remove('is-guarding'));
-    }
-    /* Pháp bảo hộ thuẫn, đan/phù tăng ích: vẫn có động tác vận công và luồng sáng
-       để người chơi thấy lệnh đã được thi triển dù không gây sát thương. */
-    if (['manual', 'artifact', 'item'].includes(p.action) && !(p.dealt > 0) && !(p.healed > 0)) {
-      later(0, () => {
-        heroFig?.classList.add('is-casting');
-        heroAttackFrames();
-        const vfx = p.action === 'artifact'
-          ? (p.effect === 'hồi máu' ? 'hoi_phuc' : 'ho_thuan')
-          : isTalisman ? 'linh_phu'
-          : isPill ? (p.effect === 'CHIEN_DAU' ? 'phi_thang' : 'hoi_sinh')
-          : 'ho_thuan';
-        UI.vfx?.effect?.(vfx, 'battleSelf', { size: 'clamp(96px,13vw,140px)' });
-      });
-      later(680, () => heroFig?.classList.remove('is-casting'));
-    }
-
-    if (p.counter && !p.won) {
-      later(620, () => {
-        foeFig?.classList.add('is-attacking');
-        foeAttackFrames();
-        UI.vfx?.effect?.('ke_dich', 'battleSelf', { size: 'clamp(92px,12vw,130px)' });
-      });
-      later(860, () => {
-        if (p.taken > 0) {
-          jolt(heroFig);
-          UI.vfx?.floatNumber?.(p.taken, 'battleSelf', p.takenCrit ? 'crit' : 'damage');
-          arena.classList.add('is-shake');
-          later(360, () => arena.classList.remove('is-shake'));
-        }
-      });
-      later(1100, () => foeFig?.classList.remove('is-attacking'));
-    }
-    if (p.won) {
-      later(520, () => {
-        foeFig?.classList.add('is-defeated');
-        foeDeathFrames();
-        UI.vfx?.burst?.('battleFoe', '#ffd98a', 20);
-        arena.classList.add('is-won');
-      });
-      later(720, () => UI.vfx?.effect?.('phi_thang', 'battleSelf', { size: 'clamp(120px,16vw,180px)' }));
-    }
-    if (p.state === 'lost') {
-      later(1060, () => {
-        heroFig?.classList.add('is-fallen');
-        heroDeathFrames();
-        UI.vfx?.burst?.('battleSelf', '#ff9a8a', 16);
-        arena.classList.add('is-lost');
-      });
-    }
-    if (p.fled) {
-      later(160, () => {
-        heroFig?.classList.add('is-leaving');
-        UI.vfx?.ring?.('battleSelf', '#9cc4ff');
-        UI.vfx?.effect?.('phi_thang', 'battleSelf');
-      });
-      later(720, () => heroFig?.classList.remove('is-leaving'));
-    }
-  }
-
-  /* Nhịp thở của sân khấu: khung hình nhân vật và yêu thú tự tiến khi rảnh,
-     dừng hẳn khi trận kết thúc để giữ tư thế ngã xuống. */
-  function startIdle() {
-    if (fx.idle || reduced()) return;
-    const s = UI.s();
-    /* Nạp sẵn cả ba động tác để nhịp đầu vào trận không bị trống khung. */
-    for (const action of ['di_chuyen', 'tan_cong', 'tu_vong']) {
-      (A?.preloadHero?.(s.gender, s.realm, action) || []).forEach(im => {
-        if (im?.decode) im.decode().catch(() => {});
-      });
-    }
-    const heroFrames = heroFrameSrcs('di_chuyen');
-    const foeCount = A?.enemyFrames?.(s.zone, s.enemyKind, 'dung_yen') || 3;
-    let step = 0;
-    fx.idle = root.setInterval(() => {
-      const hero = $('battleSelf'), foe = $('battleFoeSprite');
-      if (!hero || !foe) { root.clearInterval(fx.idle); fx.idle = 0; return; }
-      if (document.hidden) return;
-      const e = UI.s().exploration?.active, b = e?.battle;
-      if (!b || b.state !== 'active') return;
-      if (hero.dataset.anim !== 'busy' && heroFrames.length) hero.src = heroFrames[step % heroFrames.length];
-      if (foe.dataset.anim !== 'busy') foe.src = A.enemySrc(s.zone, s.enemyKind, 'dung_yen', Math.floor(step / 3) % foeCount);
-      step++;
-    }, 160);
-  }
-
-  UI.battleFx = {
-    /* Ghi lại thanh máu trước khi lệnh chạy để lát nữa chạy mượt tới giá trị mới. */
-    capture() {
-      const s = UI.s(), e = s.exploration?.active, b = e?.battle;
+  };
+  const enemyFrameSrcs = (action, fallback) => {
+    const s = UI.s(), n = A?.enemyFrames?.(s.zone, s.enemyKind, action) || fallback;
+    return Array.from({ length: n }, (_, i) => A.enemySrc(s.zone, s.enemyKind, action, i));
+  };
+  const reduced = () => !!UI.isReduced?.() || UI.s()?.settings?.combatEffects === false;
+  const stage = UI.stage.create({
+    heroFrames: heroFrameSrcs,
+    foeFrames: action => enemyFrameSrcs(action, action === 'tu_vong' ? 4 : 3),
+    foeIdle: step => { const s = UI.s(), n = A?.enemyFrames?.(s.zone, s.enemyKind, 'dung_yen') || 3; return A.enemySrc(s.zone, s.enemyKind, 'dung_yen', Math.floor(step / 3) % n); },
+    active: () => UI.s().exploration?.active?.battle?.state === 'active',
+    snapshot: () => {
+      const s = UI.s(), b = s.exploration?.active?.battle;
       const maxHp = UI.g().stats().HP, maxMp = UI.g().maxMp();
-      fx.before = {
+      return {
         hp: maxHp > 0 ? Math.max(0, Math.min(1, s.hp / maxHp)) : 0,
         mp: maxMp > 0 ? Math.max(0, Math.min(1, s.mp / maxMp)) : 0,
         enemy: b?.enemyMax > 0 ? Math.max(0, Math.min(1, b.enemyHp / b.enemyMax)) : 0
       };
-    },
-    cancel() { fx.before = null; },
+    }
+  });
+
+  /* ======================================================================
+     TỰ ĐỘNG GIAO CHIẾN
+     Mỗi lượt vẫn là một lệnh battleAct riêng; chỉ việc chọn hành động được làm hộ.
+     ====================================================================== */
+  const auto = { ...UI.stage.autoKit.load(), timer: 0 };
+  const manualCtx = () => {
+    const s = UI.s(), g = UI.g(), b = s.exploration.active.battle, st = g.stats(), maxMp = g.maxMp();
+    const manuals = (s.activeManuals || []).filter(k => H.MANUALS.school(H.item(k)) === 'ngoai').map(code => {
+      const x = H.item(code), sk = H.MANUALS.skillOf(x);
+      return sk ? { code, kind: sk.kind, cd: b.cd?.['m:' + code] || 0, mpCost: maxMp * sk.mpPct, damage: (sk.multiplier || 0) * g.manualPower(code) } : null;
+    }).filter(Boolean);
+    const artifacts = (s.equipment || []).filter(k => H.DESIGN.effects[H.item(k)?.code]?.['điều kiện kích hoạt'] === 'khi kích hoạt').map(code => {
+      const d = H.DESIGN.effects[H.item(code).code];
+      return { code, kind: d['hiệu ứng'] === 'hồi máu' ? 'heal' : 'guard', cd: b.cd?.['a:' + code] || 0 };
+    });
+    const restores = x => x.kind !== 'PILL' ? null : x.effect === 'HOI_MP' ? 'mp' : ['HOI_PHUC', 'HOI_HP'].includes(x.effect) ? 'hp' : null;
+    const items = Object.entries(s.bag).map(([code, n]) => ({ code, n, x: H.item(code) }))
+      .filter(i => i.x && i.n > 0 && i.x.tier <= s.realm + 1 && restores(i.x))
+      .sort((a, c) => (a.x.tier - c.x.tier) || (a.n - c.n))
+      .map(i => ({ code: i.code, n: i.n, restores: restores(i.x) }));
+    return { mode: 'explore', battle: H.BATTLE, over: b.state !== 'active', hp: s.hp, maxHp: st.HP, mp: s.mp, maxMp,
+      healCd: b.healCd, powerCd: b.powerCd, heavy: b.intent === 'heavy', manuals, artifacts, items };
+  };
+  const autoStop = () => { root.clearTimeout(auto.timer); auto.timer = 0; auto.on = false; };
+  function autoTick() {
+    root.clearTimeout(auto.timer); auto.timer = 0;
+    if (!auto.on) return;
+    const b = UI.s().exploration?.active?.battle;
+    if (!b || b.state !== 'active' || !$('battleArena')) { autoStop(); return; }
+    if (document.hidden || UI.battleFx?.busy?.()) { auto.timer = root.setTimeout(autoTick, 400); return; }
+    const pick = root.HU_AUTO_BATTLE.choose(manualCtx(), auto);
+    if (!pick) { autoStop(); return; }
+    const el = document.querySelector(`.battle-panel [data-act="battleAct"][data-action="${pick.action}"]${pick.code ? `[data-code="${CSS.escape(pick.code)}"]` : ''}`);
+    /* Tự động đi qua đúng nút người chơi bấm, nên mọi kiểm tra và hiệu ứng đều giống nhau. */
+    if (el && !el.disabled) el.click();
+    else if (pick.action !== 'attack') { const atk = document.querySelector('.battle-panel [data-action="attack"]'); if (atk && !atk.disabled) atk.click(); }
+    auto.timer = root.setTimeout(autoTick, 900);
+  }
+
+  UI.battleFx = {
+    /* Ghi lại thanh máu trước khi lệnh chạy để lát nữa chạy mượt tới giá trị mới. */
+    capture() { stage.capture(); },
+    cancel() { stage.cancel(); },
     resolve(out, action, code) {
       const item = code ? H.item(code) : null;
       const design = code ? H.DESIGN?.effects?.[code] : null;
-      fx.pending = {
-        seq: ++fx.seq,
+      stage.queue({
         turn: out?.turn,
         action,
         kind: item?.kind || '',
@@ -317,57 +139,22 @@
         taken: Math.max(0, Number(out?.taken) || 0),
         crit: !!out?.crit, takenCrit: !!out?.takenCrit,
         counter: !!out?.counter,
-        won: !!out?.won, fled: !!out?.fled, state: out?.state || 'active',
-        before: fx.before
-      };
-      fx.before = null;
-      /* Trận thua có thêm chuỗi gục ngã sau đòn cuối, nên giữ khóa hoạt ảnh
-         lâu hơn để hộp thoại tọa hóa không cắt ngang. */
-      fx.busyUntil = Date.now() + (reduced() ? 120 : out?.state === 'lost' ? 2150 : 1600);
+        won: !!out?.won, fled: !!out?.fled, state: out?.state || 'active'
+      });
     },
-    busy() { return Date.now() < fx.busyUntil; },
+    busy: stage.busy,
     mount() {
-      const arena = $('battleArena');
-      if (!arena) { clearTimers(); return; }
-      startIdle();
-      const p = fx.pending;
-      /* Giữ ảnh cũ khi sắp diễn hoạt, để khung đang vẽ không bị thay bằng ảnh chưa kịp hiện. */
-      keepSprites(!!p);
-      if (!p || arena.dataset.fxSeq === String(p.seq)) return;
-      arena.dataset.fxSeq = String(p.seq);
-      fx.pending = null;
-      /* Bảng vừa được dựng lại theo trạng thái mới, nên ảnh đạo thân cần một nhịp
-         giải mã; chờ xong mới diễn hoạt để khung đầu không bị trống. */
-      const img = $('battleSelf');
-      if (reduced() || !img || (img.complete && img.naturalWidth)) { playSequence(p); return; }
-      let played = false;
-      const start = () => { if (!played) { played = true; playSequence(p); } };
-      later(220, start);
-      img.decode?.().then(start).catch(start);
+      stage.mount();
+      /* Sân đã đổi (hết trận, rời màn) thì ngừng tự động; còn trận thì tiếp tục nhịp. */
+      if (auto.on && !auto.timer) auto.timer = root.setTimeout(autoTick, 700);
+      if (!$('battleArena')) autoStop();
     }
   };
 
   /* ======================================================================
      BẢNG GIAO CHIẾN
      ====================================================================== */
-  const vital = (label, value, max, cls, bar, mini = false) => {
-    const v = Math.max(0, Math.min(max || 0, value || 0));
-    const p = max > 0 ? v / max * 100 : 0;
-    return `<div class="battle-vital${mini ? ' mini' : ''}">
-      <div class="battle-vital-head"><span>${esc(label)}</span><b>${num(v)}<i> / ${num(max || 0)}</i></b></div>
-      <div class="meter-bar ${cls}" role="meter" aria-label="${esc(label)}" aria-valuemin="0" aria-valuemax="${Math.round(max || 0)}" aria-valuenow="${Math.round(v)}"><i data-bar="${bar}" style="width:${p.toFixed(1)}%"></i></div>
-    </div>`;
-  };
-
-  /* Cột trạng thái chỉ giữ một hàng chip để thanh sinh lực hai bên luôn thẳng hàng;
-     phần dư gộp thành chip "+N" và liệt kê đầy đủ trong title. */
-  const chipRow = list => {
-    if (!list?.length) return '';
-    const max = root.innerWidth <= 620 ? 1 : 2;
-    const shown = list.slice(0, max), rest = list.length - shown.length;
-    const more = list.slice(max).map(x => x.label).join(' · ');
-    return `<div class="battle-statuses">${shown.map(x => `<span class="battle-status ${x.tone || 'bad'}" title="${esc(x.label)}">${esc(x.label)}${x.turns != null ? `<i>${esc(String(x.turns))}</i>` : ''}</span>`).join('')}${rest > 0 ? `<span class="battle-status more" title="${esc(more)}">+${rest}</span>` : ''}</div>`;
-  };
+  const { vital, chipRow } = UI.stage;
   const statusChips = (arr, tone = 'bad') => chipRow((arr || []).map(x => ({ tone, label: x.type, turns: x.turns })));
   const buffChips = b => {
     const list = [];
@@ -493,7 +280,8 @@
         </div>
       </div>
       <div class="battle-footactions">
-        <span class="battle-note">Mỗi lượt một hành động · phím 1–4</span>
+        ${UI.stage.autoKit.html(auto)}
+        <span class="battle-note">${auto.on ? 'Tự chọn chiêu mỗi lượt · bấm Tự động để dừng' : 'Mỗi lượt một hành động · phím 1–4'}</span>
         ${btn('Rút lui · ' + Math.round((B.flee || .55) * 100) + '%', 'battleAct', 'data-action="flee"', false, 'btn-outline btn-sm')}
       </div>
     </div>` : '';
@@ -501,49 +289,24 @@
     const logOpen = UI.view.battleLog !== false, lines = (b.log || []).slice(0, 4);
     const latest = lines[0] || e.text || '';
     return `<section class="battle-panel${boss ? ' boss' : ''}${active ? '' : ' is-over'}" aria-label="Giao chiến với ${esc(e.name)}">
-      <div class="battle-stage${boss ? ' boss' : ''}" id="battleArena" style="--battle-bg:url('${esc(bg)}')">
-        <div class="battle-sky" aria-hidden="true"></div>
-        <div class="battle-hud">
-          <div class="battle-card hero">
-            <div class="battle-card-name"><b>${esc(s.name)}</b><small>${esc(g.realmLabel())}</small></div>
-            ${vital('Sinh lực', s.hp, st.HP, 'hp', 'hp')}
-            ${vital('Linh lực', s.mp, maxMp, 'mp', 'mp', true)}
-            ${buffChips(b)}${statusChips(b.statuses)}
-          </div>
-          <div class="battle-center">
-            <span class="battle-round" aria-label="Lượt ${b.turn}">LƯỢT<b>${b.turn}</b></span>
-            <span class="battle-clock" role="timer" aria-label="Thời gian lịch luyện còn lại, tạm dừng khi giao chiến">
+      ${UI.stage.arenaHtml({
+        boss, bg, mode: 'explore', over: !active, beaten: b.state === 'won',
+        hero: { name: s.name, sub: g.realmLabel(), hp: s.hp, max: st.HP, mp: s.mp, maxMp, src: heroSrc, alt: s.name + ' đang giao chiến', chips: buffChips(b) + statusChips(b.statuses) },
+        foe: { tag: kindLabel, name: e.name, sub: level, hp: b.enemyHp, max: b.enemyMax, src: foeSrc, alt: e.name + ' đang đối đầu', chips: statusChips(b.enemyStatuses) },
+        center: {
+          round: b.turn,
+          clock: `<span class="battle-clock" role="timer" aria-label="Thời gian lịch luyện còn lại, tạm dừng khi giao chiến">
               <b id="explorationCountdown">${clock}</b>
               <span class="battle-clock-bar" aria-hidden="true"><i id="explorationProgress" style="width:${(100 - remain / 6).toFixed(1)}%"></i></span>
-            </span>
-            ${active && boss ? `<span class="battle-kind">Giai đoạn ×${phase.toFixed(2)}</span>` : ''}
-          </div>
-          <div class="battle-card foe${boss ? ' boss' : ''}">
-            <div class="battle-card-name"><span class="battle-tag${boss ? ' boss' : ''}">${esc(kindLabel)}</span><b>${esc(e.name)}</b><small>${esc(level)}</small></div>
-            ${vital('Sinh lực', b.enemyHp, b.enemyMax, 'hp', 'enemy')}
-            ${statusChips(b.enemyStatuses)}
-          </div>
-        </div>
-        ${active ? `<p class="battle-telegraph${heavy ? ' heavy' : ''}" role="status">
+            </span>`,
+          kind: active && boss ? `<span class="battle-kind">Giai đoạn ×${phase.toFixed(2)}</span>` : ''
+        },
+        telegraph: active ? `<p class="battle-telegraph${heavy ? ' heavy' : ''}" role="status">
           <i class="battle-pip" aria-hidden="true"></i>
           <b>${esc(e.name)}</b> chuẩn bị ${heavy ? 'đòn nặng' : 'đòn thường'}${heavy ? ' · thủ thế giảm ' + Math.round(B.guardCut * 100) + '%' : ''}
-        </p>` : '<span></span>'}
-        <div class="battle-fighters">
-          <div class="battle-unit hero${active ? '' : ' is-over'}">
-            <div class="battle-figure">
-              <img id="battleSelf" class="battle-sprite hero" src="${esc(heroSrc)}" alt="${esc(s.name)} đang giao chiến" decoding="async" fetchpriority="high">
-            </div>
-          </div>
-          <div class="battle-unit foe${active ? '' : ' is-over'}${b.state === 'won' ? ' is-beaten' : ''}">
-            <div class="battle-figure">
-              <img id="battleFoeSprite" class="battle-sprite foe" src="${esc(foeSrc)}" alt="${esc(e.name)} đang đối đầu" decoding="async">
-            </div>
-          </div>
-        </div>
-        <div class="battle-cry" aria-hidden="true"></div>
-        <div id="battleVfx" class="battle-vfx" aria-hidden="true"></div>
-        <p class="battle-ticker" aria-hidden="true"><i class="battle-pip" aria-hidden="true"></i>${esc(latest)}</p>
-      </div>
+        </p>` : '',
+        ticker: latest
+      })}
       ${verdict}
       ${command}
       <div class="battle-log${logOpen ? ' is-open' : ''}">
@@ -666,6 +429,17 @@
     else if (out.state === 'lost') UI.toast('Đạo thân đã tọa hóa trong giao chiến.', { type: 'danger', title: 'Giao chiến' });
   });
   /* Chuyển nhóm công cụ trong bảng trận. */
+  /* Bật/tắt tự động và hai công tắc phụ (dùng kỹ năng, dùng đan phù). */
+  UI.action('battleAuto', (el, d) => {
+    if (d.auto === 'on') {
+      auto.on = !auto.on;
+      if (!auto.on) autoStop();
+      else auto.timer = root.setTimeout(autoTick, 300);
+    } else if (d.auto === 'skills' || d.auto === 'items') {
+      auto[d.auto] = !auto[d.auto];
+      UI.stage.autoKit.save(auto);
+    } else return UI.KEEP;
+  });
   UI.action('battleLog', () => { UI.view.battleLog = UI.view.battleLog === false; });
   UI.action('battleTool', (el, d) => {
     if (!['manual', 'artifact', 'item'].includes(d.tool)) return UI.KEEP;
