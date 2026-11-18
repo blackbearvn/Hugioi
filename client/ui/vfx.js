@@ -189,7 +189,7 @@
     }
   }
 
-  function float(text, target = 'enemy', cls = '') {
+  function float(text, target = 'enemy', cls = '', enabled) {
     const p = position(target);
     if (!p) return;
     const el = document.createElement('span');
@@ -198,7 +198,7 @@
     /* Trong bảng trận, ảnh quái có viền trong suốt dày nên số sát thương chỉ nhích
        lên một đoạn ngắn để nằm trên thân, không đè lên bảng tên. */
     Object.assign(el.style, { left: p.x + 'px', top: (p.y - p.height * (p.battle ? .45 : .8)) + 'px' });
-    transient(p.host, el, 1000);
+    transient(p.host, el, 1000, enabled);
   }
 
   /* Bốn hàng của atlas floating_damage_glyphs.png. */
@@ -257,13 +257,16 @@
     if (!el) {
       const sign = opts.sign != null ? opts.sign : kind === 'damage' || kind === 'crit' ? '−' : '+';
       float(sign + UI.kit.num(value) + (opts.label ? ' ' + opts.label : ''), target,
-        kind === 'crit' ? 'skill' : kind === 'heal' ? 'heal' : '');
+        kind === 'crit' ? 'skill' : kind === 'heal' ? 'heal' : '', () => true);
       return null;
     }
     if (opts.className) el.classList.add(...opts.className.split(/\s+/).filter(Boolean));
     Object.assign(el.style, { left: p.x + 'px', top: (p.y - p.height * (p.battle ? .45 : .8)) + 'px' });
     if (opts.ttl) el.style.animationDuration = opts.ttl + 'ms';
-    transient(p.host, el, opts.ttl || NUMBER_TTL, opts.enabled || effectsEnabled);
+    /* Con số là kết quả của lượt đánh nên luôn hiện, kể cả khi tắt hiệu ứng hoặc giảm chuyển động:
+       lúc đó số đứng yên tại chỗ rồi biến mất thay vì bay lên. */
+    if (prefersReduced()) el.classList.add('static');
+    transient(p.host, el, prefersReduced() ? 900 : opts.ttl || NUMBER_TTL, opts.enabled || (() => true));
     return el;
   }
 
@@ -271,7 +274,7 @@
     if (!Number.isFinite(amount) || amount <= 0) return;
     floatNumber(amount, 'hero', 'qi', {
       label: 'linh khí', ttl: 1600, className: 'cultivation-gain',
-      enabled: () => !prefersReduced() && UI.s().settings.cultivationEffects !== false
+      enabled: () => UI.s().settings.cultivationEffects !== false
     });
   }
 

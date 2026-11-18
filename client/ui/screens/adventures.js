@@ -48,6 +48,7 @@
   const dZone = d => Math.max(0, Math.min((H.ZONES?.length || 1) - 1, d.realm));
   const runDungeon = () => { const run = UI.s().dungeon.run; return run ? { run, d: H.DUNGEONS.find(x => x.id === run.id) } : null; };
   const runStage = UI.stage.create({
+    heroIdleMs: () => A.heroFrameMs(UI.s().gender, 'dung_chien'),
     heroFrames: action => { const s = UI.s(); return (A?.preloadHero?.(s.gender, s.realm, action) || []).map(im => im && im.src).filter(Boolean); },
     foeFrames: action => {
       const c = runDungeon(); if (!c) return [];
@@ -99,7 +100,7 @@
     const zone = dZone(d), kind = dKind(d, run.floor);
     const arena = UI.stage.arenaHtml({
       boss: enemy.boss, mode: 'dungeon', bg: UI.kit.abs(A?.zoneBg?.(zone) || A?.BG?.combat || ''),
-      hero: { name: s.name, sub: g.realmLabel(), hp: s.hp, max: st.HP, mp: s.mp, maxMp: g.maxMp(), src: A.heroSrc(s.gender, s.realm, 'di_chuyen', 0), alt: s.name + ' đang giao chiến' },
+      hero: { name: s.name, sub: g.realmLabel(), hp: s.hp, max: st.HP, mp: s.mp, maxMp: g.maxMp(), src: A.heroSrc(s.gender, s.realm, 'dung_chien', 0), alt: s.name + ' đang giao chiến' },
       foe: { tag: enemy.boss ? 'Thủ lĩnh' : 'Hộ vệ', name: enemy.name, sub: 'Tầng ' + run.floor + '/' + d.floors, hp: run.enemyHp, max: run.enemyMax, src: A.enemySrc(zone, kind, 'dung_yen', 0), alt: enemy.name + ' đang đối đầu' },
       center: { round: run.turn + 1, kind: `<span class="battle-kind">Tầng ${run.floor}/${d.floors}</span>` },
       telegraph: `<p class="battle-telegraph${heavy ? ' heavy' : ''}" role="status"><i class="battle-pip" aria-hidden="true"></i><b>${esc(enemy.name)}</b> chuẩn bị ${heavy ? 'đòn nặng · thủ thế sẽ đỡ gần hết' : 'đòn thường'}</p>`,

@@ -66,6 +66,7 @@
   const reduced = () => !!UI.isReduced?.() || UI.s()?.settings?.combatEffects === false;
   const stage = UI.stage.create({
     heroFrames: heroFrameSrcs,
+    heroIdleMs: () => A.heroFrameMs(UI.s().gender, 'dung_chien'),
     foeFrames: action => enemyFrameSrcs(action, action === 'tu_vong' ? 4 : 3),
     foeIdle: step => { const s = UI.s(), n = A?.enemyFrames?.(s.zone, s.enemyKind, 'dung_yen') || 3; return A.enemySrc(s.zone, s.enemyKind, 'dung_yen', Math.floor(step / 3) % n); },
     active: () => UI.s().exploration?.active?.battle?.state === 'active',
@@ -203,7 +204,7 @@
     const info = g.enemy?.() || {};
     const level = info.level ? 'Cấp ' + info.level : F.REALMS[s.realm];
     const bg = abs(A?.zoneBg?.(s.zone) || A?.BG?.combat || '');
-    const heroSrc = A?.heroSrc?.(s.gender, s.realm, 'di_chuyen', 0) || '';
+    const heroSrc = A?.heroSrc?.(s.gender, s.realm, 'dung_chien', 0) || '';
     const foeSrc = A?.enemySrc?.(s.zone, s.enemyKind, 'dung_yen', 0) || '';
     const powerOff = b.powerCd > 0 || s.mp < maxMp * B.powerMp;
     const healOff = b.healCd > 0 || s.mp < maxMp * B.healMp || s.hp >= st.HP;

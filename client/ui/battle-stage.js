@@ -82,8 +82,9 @@
      và các chuỗi chien_dau của bộ VFX. Trạng thái "đang diễn hoạt" được giữ ở đây
      để lần vẽ lại kế tiếp không cắt ngang.
      ctx: {
-       heroFrames(action) → [src]      ảnh nhân vật theo động tác (di_chuyen, tan_cong, tu_vong)
+       heroFrames(action) → [src]      ảnh nhân vật theo động tác (dung_chien, tan_cong, tu_vong)
        foeFrames(action)  → [src]      ảnh đối thủ (tan_cong, tu_vong)
+       heroIdleMs()       → số         nhịp mỗi khung của thế đứng giao chiến (mặc định 200)
        foeIdle(step)      → src        ảnh đối thủ khi đứng thở
        active()           → bool       còn trận để thở không
      } */
@@ -173,7 +174,13 @@
       const cry = arena.querySelector('.battle-cry');
       if (cry && p.cry) { cry.textContent = p.cry; cry.classList.add('show'); arena.classList.add('is-crying'); }
       later(1500, () => { cry?.classList.remove('show'); arena.classList.remove('is-crying'); });
-      if (reduced()) return;
+      if (reduced()) {
+        /* Giảm chuyển động: bỏ hoạt ảnh nhưng vẫn hiện con số kết quả của lượt. */
+        if (p.dealt > 0) UI.vfx?.floatNumber?.(p.dealt, 'battleFoe', p.crit ? 'crit' : 'damage');
+        if (p.healed > 0) UI.vfx?.floatNumber?.(p.healed, 'battleSelf', 'heal');
+        if (p.taken > 0) UI.vfx?.floatNumber?.(p.taken, 'battleSelf', p.takenCrit ? 'crit' : 'damage');
+        return;
+      }
 
       const offensive = ['attack', 'power', 'flee'].includes(p.action) || p.dealt > 0;
       /* Chọn hiệu ứng theo loại đòn: chém kiếm, luồng linh khí, phù lục, hộ thuẫn, hồi sinh. */
@@ -280,18 +287,22 @@
     function startIdle() {
       if (fx.idle || reduced()) return;
       /* Nạp sẵn cả ba động tác để nhịp đầu vào trận không bị trống khung. */
-      for (const action of ['di_chuyen', 'tan_cong', 'tu_vong']) ctx.heroFrames(action).forEach(src => { const im = new Image(); im.src = src; im.decode?.().catch(() => {}); });
-      const heroFrames = ctx.heroFrames('di_chuyen');
-      let step = 0;
+      for (const action of ['dung_chien', 'tan_cong', 'tu_vong']) ctx.heroFrames(action).forEach(src => { const im = new Image(); im.src = src; im.decode?.().catch(() => {}); });
+      const heroFrames = ctx.heroFrames('dung_chien');
+      let tick = 0;
+      /* Thế đứng giao chiến là bốn khung, nhịp riêng của từng đạo thân (nam 250 ms, nữ 180 ms);
+         đối thủ giữ nhịp thở 160 ms. Vòng lặp 60 ms chỉ đổi ảnh khi khung thật sự đổi. */
       fx.idle = root.setInterval(() => {
         const hero = $('battleSelf'), foe = $('battleFoeSprite');
         if (!hero || !foe) { root.clearInterval(fx.idle); fx.idle = 0; return; }
-        if (document.hidden) return;
-        if (!ctx.active()) return;
-        if (hero.dataset.anim !== 'busy' && heroFrames.length) hero.src = heroFrames[step % heroFrames.length];
-        if (foe.dataset.anim !== 'busy') { const src = ctx.foeIdle(step); if (src) foe.src = src; }
-        step++;
-      }, 160);
+        if (document.hidden || !ctx.active()) return;
+        if (hero.dataset.anim !== 'busy' && heroFrames.length) {
+          const src = heroFrames[Math.floor(Date.now() / (ctx.heroIdleMs?.() || 200)) % heroFrames.length];
+          if (hero.getAttribute('src') !== src) hero.src = src;
+        }
+        if (foe.dataset.anim !== 'busy' && tick % 3 === 0) { const src = ctx.foeIdle(Math.floor(tick / 3)); if (src) foe.src = src; }
+        tick++;
+      }, 60);
     }
     const stopIdle = () => { if (fx.idle) { root.clearInterval(fx.idle); fx.idle = 0; } };
 
@@ -368,15 +379,16 @@
     if (!A || !document.body) return null;
     overlay?.close();
     const { bout } = cfg, rounds = bout.rounds;
-    const heroSrc = A.heroSrc(cfg.hero.gender, cfg.hero.realm, 'di_chuyen', 0);
-    const foeSrc = A.heroSrc(cfg.foe.gender, cfg.foe.realm, 'di_chuyen', 0);
+    const heroSrc = A.heroSrc(cfg.hero.gender, cfg.hero.realm, 'dung_chien', 0);
+    const foeSrc = A.heroSrc(cfg.foe.gender, cfg.foe.realm, 'dung_chien', 0);
     const framesOf = who => action => (A.preloadHero?.(who.gender, who.realm, action) || []).map(im => im && im.src).filter(Boolean);
     const heroFrames = framesOf(cfg.hero), foeFrames = framesOf(cfg.foe);
     let index = 0, auto = true, speed = 1, timer = 0, done = false, closed = false;
 
     const stage = create({
       heroFrames, foeFrames,
-      foeIdle: step => { const f = foeFrames('di_chuyen'); return f.length ? f[step % f.length] : ''; },
+      heroIdleMs: () => A.heroFrameMs(cfg.hero.gender, 'dung_chien'),
+      foeIdle: () => { const f = foeFrames('dung_chien'); return f.length ? f[Math.floor(Date.now() / A.heroFrameMs(cfg.foe.gender, 'dung_chien')) % f.length] : ''; },
       active: () => !done
     });
     const el = document.createElement('div');

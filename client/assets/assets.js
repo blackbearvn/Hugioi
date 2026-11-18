@@ -71,24 +71,30 @@
   const gender = g => g === 'nu' ? 'nu' : 'nam';
   const HERO_ACTIONS = Object.freeze({
     dung_yen: 'thien_dinh', di_chuyen: 'di_bo',
-    tan_cong: 'tung_skill', tu_vong: 'guc_nga'
+    tan_cong: 'tung_skill', tu_vong: 'guc_nga',
+    /* Thế đứng giao chiến: 4 khung lặp; nhịp theo từng đạo thân (nam 250 ms, nữ 180 ms). */
+    dung_chien: 'dung_chien'
   });
   const HERO_FRAMES = 6;
-  const heroFrames = () => HERO_FRAMES;
+  const HERO_FRAME_COUNT = Object.freeze({ dung_chien: 4 });
+  const HERO_FRAME_MS = Object.freeze({ dung_chien: { nam: 250, nu: 180 } });
+  const heroFrameCount = action => HERO_FRAME_COUNT[action] || HERO_FRAMES;
+  const heroFrameMs = (g, action) => HERO_FRAME_MS[action]?.[gender(g)] || 160;
+  const heroFrames = action => heroFrameCount(action);
   const heroSrc = (g, zone, action = 'dung_yen', n = 0) => {
-    const folder = HERO_ACTIONS[action] || HERO_ACTIONS.dung_yen;
-    const frame = ((Math.floor(Number(n) || 0) % HERO_FRAMES) + HERO_FRAMES) % HERO_FRAMES;
+    const folder = HERO_ACTIONS[action] || HERO_ACTIONS.dung_yen, count = heroFrameCount(action);
+    const frame = ((Math.floor(Number(n) || 0) % count) + count) % count;
     return mediaSrc(PLAYER + gender(g) + '/' + folder + '/' + String(frame).padStart(2, '0') + '.webp');
   };
   const heroPortrait = g => PLAYER + gender(g) + '/portrait.webp';
   const HERO = { width: 512, height: 512, anchorX: 256, anchorY: 472,
-    bodyHeight: { dung_yen: 360, di_chuyen: 400, tan_cong: 400, tu_vong: 225 } };
+    bodyHeight: { dung_yen: 360, di_chuyen: 400, tan_cong: 400, tu_vong: 225, dung_chien: 400 } };
   const heroCache = new Map();
   function preloadHero(g, zone, action = 'dung_yen') {
     const key = gender(g) + '/' + (HERO_ACTIONS[action] || HERO_ACTIONS.dung_yen);
     if (heroCache.has(key)) return heroCache.get(key);
     if (typeof Image === 'undefined') return [];
-    const frames = Array.from({ length: HERO_FRAMES }, (_, i) => {
+    const frames = Array.from({ length: heroFrameCount(action) }, (_, i) => {
       const image = new Image();
       image.decoding = 'async';
       const src = PLAYER + gender(g) + '/' + (HERO_ACTIONS[action] || HERO_ACTIONS.dung_yen) +
@@ -341,6 +347,6 @@
   }
   const itemSrc = x => itemImg(x).src;
 
-  root.HU_ASSETS = { BASE, worldOf, WORLD_NAME, HERO, heroFrames, heroSrc, heroPortrait, preloadHero, mediaSrc, enemyDir, enemyFrames, enemySrc, enemyPath, BG, MAPS, zoneBg, INTRO, seasonSprite, skillIcon, menuIcon, farm, MONEY, moneyIcon, itemSrc, itemImg, itemTile, ITEM_CELL_SIZE, VFX_BASE, VFX, vfxCount, vfxFrames, vfxSrc, tribWorld, preloadVfx, FLOAT_DAMAGE, floatGlyph, preloadFloatDamage };
+  root.HU_ASSETS = { BASE, worldOf, WORLD_NAME, HERO, heroFrames, heroFrameMs, heroSrc, heroPortrait, preloadHero, mediaSrc, enemyDir, enemyFrames, enemySrc, enemyPath, BG, MAPS, zoneBg, INTRO, seasonSprite, skillIcon, menuIcon, farm, MONEY, moneyIcon, itemSrc, itemImg, itemTile, ITEM_CELL_SIZE, VFX_BASE, VFX, vfxCount, vfxFrames, vfxSrc, tribWorld, preloadVfx, FLOAT_DAMAGE, floatGlyph, preloadFloatDamage };
   if (typeof module !== 'undefined') module.exports = root.HU_ASSETS;
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -8,10 +8,13 @@
 
   const BASE = 'media/assets/chars/player/realistic/';
   const COUNT = 6;
-  const ANIM = Object.freeze({ dung_yen: 'thien_dinh', di_chuyen: 'di_bo', tan_cong: 'tung_skill', tu_vong: 'guc_nga' });
+  const ANIM = Object.freeze({ dung_yen: 'thien_dinh', di_chuyen: 'di_bo', tan_cong: 'tung_skill', tu_vong: 'guc_nga', dung_chien: 'dung_chien' });
+  /* Thế đứng giao chiến chỉ có bốn khung (khác sáu khung của các động tác còn lại). */
+  const FRAME_COUNT = Object.freeze({ dung_chien: 4 });
+  const countOf = name => FRAME_COUNT[name] || COUNT;
   const DURATIONS = Object.freeze({
-    nam: { thien_dinh: 250, di_bo: 170, tung_skill: 155, guc_nga: 200 },
-    nu:  { thien_dinh: 180, di_bo: 150, tung_skill: 140, guc_nga: 220 }
+    nam: { thien_dinh: 250, di_bo: 170, tung_skill: 155, guc_nga: 200, dung_chien: 250 },
+    nu:  { thien_dinh: 180, di_bo: 150, tung_skill: 140, guc_nga: 220, dung_chien: 180 }
   });
   const cache = new Map();
   const motion = {
@@ -33,6 +36,8 @@
   function effectiveAction(g, raw, t) {
     const s = currentState();
     if (motion.deadAt && motion.deadGender === g || s?.created && s.hp <= 0) return 'guc_nga';
+    /* Cảnh giao chiến luôn dùng thế đứng riêng, không bị lẫn động tác đi bộ ngoài sân. */
+    if (raw === 'dung_chien') return 'dung_chien';
     if (motion.walkUntil > t && motion.lastGender === g) return 'di_bo';
     if (motion.attackUntil > t && motion.lastGender === g) return 'tung_skill';
     return ANIM[raw] || 'thien_dinh';
@@ -44,9 +49,10 @@
       motion.actionStart = action === 'guc_nga' && motion.deadAt ? motion.deadAt : t;
     }
     if (reduced()) return action === 'guc_nga' ? COUNT - 1 : 0;
+    const count = countOf(action);
     const elapsed = Math.max(0, t - motion.actionStart);
     const index = Math.floor(elapsed / DURATIONS[g][action]);
-    return action === 'guc_nga' ? Math.min(COUNT - 1, index) : index % COUNT;
+    return action === 'guc_nga' ? Math.min(COUNT - 1, index) : index % count;
   }
   function resetTimeline() {
     motion.lastAction = '';
@@ -83,7 +89,7 @@
 
   // Bộ WebP mới là nguồn duy nhất. Bọc resolver chung để mọi giao diện
   // (Tu luyện, Lịch luyện, Độ kiếp, ảnh đại diện) cùng hiển thị đạo thân.
-  A.heroFrames = () => COUNT;
+  A.heroFrames = action => countOf(ANIM[action] || ANIM.dung_yen);
   const stable = src => A.mediaSrc ? A.mediaSrc(src) : src;
   A.heroSrc = (g, zone, action = 'dung_yen') => {
     const gender = sex(g), t = now();
@@ -96,7 +102,7 @@
     const name = ANIM[action] || ANIM.dung_yen;
     const key = sex(g) + '/' + name;
     if (!cache.has(key)) {
-      cache.set(key, Array.from({ length: COUNT }, (_, i) => {
+      cache.set(key, Array.from({ length: countOf(name) }, (_, i) => {
         const image = new root.Image();
         image.decoding = 'async';
         const src = path(g, name, i);
