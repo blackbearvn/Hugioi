@@ -203,6 +203,50 @@
     const list = vfxFrames(kind, variant);
     return list.length ? list[((Math.floor(n) % list.length) + list.length) % list.length] : '';
   };
+
+  /* ---- số hiển thị nổi ----
+   * floating_damage_glyphs.png là atlas sạch sinh từ floating_damage.png bằng
+   * tools/gen-float-damage.py: bốn hàng "1234567890+-" (sát thương thường, bạo
+   * kích, hồi phục, linh khí). Ảnh gốc vẽ chồng nét giữa các glyph nên cắt theo
+   * hình chữ nhật sẽ kéo theo nét bên cạnh; atlas tách từng thành phần liên
+   * thông và chừa lề 3 px, nhờ đó ghép số không còn mảnh thừa. */
+  const FLOAT_DAMAGE = Object.freeze({
+    src: VFX_BASE + 'floating_damage_glyphs.png',
+    width: 1592, height: 780, rowHeight: 195, pad: 3,
+    glyphs: '1234567890+-',
+    rows: [
+      [123, 157, 125, 132, 138, 108, 118, 116, 124, 130, 124, 117],
+      [122, 158, 126, 130, 141, 108, 118, 116, 125, 130, 127, 114],
+      [120, 158, 125, 130, 140, 109, 119, 117, 126, 130, 128, 114],
+      [121, 157, 126, 132, 141, 107, 118, 117, 129, 131, 127, 114]
+    ]
+  });
+  const floatEm = n => (n / FLOAT_DAMAGE.rowHeight).toFixed(5) + 'em';
+  /* Trả về kích thước và vị trí nền cho một ký tự; UI đặt phần tử cao 1em. */
+  function floatGlyph(ch, row = 0) {
+    const band = FLOAT_DAMAGE.rows[row] ? row : 0;
+    const widths = FLOAT_DAMAGE.rows[band];
+    const index = FLOAT_DAMAGE.glyphs.indexOf(ch === '−' ? '-' : ch);
+    if (index < 0) return null;
+    let x = 0;
+    for (let i = 0; i < index; i++) x += widths[i] + FLOAT_DAMAGE.pad * 2;
+    return {
+      width: floatEm(widths[index] + FLOAT_DAMAGE.pad * 2),
+      backgroundSize: floatEm(FLOAT_DAMAGE.width) + ' ' + floatEm(FLOAT_DAMAGE.height),
+      backgroundPosition: floatEm(-x) + ' ' + floatEm(-band * FLOAT_DAMAGE.rowHeight)
+    };
+  }
+  let floatImage = null;
+  function preloadFloatDamage() {
+    if (floatImage || typeof Image === 'undefined') return floatImage;
+    const image = new Image();
+    image.decoding = 'async';
+    /* Dùng đúng URL của CSS nền để trình duyệt dùng chung cache, không tải hai lần. */
+    image.src = FLOAT_DAMAGE.src;
+    floatImage = image;
+    return image;
+  }
+
   /* Đại giới của lôi kiếp: Hạ Giới, Linh Giới, Tiên Giới và Hỗn Độn (Đạo Tổ). */
   const tribWorld = realm => realm >= 13 ? 'hon_don' : realm >= 9 ? 'tien_gioi' : realm >= 5 ? 'linh_gioi' : 'ha_gioi';
   const vfxCache = new Map();
@@ -297,6 +341,6 @@
   }
   const itemSrc = x => itemImg(x).src;
 
-  root.HU_ASSETS = { BASE, worldOf, WORLD_NAME, HERO, heroFrames, heroSrc, heroPortrait, preloadHero, mediaSrc, enemyDir, enemyFrames, enemySrc, enemyPath, BG, MAPS, zoneBg, INTRO, seasonSprite, skillIcon, menuIcon, farm, MONEY, moneyIcon, itemSrc, itemImg, itemTile, ITEM_CELL_SIZE, VFX_BASE, VFX, vfxCount, vfxFrames, vfxSrc, tribWorld, preloadVfx };
+  root.HU_ASSETS = { BASE, worldOf, WORLD_NAME, HERO, heroFrames, heroSrc, heroPortrait, preloadHero, mediaSrc, enemyDir, enemyFrames, enemySrc, enemyPath, BG, MAPS, zoneBg, INTRO, seasonSprite, skillIcon, menuIcon, farm, MONEY, moneyIcon, itemSrc, itemImg, itemTile, ITEM_CELL_SIZE, VFX_BASE, VFX, vfxCount, vfxFrames, vfxSrc, tribWorld, preloadVfx, FLOAT_DAMAGE, floatGlyph, preloadFloatDamage };
   if (typeof module !== 'undefined') module.exports = root.HU_ASSETS;
 })(typeof window !== 'undefined' ? window : globalThis);

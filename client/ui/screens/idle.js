@@ -153,7 +153,7 @@
     UI.toast('Hấp thu linh thạch · +' + num(gain) + ' tu vi.', { type: 'loot', title: 'Tu vi' });
     UI.vfx?.effect('qi');
     UI.vfx?.ring('hero', '#70d4e8');
-    UI.vfx?.float('+' + num(gain) + ' tu vi', 'hero', 'skill');
+    UI.vfx?.floatNumber?.(gain, 'hero', 'qi', { label: 'tu vi' });
   });
   UI.action('upgrade', async (el, d) => {
     const n = await UI.command('upgrade', { index: Number(d.index), count: d.count === 'max' ? 'max' : Number(d.count) });

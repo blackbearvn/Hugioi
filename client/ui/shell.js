@@ -1836,7 +1836,7 @@
           else UI.vfx.tribStage({ kind: 'loi_kiep', variant: world, size: 'calc(var(--hero-size) * 2.3)' });
           UI.vfx.ring('trib', '#9adcff');
           UI.vfx.burst('trib', '#bceaff', 12);
-          UI.vfx.float('−' + num(e.damage), 'trib', 'skill');
+          UI.vfx.floatNumber(e.damage, 'trib', 'damage');
           UI.vfx.screenFlash('flash-blue', 350);
         }
         $('tribCounter').textContent = `Đợt ${e.wave + 1}/${events.length} · ${e.count}/${e.event.bolts} đạo lôi`;

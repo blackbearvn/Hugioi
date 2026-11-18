@@ -201,16 +201,78 @@
     transient(p.host, el, 1000);
   }
 
+  /* Bốn hàng của atlas floating_damage_glyphs.png. */
+  const NUMBER_ROW = { damage: 0, crit: 1, heal: 2, qi: 3 };
+  const NUMBER_TTL = 1100;
+  /* Số từ bảy ký tự trở lên thu nhỏ để không tràn cột trận về cuối game. */
+  const NUMBER_FULL_GLYPHS = 6;
+
+  /* Dựng số bằng ký tự cắt từ sprite; giá trị quá lớn hoặc không nguyên sẽ
+     quay về chữ thường để không mất thông tin. */
+  function spriteNumber(value, kind, sign, label) {
+    const raw = Math.abs(Number(value));
+    if (!Number.isFinite(raw) || raw < 1) return null;
+    const n = Math.round(raw);
+    if (!/^\d+$/.test(String(n))) return null;
+    const row = NUMBER_ROW[kind] ?? 0;
+    const prefix = sign != null ? sign : kind === 'heal' || kind === 'qi' ? '+' : '-';
+    const chars = prefix + String(n);
+    const el = document.createElement('span');
+    el.className = 'float-number ' + kind;
+    /* Bọc trong một lớp để thu nhỏ cả số (và nhãn) mà không đụng hiệu ứng
+       nổi, vốn dùng transform trên phần tử ngoài. */
+    const body = document.createElement('span');
+    body.className = 'fd-body';
+    if (chars.length > NUMBER_FULL_GLYPHS) {
+      body.style.transform = 'scale(' + (NUMBER_FULL_GLYPHS / chars.length).toFixed(3) + ')';
+    }
+    for (const ch of chars) {
+      const glyph = A.floatGlyph?.(ch, row);
+      if (!glyph) continue;
+      const part = document.createElement('i');
+      part.className = 'fd-glyph';
+      part.style.width = glyph.width;
+      part.style.backgroundImage = 'url("' + A.FLOAT_DAMAGE.src + '")';
+      part.style.backgroundSize = glyph.backgroundSize;
+      part.style.backgroundPosition = glyph.backgroundPosition;
+      body.append(part);
+    }
+    if (label) {
+      const text = document.createElement('span');
+      text.className = 'fd-label';
+      text.textContent = label;
+      body.append(text);
+    }
+    el.append(body);
+    el.setAttribute('aria-hidden', 'true');
+    return el;
+  }
+
+  /* Số nổi: damage thường, crit, hồi phục và linh khí dùng bốn hàng của sprite. */
+  function floatNumber(value, target = 'enemy', kind = 'damage', opts = {}) {
+    if (!A.FLOAT_DAMAGE || !A.floatGlyph) return null;
+    const p = position(target);
+    if (!p) return null;
+    const el = spriteNumber(value, kind, opts.sign, opts.label);
+    if (!el) {
+      const sign = opts.sign != null ? opts.sign : kind === 'damage' || kind === 'crit' ? '−' : '+';
+      float(sign + UI.kit.num(value) + (opts.label ? ' ' + opts.label : ''), target,
+        kind === 'crit' ? 'skill' : kind === 'heal' ? 'heal' : '');
+      return null;
+    }
+    if (opts.className) el.classList.add(...opts.className.split(/\s+/).filter(Boolean));
+    Object.assign(el.style, { left: p.x + 'px', top: (p.y - p.height * (p.battle ? .45 : .8)) + 'px' });
+    if (opts.ttl) el.style.animationDuration = opts.ttl + 'ms';
+    transient(p.host, el, opts.ttl || NUMBER_TTL, opts.enabled || effectsEnabled);
+    return el;
+  }
+
   function cultivationGain(amount) {
     if (!Number.isFinite(amount) || amount <= 0) return;
-    const p = position('hero');
-    if (!p) return;
-    const el = document.createElement('span');
-    el.className = 'float-text cultivation-gain';
-    el.textContent = '+' + UI.kit.num(amount) + ' linh khí';
-    el.setAttribute('aria-hidden', 'true');
-    Object.assign(el.style, { left: p.x + 'px', top: (p.y - p.height * .85) + 'px' });
-    transient(p.host, el, 1600, () => !prefersReduced() && UI.s().settings.cultivationEffects !== false);
+    floatNumber(amount, 'hero', 'qi', {
+      label: 'linh khí', ttl: 1600, className: 'cultivation-gain',
+      enabled: () => !prefersReduced() && UI.s().settings.cultivationEffects !== false
+    });
   }
 
   function clear(host) {
@@ -230,8 +292,11 @@
 
   document.addEventListener('visibilitychange', () => { if (document.hidden) clearAll(); });
 
+  /* Nạp sẵn tấm số nổi để trận đầu không trễ nhịp hiển thị sát thương. */
+  A.preloadFloatDamage?.();
+
   UI.vfx = {
-    play, at, stage, trib, tribStage, hero, effect, ring, burst, float, cultivationGain, clear, clearAll, screenFlash, effectsEnabled,
+    play, at, stage, trib, tribStage, hero, effect, ring, burst, float, floatNumber, cultivationGain, clear, clearAll, screenFlash, effectsEnabled,
     preload: (kind, variant) => A.preloadVfx(kind, variant)
   };
 })(typeof window !== 'undefined' ? window : globalThis);

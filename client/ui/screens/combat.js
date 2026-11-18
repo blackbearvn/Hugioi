@@ -179,7 +179,7 @@
       later(220, () => {
         if (p.dealt > 0) {
           jolt(foeFig);
-          UI.vfx?.float?.('−' + num(p.dealt), 'battleFoe', 'skill');
+          UI.vfx?.floatNumber?.(p.dealt, 'battleFoe', p.crit ? 'crit' : 'damage');
           UI.vfx?.effect?.('hit', 'battleFoe', { fps: 16, size: 'clamp(104px,13vw,140px)' });
           arena.classList.add('is-shake');
           later(360, () => arena.classList.remove('is-shake'));
@@ -199,7 +199,7 @@
         heroFig?.classList.add('is-guarding');
         if (['manual', 'artifact', 'item'].includes(p.action)) heroAttackFrames();
         UI.vfx?.effect?.(p.action === 'artifact' && p.effect === 'hồi máu' ? 'hoi_phuc' : 'hoi_sinh', 'battleSelf', { size: 'clamp(88px,12vw,126px)' });
-        UI.vfx?.float?.('+' + num(p.healed), 'battleSelf', 'heal');
+        UI.vfx?.floatNumber?.(p.healed, 'battleSelf', 'heal');
       });
       later(760, () => heroFig?.classList.remove('is-guarding'));
     }
@@ -228,7 +228,7 @@
       later(860, () => {
         if (p.taken > 0) {
           jolt(heroFig);
-          UI.vfx?.float?.('−' + num(p.taken), 'battleSelf');
+          UI.vfx?.floatNumber?.(p.taken, 'battleSelf', p.takenCrit ? 'crit' : 'damage');
           arena.classList.add('is-shake');
           later(360, () => arena.classList.remove('is-shake'));
         }
@@ -315,6 +315,7 @@
         dealt: Math.max(0, Number(out?.dealt) || 0),
         healed: Math.max(0, Number(out?.healed) || 0),
         taken: Math.max(0, Number(out?.taken) || 0),
+        crit: !!out?.crit, takenCrit: !!out?.takenCrit,
         counter: !!out?.counter,
         won: !!out?.won, fled: !!out?.fled, state: out?.state || 'active',
         before: fx.before

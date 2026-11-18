@@ -280,14 +280,15 @@
               (e.giam_sat_thuong > 0 ? ', giảm ' + Math.round(e.giam_sat_thuong * 100) + '% sát thương nhận.' : '.') };
           }
           const enemy = this.battleEnemy(), mult = (x.code === 'TAL-PL-001' ? 1.2 : 2) * 2 ** x.sub;
-          let dealt = 0;
+          let dealt = 0, crit = false;
           if (this.rng() >= enemy.dodge) {
-            const st = this.stats(), crit = this.rng() < st.CRIT;
+            const st = this.stats();
+            crit = this.rng() < st.CRIT;
             dealt = F.damage(st.ATK, enemy.def, mult * this.battleElemental(enemy, null), 0, crit, st.CRIT_DMG);
             b.enemyHp = Math.max(0, b.enemyHp - dealt);
           }
           this.take(code);
-          return { text: 'Dùng ' + x.name + ': sát thương ' + F.fmt(dealt) + '.', dealt };
+          return { text: 'Dùng ' + x.name + ': sát thương ' + F.fmt(dealt) + '.', dealt, crit };
         }
         throw Error('Vật phẩm này không dùng trong giao chiến.');
       },
@@ -310,7 +311,7 @@
           const dealt = F.damage(st.ATK, enemy.def, k.multiplier * power * this.battleElemental(enemy, k.element), 0, crit, st.CRIT_DMG);
           b.enemyHp = Math.max(0, b.enemyHp - dealt);
           this.battleOnHit(b);
-          return { text: 'Thi triển ' + x.name + (crit ? ' (bạo kích)' : '') + ': −' + F.fmt(dealt) + '.', dealt };
+          return { text: 'Thi triển ' + x.name + (crit ? ' (bạo kích)' : '') + ': −' + F.fmt(dealt) + '.', dealt, crit };
         }
         if (k.kind === 'heal') {
           const max = this.stats().HP, healed = Math.max(0, Math.min(max - s.hp, k.value * this.manualPower(key) * (1 + this.rootEffects().heal)));
@@ -337,7 +338,7 @@
       },
       _battleEnemyTurn(e, b, enemy, st, now) {
         const s = this.s;
-        let taken = 0, counter = false;
+        let taken = 0, counter = false, takenCrit = false;
         const locked = b.enemyStatuses.find(x => ['đóng băng', 'choáng'].includes(x.type) && x.turns > 0);
         if (locked) this.battleLog(b, enemy.name + ' đang bị ' + locked.type + ', không thể phản kích.');
         else {
@@ -345,8 +346,9 @@
           const heavy = b.intent === 'heavy', phase = this.battlePhase(enemy, b.enemyHp / b.enemyMax);
           const dodge = Math.min(.8, st.DODGE + (b.bonusDodge || 0));
           if (this.rng() >= dodge) {
+            takenCrit = this.rng() < enemy.crit;
             let hit = F.damage(enemy.atk, st.DEF + (b.bonusDef || 0),
-              (heavy ? BATTLE.heavyMult : 1) * phase * (1 - this.rootEffects().reduction), 0, this.rng() < enemy.crit, enemy.critDmg);
+              (heavy ? BATTLE.heavyMult : 1) * phase * (1 - this.rootEffects().reduction), 0, takenCrit, enemy.critDmg);
             if (b.damageCut > 0) hit *= 1 - b.damageCut;
             if (b.guard) hit *= 1 - BATTLE.guardCut;
             const blocked = Math.min(b.shield || 0, hit);
@@ -391,10 +393,10 @@
           e.cleared = true; e.text = b.result;
           this.battleLog(b, 'Sinh lực cạn. Đạo thân tọa hóa.');
           this.markDeath('combat', now);
-          return { counter, taken, died: true, state: b.state };
+          return { counter, taken, takenCrit, died: true, state: b.state };
         }
-        if (b.enemyHp <= 0) { this._battleWin(e, b); return { counter, taken, won: true, state: b.state }; }
-        return { counter, taken, state: b.state };
+        if (b.enemyHp <= 0) { this._battleWin(e, b); return { counter, taken, takenCrit, won: true, state: b.state }; }
+        return { counter, taken, takenCrit, state: b.state };
       },
       battleAct(payload, now) {
         now = at(this, now);
@@ -412,12 +414,12 @@
         }
         if (b.state !== 'active') throw Error('Trận chiến đã kết thúc, hãy xác nhận kết quả.');
         const st = this.stats(now), enemy = this.battleEnemy();
-        let dealt = 0, healed = 0;
+        let dealt = 0, healed = 0, crit = false;
         const controlled = b.statuses.find(x => ['đóng băng', 'choáng'].includes(x.type) && x.turns > 0);
         if (controlled) {
           this.battleLog(b, 'Bạn đang bị ' + controlled.type + ' nên mất lượt.');
           const out = this._battleEnemyTurn(e, b, enemy, st, now);
-          return { dealt: 0, healed: 0, ...out, turn: b.turn, state: b.state };
+          return { dealt: 0, healed: 0, crit: false, ...out, turn: b.turn, state: b.state };
         }
         b.guard = false; b.bonusDef = 0; b.bonusDodge = 0;
         const atkBuff = b.atkBuff && b.atkBuff.turns > 0 ? 1 + b.atkBuff.points : 1;
@@ -431,10 +433,11 @@
           }
           if (this.rng() < enemy.dodge) this.battleLog(b, enemy.name + ' né được đòn của bạn.');
           else {
-            const crit = this.rng() < st.CRIT, mult = (action === 'power' ? BATTLE.powerMult : 1) * atkBuff;
-            dealt = F.damage(st.ATK, enemy.def, mult * this.battleElemental(enemy, null), 0, crit, st.CRIT_DMG);
+            const critical = this.rng() < st.CRIT, mult = (action === 'power' ? BATTLE.powerMult : 1) * atkBuff;
+            crit = critical;
+            dealt = F.damage(st.ATK, enemy.def, mult * this.battleElemental(enemy, null), 0, critical, st.CRIT_DMG);
             b.enemyHp = Math.max(0, b.enemyHp - dealt);
-            this.battleLog(b, (action === 'power' ? 'Bạn tung trọng kích' : 'Bạn đánh') + (crit ? ' bạo kích' : '') + ' ' + enemy.name + ': −' + F.fmt(dealt) + '.');
+            this.battleLog(b, (action === 'power' ? 'Bạn tung trọng kích' : 'Bạn đánh') + (critical ? ' bạo kích' : '') + ' ' + enemy.name + ': −' + F.fmt(dealt) + '.');
             this.battleOnHit(b);
           }
         } else if (action === 'guard') {
@@ -452,7 +455,7 @@
           this.battleLog(b, 'Vận công hồi phục: sinh lực +' + F.fmt(healed) + '.');
         } else if (action === 'manual') {
           const out = this.battleManual(b, payload.code);
-          dealt = out.dealt || 0; healed = out.healed || 0;
+          dealt = out.dealt || 0; healed = out.healed || 0; crit = !!out.crit;
           this.battleLog(b, out.text);
         } else if (action === 'artifact') {
           const key = payload.code, x = item(key), d = x && DESIGN.effects[x.code];
@@ -470,7 +473,7 @@
           b.cd['a:' + key] = Math.max(1, Math.ceil(d['hồi chiêu (giây)'] / BATTLE.secondsPerTurn)) + 1;
         } else if (action === 'item') {
           const out = this.battleUseItem(b, payload.code);
-          dealt = out.dealt || 0; healed = out.healed || 0;
+          dealt = out.dealt || 0; healed = out.healed || 0; crit = !!out.crit;
           this.battleLog(b, out.text);
         } else if (action === 'flee') {
           const chance = Math.max(.25, Math.min(.85, BATTLE.flee + (s.talent?.phucDuyen || 0) * .005 - (s.tamMa || 0) * .002));
@@ -480,16 +483,16 @@
             e.choice = 1; e.cleared = true; e.text = b.result;
             this.battleLog(b, 'Rút lui thành công.');
             this.log('Lịch luyện · ' + b.result);
-            return { dealt: 0, healed: 0, taken: 0, fled: true, turn: b.turn, state: b.state };
+            return { dealt: 0, healed: 0, crit: false, taken: 0, fled: true, turn: b.turn, state: b.state };
           }
           this.battleLog(b, 'Rút lui thất bại, ' + enemy.name + ' chặn đường.');
         } else throw Error('Hành động không hợp lệ.');
         if (b.enemyHp <= 0) {
           this._battleWin(e, b);
-          return { dealt, healed, taken: 0, won: true, turn: b.turn, state: b.state };
+          return { dealt, healed, crit, taken: 0, won: true, turn: b.turn, state: b.state };
         }
         const out = this._battleEnemyTurn(e, b, enemy, st, now);
-        return { dealt, healed, ...out, turn: b.turn, state: b.state };
+        return { dealt, healed, crit, ...out, turn: b.turn, state: b.state };
       },
 
       /* Chỉ số đối thủ luôn suy ra từ cảnh giới/khu vực hiện tại. Dữ liệu thiết kế
