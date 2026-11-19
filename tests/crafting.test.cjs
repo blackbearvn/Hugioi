@@ -63,3 +63,12 @@ test('luyện thủ công nhận điểm canh lửa và từ chối giá trị n
   await assert.rejects(t.cmd('mixCraft', { mix: { 'HERB-001': 1 }, focus: 101 }));
   await assert.rejects(t.cmd('mixCraft', { mix: { 'HERB-001': 1 }, focus: -1 }));
 });
+
+test('sách tân thủ nghề rèn và vẽ phù có sẵn khi đủ Kết Đan', async () => {
+  const H = require('../engine/game.js');
+  const t = await setup(); await t.create();
+  const base = await t.state();
+  assert.ok(!('BT-900' in H.normalize(structuredClone(base), 0).learned));
+  const raised = H.normalize({ ...structuredClone(base), realm: 2 }, 0);
+  assert.ok('BT-900' in raised.learned && 'BT-901' in raised.learned);
+});

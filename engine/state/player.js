@@ -354,6 +354,8 @@
     x.learned = {};
     if (object(raw.learned)) for (const [k, v] of Object.entries(raw.learned))
       if (item(k)?.kind === 'BT') x.learned[k] = finite(v, 0, 1);
+    /* Sách tân thủ nghề rèn/vẽ phù: có sẵn từ khi mở khóa tính năng (cảnh giới Kết Đan trở lên). */
+    if (x.realm >= 2) for (const k of ['BT-900', 'BT-901']) if (item(k) && !(k in x.learned)) x.learned[k] = .05;
     x.activeManuals = [];
     if (Array.isArray(raw.activeManuals)) {
       const room = MANUALS.slots(x.realm), used = { ngoai: 0, noi: 0 };

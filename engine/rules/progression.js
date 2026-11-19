@@ -171,6 +171,7 @@
         else if (s.realm < 13) {
           s.realm++; s.stage = 1; s.pillRealmExp = 0; s.permanent = 0; s.tech = [1, 1, 1, 1]; s.zone = s.realm;
           if (!s.locations.includes(s.zone)) { s.locations.push(s.zone); s.progress.travel++; }
+          if (s.realm >= 2) for (const k of ['BT-900', 'BT-901']) if (!(k in s.learned)) s.learned[k] = .05;
         } else s.completed = true;
         let awaken = null;
         if (events.length && ['Ngụy', 'Tứ hành', 'Tam hành', 'Song', 'Thiên'].includes(s.rootType)) {

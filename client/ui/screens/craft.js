@@ -9,16 +9,19 @@
 
   const TABS = [
     { id: 'dan', label: 'Luyện đan', icon: '⚗' },
-    { id: 'khi', label: 'Luyện khí & chế phù', icon: '⚒' },
+    { id: 'khi', label: 'Luyện pháp bảo', icon: '⚒' },
+    { id: 'phu', label: 'Vẽ phù', icon: '✎' },
     { id: 'dien', label: 'Linh điền', icon: '❀' }
   ];
 
+  const FORGE_TABS = ['khi', 'phu'];
+  const artTab = tab => tab === 'phu' ? 'khi' : tab;
   const alchemySkill = () => { const s = UI.s(); return s.alchemySkill + UI.g().manualEffects().alchemy + s.craftBoost; };
 
   function banner(tab) {
     const s = UI.s();
     const media = root.HU_CUSTOM_MEDIA;
-    const art = tab === 'dien' ? root.HU_ASSETS.BG.garden : media?.installed ? media.backgrounds[tab] : tab === 'khi' ? UI.data.ART.talisman : UI.data.ART.workshop;
+    const art = tab === 'dien' ? root.HU_ASSETS.BG.garden : media?.installed ? media.backgrounds[artTab(tab)] : FORGE_TABS.includes(tab) ? UI.data.ART.talisman : UI.data.ART.workshop;
     return `<header class="workshop-banner" style="--art:url('${abs(art)}')">
       <div><span class="eyebrow gold">NGHỀ PHỤ · ${F.realm_map(s.zone).toUpperCase()}</span><h2>Đan phòng & Linh điền</h2><p>${tab === 'dien' ? 'Gieo trồng · tưới nước · bón thổ · bắt sâu · thu hoạch.' : 'Mẻ luyện chế tạm dừng khi bạn rời game và tiếp tục khi trở lại.'}</p></div>
       <div class="banner-stats">
@@ -32,24 +35,24 @@
   /* Sân khấu dùng hình động từ gói ảnh; không tác động luật luyện chế của máy chủ. */
   function workshopScene(tab) {
     const media = root.HU_CUSTOM_MEDIA;
-    if (!media?.installed || tab === 'dien' || (tab === 'khi' && !UI.g().featureOpen('forge'))) return '';
+    if (!media?.installed || tab === 'dien' || (FORGE_TABS.includes(tab) && !UI.g().featureOpen('forge'))) return '';
     const s = UI.s(), focus = UI.view.workshopFocus === 'furnace' ? 'furnace' : 'hero';
     const furnaceOnly = tab === 'dan' && focus === 'furnace';
     const caption = tab === 'dan' ? 'Quan sát lò đan và những mẻ đang luyện.'
-      : 'Luyện khí và chế phù dùng nguyên liệu từ hành trang.';
-    const title = tab === 'dan' ? 'Đan Các' : 'Lò rèn';
-    const picture = furnaceOnly ? media.furnace : media.workshop(s.gender, tab, !UI.isReduced());
+      : tab === 'phu' ? 'Vẽ phù lục bằng linh tài và mực phù trong hành trang.' : 'Rèn pháp bảo bằng linh tài trong hành trang.';
+    const title = tab === 'dan' ? 'Đan Các' : tab === 'phu' ? 'Phù án' : 'Lò rèn';
+    const picture = furnaceOnly ? media.furnace : media.workshop(s.gender, artTab(tab), !UI.isReduced());
     const photo = '<img class="craft-scene-figure' + (furnaceOnly ? ' craft-scene-furnace' : '') +
       '" src="' + abs(picture) + '" alt="' + (furnaceOnly ? 'Lò luyện đan' : (s.gender === 'nu' ? 'Nữ' : 'Nam') +
-      (tab === 'dan' ? ' tu sĩ đang luyện đan' : ' tu sĩ đang rèn pháp bảo')) + '" decoding="async">';
+      (tab === 'dan' ? ' tu sĩ đang luyện đan' : tab === 'phu' ? ' tu sĩ đang vẽ phù' : ' tu sĩ đang rèn pháp bảo')) + '" decoding="async">';
     const switcher = tab === 'dan'
       ? '<button type="button" class="btn btn-outline" data-act="workshopFocus" data-focus="' +
         (furnaceOnly ? 'hero' : 'furnace') + '">' + (furnaceOnly ? 'Xem người luyện đan' : 'Xem riêng lò đan') + '</button>'
       : '';
     return '<section class="craft-scene" aria-label="Cảnh ' + title + '" style="--scene-bg:url(\'' +
-      abs(media.backgrounds[tab]) + '\')"><div class="craft-scene-head"><span class="eyebrow">Nghề phụ, cảnh chế tác</span>' +
+      abs(media.backgrounds[artTab(tab)]) + '\')"><div class="craft-scene-head"><span class="eyebrow">Nghề phụ, cảnh chế tác</span>' +
       '<h3>' + title + '</h3><p>' + caption + '</p><span class="craft-scene-count">' +
-      (tab === 'dan' ? 'Mẻ đang luyện: ' + s.craftQueue.length + '/3' : 'Luyện khí · Chế phù') + '</span></div>' +
+      (tab === 'dan' ? 'Mẻ đang luyện: ' + s.craftQueue.length + '/3' : tab === 'phu' ? 'Vẽ phù' : 'Luyện pháp bảo') + '</span></div>' +
       photo + '<div class="craft-scene-foot">' + switcher +
       '<p>' + (UI.isReduced() ? 'Đang dùng hình tĩnh theo cài đặt giảm chuyển động.' : 'Hoạt cảnh minh họa, không thay đổi thời gian chế tác.') +
       '</p></div></section>';
@@ -107,21 +110,27 @@
       ${book(xs, 1, cardOf, 'Đan phương (tham khảo)', empty('Không có đan phương phù hợp.'))}`;
   }
 
-  function forge() {
+  /* Một trang cho mỗi nghề: tab khi = rèn pháp bảo (EQ), tab phu = vẽ phù (TAL). */
+  function forge(tab) {
     const s = UI.s(), g = UI.g();
-    if (!H.SECT_BOOKS.some(b => b.id === s.borrowedBook && ['EQ','TAL'].includes(b.kind))) return `<p class="info-note">Chưa mượn sách luyện khí hoặc chế phù. Đến Tàng Kinh Các trong Tông môn để chọn sách bằng điểm lịch luyện.</p><button class="btn btn-gold" data-go="sect:library">Đến Tàng Kinh Các</button>`;
-    const xs = H.ITEMS.filter(x => ['EQ', 'TAL'].includes(x.kind) && g.hasCraftRecipe(x.code) && x.tier <= s.realm && lists.matches(x));
+    const kind = tab === 'phu' ? 'TAL' : 'EQ';
+    const job = kind === 'TAL' ? 'vẽ phù' : 'luyện pháp bảo';
+    if (!H.SECT_BOOKS.some(b => b.id === s.borrowedBook && b.kind === kind)) return `<p class="info-note">Chưa mượn sách ${job}. Đến Tàng Kinh Các trong Tông môn để chọn sách bằng điểm lịch luyện.</p><button class="btn btn-gold" data-go="sect:library">Đến Tàng Kinh Các</button>`;
+    const xs = H.ITEMS.filter(x => x.kind === kind && g.hasCraftRecipe(x.code) && x.tier <= s.realm && lists.matches(x));
     const rowOf = x => {
-      const r=g.forgeRecipe(x.code),mat=H.item(r.herb),haveMat=mat?g.ingredientCount(mat.code):0;
-      const manualOk=!r.manual||Object.keys(s.learned).some(k=>H.item(k)?.code===r.manual);
-      const ok=mat&&haveMat>=r.count&&(!r.ink||g.ingredientCount(r.ink)>0)&&manualOk&&s.stone>=r.stone;
+      const r = g.forgeRecipe(x.code), mat = H.item(r.herb), haveMat = mat ? g.ingredientCount(mat.code) : 0;
+      const manualOk = !r.manual || Object.keys(s.learned).some(k => H.item(k)?.code === r.manual);
+      const inkOk = !r.ink || g.ingredientCount(r.ink) > 0;
+      const ok = mat && haveMat >= r.count && inkOk && manualOk && s.stone >= r.stone;
+      const why = !mat || haveMat < r.count ? 'Thiếu linh tài' : !inkOk ? 'Thiếu mực phù' : !manualOk ? 'Chưa lĩnh ngộ ' + (H.item(r.manual)?.name || 'bí tịch') : s.stone < r.stone ? 'Thiếu linh thạch' : '';
       return `<article class="shop-item">${img(x.code)}<div><h3>${UI.kit.itemName(x)}</h3><p>${x.realm} · ${F.SUBPHAM[x.sub]}</p>
-        <p>${r.count} ${esc(mat?.name || 'linh tài')} <span class="${haveMat >= r.count ? 'green-text' : 'danger-text'}">(${haveMat})</span>${r.ink ? ` · 1 ${esc(H.item(r.ink)?.name || 'mực')} <span class="${g.ingredientCount(r.ink) ? 'green-text' : 'danger-text'}">(${g.ingredientCount(r.ink)})</span>` : ''}${r.manual?` · ${esc(H.item(r.manual).name)} (${manualOk?'đã học':'chưa học'})`:''} · ${moneyHTML(r.stone)}</p></div>
+        <p>${r.count} ${esc(mat?.name || 'linh tài')} <span class="${haveMat >= r.count ? 'green-text' : 'danger-text'}">(${haveMat})</span>${r.ink ? ` · 1 ${esc(H.item(r.ink)?.name || 'mực')} <span class="${inkOk ? 'green-text' : 'danger-text'}">(${g.ingredientCount(r.ink)})</span>` : ''} · ${moneyHTML(r.stone)}</p>
+        ${why ? `<p class="danger-text">${esc(why)}</p>` : ''}</div>
         ${btn('Chế tạo', 'forge', codeAttr(x.code), !ok)}</article>`;
     };
-    return `<p class="screen-lead">Công thức từ sách đang mượn. Một số công thức cần bí tịch riêng; phí 10% giá trị, chỉ chế vật cùng hoặc dưới cảnh giới.</p>
-      ${lists.controls({ categories: ['Tất cả', 'Pháp bảo', 'Phù lục'] })}
-      ${book(xs, 3, rowOf, 'Luyện khí · Chế phù', empty('Chưa có vật phẩm để chế tạo ở cảnh giới này.'))}`;
+    return `<p class="screen-lead">Công thức từ sách đang mượn. Phí 10% giá trị, chỉ chế vật cùng hoặc dưới cảnh giới.</p>
+      ${lists.controls({ categories: ['Tất cả'] })}
+      ${book(xs, 3, rowOf, kind === 'TAL' ? 'Vẽ phù' : 'Luyện pháp bảo', empty('Chưa có vật phẩm để chế tạo ở cảnh giới này.'))}`;
   }
 
   function plotArt(p, now) {
@@ -164,8 +173,8 @@
   }
 
   function render(tab) {
-    const body = tab === 'khi' && !UI.g().featureOpen('forge') ? lockedFeature('forge') : tab === 'khi' ? forge() : tab === 'dien' ? garden() : furnaces() + recipes();
-    const visibleTabs = TABS.map(t => t.id === 'khi' && !UI.g().featureOpen('forge')
+    const body = FORGE_TABS.includes(tab) && !UI.g().featureOpen('forge') ? lockedFeature('forge') : FORGE_TABS.includes(tab) ? forge(tab) : tab === 'dien' ? garden() : furnaces() + recipes();
+    const visibleTabs = TABS.map(t => FORGE_TABS.includes(t.id) && !UI.g().featureOpen('forge')
       ? { ...t, label: '🔒 ' + t.label, badge: 'Mở ở ' + F.REALMS[H.FEATURES.forge.realm] } : t);
     return banner(tab) + tabs(visibleTabs, tab) + `<div class="screen-body">${workshopScene(tab)}${body}</div>`;
   }
@@ -203,7 +212,7 @@
     id: 'craft', label: 'Nghề phụ', icon: 'ICON-MENU-005', eyebrow: 'Nghề phụ',
     tabs: TABS, render, update,
     /* Trang Nghề phụ toàn màn hình dùng nền riêng của từng nghề. */
-    pageBg: tab => abs(tab === 'dien' ? root.HU_ASSETS.BG.garden : root.HU_CUSTOM_MEDIA?.installed ? root.HU_CUSTOM_MEDIA.backgrounds[tab] : tab === 'khi' ? UI.data.ART.talisman : UI.data.ART.workshop),
+    pageBg: tab => abs(tab === 'dien' ? root.HU_ASSETS.BG.garden : root.HU_CUSTOM_MEDIA?.installed ? root.HU_CUSTOM_MEDIA.backgrounds[artTab(tab)] : FORGE_TABS.includes(tab) ? UI.data.ART.talisman : UI.data.ART.workshop),
     signature: () => { const s = UI.s(); return [s.exploration?.active?.end,s.dungeon?.active?.end,s.dungeon?.run?.id].join('|') + '|' + s.realm + '|' + s.craftQueue.length + '|' + s.garden.length + '|' + s.craftQueue.map(j => j.code).join(',') + '|' + s.garden.map(p => p.herb).join(',') + '|' + s.gardenSoils.join(','); }
   });
 
