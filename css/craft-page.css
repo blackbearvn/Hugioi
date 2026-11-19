@@ -1,0 +1,88 @@
+/* HƯ GIỚI · ĐAN PHÒNG
+ * Cùng bảng màu với trang giao chiến (mực, đá phiến, ngà, đồng cổ, chu sa, ngọc lam). Các ô nguyên liệu
+ * xếp thành vòng quanh lò; khi luyện, ô ẩn đi và hoạt cảnh chiếm giữa màn hình. */
+.craft-page{
+  --ink:#0c1013;--slate:#161c21;--slate-2:#1e262c;--rule:#2c363d;
+  --paper:#ebe2cd;--dim:#a5a99f;--bronze:#c9a24e;--cinnabar:#d0553d;--jade:#62b49d;--r:3px;
+  position:fixed;inset:0;z-index:60;display:grid;grid-template-rows:auto minmax(0,1fr);color:var(--paper);
+  background:linear-gradient(#0c1013d9,#0c1013d9),var(--cp-bg) center/cover no-repeat,var(--ink)
+}
+.craft-page[hidden]{display:none}
+.craft-page .bp-bar{background:#0c1013e6}
+body.in-craft{overflow:hidden}
+body.in-craft .toasts,body.in-game.in-craft .toasts{top:calc(env(safe-area-inset-top,0px) + 62px);bottom:auto;right:12px;left:auto}
+.cp-body{min-height:0;overflow:auto;display:grid;grid-template-rows:minmax(0,1fr) auto;overscroll-behavior:contain}
+.cp-body:has(.cp-brew),.cp-body:has(.cp-fail),.cp-body:has(.cp-game){grid-template-rows:minmax(0,1fr)}
+.craft-page button:focus-visible{outline:2px solid var(--bronze);outline-offset:2px}
+
+.cp-stage{display:grid;align-content:center;justify-items:center;gap:18px;padding:18px 16px;min-height:0}
+
+/* Vòng ô nguyên liệu quanh lò */
+.cp-ring{--R:150px;--S:92px;position:relative;width:calc(var(--R)*2 + var(--S));height:calc(var(--R)*2 + var(--S));max-width:100%}
+.cp-core{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}
+.cp-core img{width:150px;height:150px;object-fit:contain;opacity:.9;filter:drop-shadow(0 6px 14px #000a)}
+.cp-slot{position:absolute;left:50%;top:50%;width:var(--S);height:var(--S);margin:calc(var(--S)/-2);display:grid;align-content:center;justify-items:center;gap:2px;padding:4px;
+  border:1px dashed #5a6770;border-radius:var(--r);background:#0c1013b3;color:var(--paper);font:inherit;
+  transform:rotate(calc(var(--i)*60deg - 90deg)) translateX(var(--R)) rotate(calc(var(--i)*-60deg + 90deg))}
+.cp-slot.on{border:1px solid var(--bronze);background:#161c21f2;cursor:pointer}
+.cp-slot.on:hover{border-color:var(--paper)}
+.cp-img{width:44px;height:44px;object-fit:contain}
+.cp-slot b{position:absolute;right:4px;top:2px;font:700 15px/1 var(--serif);color:var(--bronze)}
+.cp-slot small{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:var(--dim)}
+
+.cp-go{display:grid;justify-items:center;gap:10px;text-align:center}
+.cp-hint{margin:0;max-width:52ch;font-size:13.5px;line-height:1.55;color:var(--dim)}
+.cp-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.cp-actions .btn{margin:0;min-height:46px;border-radius:var(--r)}
+.cp-start{min-width:200px;font-size:16px}
+
+.cp-shelf{display:flex;gap:8px;overflow-x:auto;padding:12px 16px calc(env(safe-area-inset-bottom,0px) + 12px);border-top:1px solid var(--rule);background:#0c1013f0}
+.cp-herb{flex:none;display:grid;grid-template-columns:36px auto;align-items:center;gap:2px 8px;min-width:132px;padding:6px 10px 6px 6px;border:1px solid var(--rule);border-radius:var(--r);background:var(--slate);color:var(--paper);font:inherit;text-align:left;cursor:pointer}
+.cp-herb:hover:not(:disabled){border-color:var(--bronze)}
+.cp-herb:disabled{opacity:.4;cursor:default}
+.cp-herb-img{grid-row:span 2;width:36px;height:36px;object-fit:contain}
+.cp-herb span{font-size:13px;font-weight:600}
+.cp-herb em{font-style:normal;font-size:12px;color:var(--dim)}
+.cp-empty{margin:4px 0;color:var(--dim);font-size:13.5px}
+
+/* Canh lửa */
+.cp-game{display:grid;gap:12px;width:min(560px,100%);padding:20px;border:1px solid var(--rule);border-radius:var(--r);background:#0c1013ee;text-align:center}
+.cp-game h3{margin:0;font:400 28px/1.2 var(--display)}
+.cp-game p{margin:0;color:var(--dim);font-size:13.5px}
+.cp-track{position:relative;height:46px;border:1px solid var(--rule);border-radius:var(--r);background:var(--slate);cursor:pointer;touch-action:manipulation}
+.cp-zone{position:absolute;top:0;bottom:0;background:#62b49d40;border-left:2px solid var(--jade);border-right:2px solid var(--jade)}
+.cp-flame{position:absolute;top:-4px;bottom:-4px;width:6px;margin-left:-3px;border-radius:2px;background:var(--cinnabar);box-shadow:0 0 10px var(--cinnabar)}
+.cp-pips{display:flex;justify-content:center;gap:8px}
+.cp-pips i{width:26px;height:6px;border-radius:1px;background:var(--rule)}
+.cp-pips i.now{background:var(--bronze)}
+.cp-pips i.done{background:var(--jade)}
+.cp-msg{min-height:1.4em;color:var(--paper)!important}
+.cp-hit{min-height:52px;font-size:17px;border-radius:var(--r)}
+
+/* Luyện: GIF ở giữa, đồng hồ phía trên */
+.cp-brew{grid-template-rows:auto minmax(0,1fr) auto auto auto;gap:10px}
+.cp-count{display:grid;justify-items:center;gap:2px;text-align:center}
+.cp-count small{font-size:14px;color:var(--bronze)}
+.cp-count strong{font:400 clamp(44px,9vw,76px)/1.05 var(--display);font-variant-numeric:tabular-nums;color:var(--paper);text-shadow:0 2px 14px #000}
+.cp-count.done strong{font-size:clamp(34px,7vw,56px);color:var(--jade)}
+.cp-figure{justify-self:center;align-self:center;max-width:min(100%,640px);max-height:min(54vh,520px);min-height:0;object-fit:contain;filter:drop-shadow(0 12px 22px #000b)}
+.cp-queue{display:grid;gap:4px;width:min(420px,100%);margin:0;padding:0;list-style:none;font-size:13.5px}
+.cp-queue li{display:flex;justify-content:space-between;gap:12px;padding:6px 10px;border-left:3px solid var(--bronze);background:#0c1013d9}
+.cp-queue b{font-variant-numeric:tabular-nums}
+
+/* Thất bại */
+.cp-fail{text-align:center}
+.cp-fail h3{margin:0;font:400 32px/1.2 var(--display);color:var(--cinnabar)}
+.cp-fail p{margin:0;max-width:44ch;color:var(--paper);line-height:1.6}
+.cp-smoke{width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,#3a3d41cc 0,#3a3d4100 70%)}
+@media(prefers-reduced-motion:no-preference){.cp-smoke{animation:cpSmoke 2.4s ease-out infinite}}
+@keyframes cpSmoke{0%{transform:scale(.7);opacity:.9}100%{transform:scale(1.4) translateY(-14px);opacity:0}}
+
+@media(max-width:560px){
+  .cp-ring{--R:112px;--S:68px}
+  .cp-core img{width:96px;height:96px}
+  .cp-img{width:32px;height:32px}
+  .cp-slot small{display:none}
+  .cp-stage{padding:12px 10px;gap:12px}
+}
+@media(max-height:640px){.cp-ring{--R:104px;--S:62px}.cp-core img{width:84px;height:84px}}

@@ -1165,6 +1165,7 @@
     updateTimers();
     if (trib.pageOpen) trib.updatePage();
     UI.battlePage?.sync(true);
+    UI.craftPage?.sync();
     UI.tutorial?.update();
   }
 
@@ -1176,6 +1177,7 @@
     updateTimers();
     if (trib.pageOpen) trib.updatePage();
     UI.battlePage?.sync(false);
+    UI.craftPage?.sync();
     UI.tutorial?.update();
   }
 
@@ -2232,6 +2234,7 @@
       updateTimers();
       if (trib.pageOpen) trib.updatePage();
       UI.battlePage?.sync(false);
+    UI.craftPage?.sync();
       UI.tutorial?.update();
       const st = UI.s();
       if (!trib.pageOpen && $('game')?.dataset.stage === 'idle' && !st.auto && st.settings.cultivationEffects && !isReduced() && Date.now() - lastIdleVfx > 14000) {

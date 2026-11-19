@@ -50,6 +50,12 @@
         const skill = s.alchemySkill + e.alchemy + s.craftBoost;
         return Math.max(.05, Math.min(.95, F.craft_success(tier, skill) + e.alchemyChance));
       },
+      /* Điểm canh lửa (0–100) do trình duyệt báo lên; máy chủ không kiểm chứng được nên chỉ cho lệch
+         tối đa một bậc phẩm: dưới 25 hạ một bậc, từ 75 nâng một bậc, ở giữa giữ nguyên. */
+      focusShift(focus) {
+        if (!Number.isInteger(focus)) return 0;
+        return focus >= 75 ? 1 : focus < 25 ? -1 : 0;
+      },
       craft(payload, now) {
         now = at(this, now);
         const s = this.s, code = payload.code, x = item(code), count = payload.count ?? 1;
@@ -70,7 +76,9 @@
           const skill = s.alchemySkill + this.manualEffects().alchemy + s.craftBoost;
           s.craftBoost = 0;
           const start = Math.max(now, s.craftQueue.at(-1)?.end || 0);
-          s.craftQueue.push({ code, end: start + r.time * 1000, success, quality: F.craft_quality(x.tier, skill, this.rng) });
+          const base = F.craft_quality(x.tier, skill, this.rng);
+          const quality = Math.max(0, Math.min(F.SUBPHAM.length - 1, base + this.focusShift(payload.focus)));
+          s.craftQueue.push({ code, end: start + r.time * 1000, success, quality });
         }
       },
       /* Luyện thủ công: người chơi tự bỏ nguyên liệu vào lò. Đúng đan phương thì xếp mẻ như craft;
@@ -91,7 +99,7 @@
           if (rk.length !== keys.length || !rk.every(k => mix[k] && mix[k] % r.herbs[k] === 0)) continue;
           const n = mix[rk[0]] / r.herbs[rk[0]];
           if (n > 3 || !rk.every(k => mix[k] / r.herbs[k] === n)) continue;
-          this.craft({ code: x.code, count: n }, now);
+          this.craft({ code: x.code, count: n, focus: payload.focus }, now);
           return { outcome: 'brew', code: x.code, count: n };
         }
         if (s.craftQueue.length >= 3) throw Error('Lò đang đầy, chưa thể thử công thức mới.');
