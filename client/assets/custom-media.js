@@ -8,12 +8,13 @@
     base: BASE,
     backgrounds: Object.freeze({
       dan: BASE + 'workshops/dan-cac.webp',
-      khi: BASE + 'workshops/lo-ren.webp'
+      khi: BASE + 'workshops/lo-ren.webp',
+      phu: 'media/assets/world/bg/room/ve_phu.webp'
     }),
     furnace: BASE + 'workshops/lo-dan.webp',
     workshop(gender, tab, animate = true) {
       const who = gender === 'nu' ? 'nu' : 'nam';
-      const job = tab === 'khi' ? 'ren-vu-khi' : 'luyen-dan';
+      const job = tab === 'khi' ? 'ren-vu-khi' : tab === 'phu' ? 've-phu' : 'luyen-dan';
       return BASE + 'animations/' + who + '/' + job + (animate ? '' : '-still') + '.webp';
     },
     meridian(gender, tone = 'xanh') {

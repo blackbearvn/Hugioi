@@ -194,6 +194,8 @@
     character: BG_BASE + 'room/character.webp',
     ranking: BG_BASE + 'room/ranking.webp',
     sect: BG_BASE + 'room/sect.webp',
+    sectHall: BG_BASE + 'room/tong_mon.webp',
+    library: BG_BASE + 'room/tang_kinh_cac.webp',
     garden: BASE + 'ui/linh_dien/BG.webp',
     logo: BG_BASE + 'logo.webp'
   };

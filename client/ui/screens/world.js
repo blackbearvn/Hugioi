@@ -336,7 +336,7 @@
   UI.register({
     id: 'sect', label: 'Tông môn', icon: '⌂', eyebrow: 'Tông môn',
     tabs: ['missions','exploration','dungeons','library','shop','ranks'].map(id => ({ id })),
-    pageBg: () => UI.kit.abs(root.HU_ASSETS.BG.sect),
+    pageBg: tab => UI.kit.abs(tab === 'library' ? root.HU_ASSETS.BG.library : ['missions', 'shop', 'ranks'].includes(tab) ? root.HU_ASSETS.BG.sectHall : root.HU_ASSETS.BG.sect),
     render: tab => '<header class="screen-title">' + (['exploration', 'dungeons'].includes(tab) ? '' : '<span class="eyebrow gold">Tiên môn</span>') + '<h2>Tông môn</h2></header><div class="screen-body">' + UI.adventure.sect(tab) + '</div>',
     update: tab => { UI.adventure.update(); if (tab === 'exploration') UI.screens.combat.update(); },
     mount: tab => { if (tab === 'exploration') UI.screens.combat.mount?.(); UI.adventure.mountRun?.(); },

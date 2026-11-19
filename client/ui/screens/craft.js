@@ -15,7 +15,7 @@
   ];
 
   const FORGE_TABS = ['khi', 'phu'];
-  const artTab = tab => tab === 'phu' ? 'khi' : tab;
+  const artTab = tab => tab;
   const alchemySkill = () => { const s = UI.s(); return s.alchemySkill + UI.g().manualEffects().alchemy + s.craftBoost; };
 
   function banner(tab) {
@@ -110,6 +110,18 @@
       ${book(xs, 1, cardOf, 'Đan phương (tham khảo)', empty('Không có đan phương phù hợp.'))}`;
   }
 
+  /* Điều kiện chế tạo một món: dùng chung cho danh sách ở tab và phòng rèn toàn màn hình (forge-page.js). */
+  function forgeStatus(x) {
+    const s = UI.s(), g = UI.g();
+    const r = g.forgeRecipe(x.code), mat = H.item(r.herb), haveMat = mat ? g.ingredientCount(mat.code) : 0;
+    const manualOk = !r.manual || Object.keys(s.learned).some(k => H.item(k)?.code === r.manual);
+    const inkOk = !r.ink || g.ingredientCount(r.ink) > 0;
+    const ok = !!(mat && haveMat >= r.count && inkOk && manualOk && s.stone >= r.stone);
+    const why = !mat || haveMat < r.count ? 'Thiếu linh tài' : !inkOk ? 'Thiếu mực phù' : !manualOk ? 'Chưa lĩnh ngộ ' + (H.item(r.manual)?.name || 'bí tịch') : s.stone < r.stone ? 'Thiếu linh thạch' : '';
+    return { r, mat, haveMat, manualOk, inkOk, ok, why };
+  }
+  UI.forgeStatus = forgeStatus;
+
   /* Một trang cho mỗi nghề: tab khi = rèn pháp bảo (EQ), tab phu = vẽ phù (TAL). */
   function forge(tab) {
     const s = UI.s(), g = UI.g();
@@ -118,17 +130,14 @@
     if (!H.SECT_BOOKS.some(b => b.id === s.borrowedBook && b.kind === kind)) return `<p class="info-note">Chưa mượn sách ${job}. Đến Tàng Kinh Các trong Tông môn để chọn sách bằng điểm lịch luyện.</p><button class="btn btn-gold" data-go="sect:library">Đến Tàng Kinh Các</button>`;
     const xs = H.ITEMS.filter(x => x.kind === kind && g.hasCraftRecipe(x.code) && x.tier <= s.realm && lists.matches(x));
     const rowOf = x => {
-      const r = g.forgeRecipe(x.code), mat = H.item(r.herb), haveMat = mat ? g.ingredientCount(mat.code) : 0;
-      const manualOk = !r.manual || Object.keys(s.learned).some(k => H.item(k)?.code === r.manual);
-      const inkOk = !r.ink || g.ingredientCount(r.ink) > 0;
-      const ok = mat && haveMat >= r.count && inkOk && manualOk && s.stone >= r.stone;
-      const why = !mat || haveMat < r.count ? 'Thiếu linh tài' : !inkOk ? 'Thiếu mực phù' : !manualOk ? 'Chưa lĩnh ngộ ' + (H.item(r.manual)?.name || 'bí tịch') : s.stone < r.stone ? 'Thiếu linh thạch' : '';
+      const { r, mat, haveMat, inkOk, ok, why } = forgeStatus(x);
       return `<article class="shop-item">${img(x.code)}<div><h3>${UI.kit.itemName(x)}</h3><p>${x.realm} · ${F.SUBPHAM[x.sub]}</p>
         <p>${r.count} ${esc(mat?.name || 'linh tài')} <span class="${haveMat >= r.count ? 'green-text' : 'danger-text'}">(${haveMat})</span>${r.ink ? ` · 1 ${esc(H.item(r.ink)?.name || 'mực')} <span class="${inkOk ? 'green-text' : 'danger-text'}">(${g.ingredientCount(r.ink)})</span>` : ''} · ${moneyHTML(r.stone)}</p>
         ${why ? `<p class="danger-text">${esc(why)}</p>` : ''}</div>
         ${btn('Chế tạo', 'forge', codeAttr(x.code), !ok)}</article>`;
     };
     return `<p class="screen-lead">Công thức từ sách đang mượn. Phí 10% giá trị, chỉ chế vật cùng hoặc dưới cảnh giới.</p>
+      <div class="action-group">${btn(kind === 'TAL' ? 'Vào phù án' : 'Vào lò rèn', 'forgePageOpen', `data-trade="${tab}"`, false, 'btn-gold')}</div>
       ${lists.controls({ categories: ['Tất cả'] })}
       ${book(xs, 3, rowOf, kind === 'TAL' ? 'Vẽ phù' : 'Luyện pháp bảo', empty('Chưa có vật phẩm để chế tạo ở cảnh giới này.'))}`;
   }
