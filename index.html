@@ -26,6 +26,7 @@
 <link rel="stylesheet" href="css/tienhiep.css">
 <link rel="stylesheet" href="css/van-chu.css">
 <link rel="stylesheet" href="css/companion.css">
+<link rel="stylesheet" href="css/battle-page.css">
 <script src="client/platform/content-guard.js"></script>
 </head>
 <body>
@@ -314,6 +315,14 @@
   <div id="wins" class="wins" aria-live="polite"></div>
 </div>
 
+<section id="battlePage" class="battle-page" hidden aria-labelledby="bpTitle">
+  <header class="bp-bar">
+    <button type="button" class="bp-back" data-act="battlePageLeave" aria-label="Tạm rời trận, trận vẫn được giữ">‹ <span>Tạm rời trận</span></button>
+    <div class="bp-title"><h2 id="bpTitle">Giao chiến</h2><p id="bpSub"></p></div>
+  </header>
+  <div id="battlePageBody" class="bp-body"></div>
+</section>
+
 <section id="tribulationFx" class="tribulation-fx trib-page" hidden aria-labelledby="tribTitle">
   <div class="trib-stage" id="tribStage">
     <div class="trib-sky" aria-hidden="true"></div>
@@ -460,6 +469,7 @@
 <script src="client/ui/screens/craft.js"></script>
 <script src="client/ui/screens/tribulation.js"></script>
 <script src="client/ui/screens/adventures.js"></script>
+<script src="client/ui/battle-page.js"></script>
 <script src="client/ui/screens/character.js"></script>
 <script src="client/ui/screens/world.js"></script>
 <script src="client/ui/screens/settings.js"></script>

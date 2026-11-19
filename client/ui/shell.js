@@ -1164,6 +1164,7 @@
     wins.refreshAll();
     updateTimers();
     if (trib.pageOpen) trib.updatePage();
+    UI.battlePage?.sync(true);
     UI.tutorial?.update();
   }
 
@@ -1174,6 +1175,7 @@
     wins.map.forEach(w => w.def.update?.(tabOf(w.def)));
     updateTimers();
     if (trib.pageOpen) trib.updatePage();
+    UI.battlePage?.sync(false);
     UI.tutorial?.update();
   }
 
@@ -2229,6 +2231,7 @@
       });
       updateTimers();
       if (trib.pageOpen) trib.updatePage();
+      UI.battlePage?.sync(false);
       UI.tutorial?.update();
       const st = UI.s();
       if (!trib.pageOpen && $('game')?.dataset.stage === 'idle' && !st.auto && st.settings.cultivationEffects && !isReduced() && Date.now() - lastIdleVfx > 14000) {

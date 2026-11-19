@@ -1,0 +1,222 @@
+/* HƯ GIỚI · TRANG GIAO CHIẾN · SẢNH LỊCH LUYỆN · SẢNH BÍ CẢNH
+ * Bảng màu riêng cho ba màn này: mực, đá phiến, ngà, đồng cổ (ta), chu sa (địch, đòn nặng), ngọc lam (hồi phục).
+ * Bo góc một cỡ nhỏ, nền phẳng, không đổ bóng; màu chỉ dùng để chỉ phe và trạng thái. */
+.battle-page,.lt,.bc{
+  --ink:#0c1013;--slate:#161c21;--slate-2:#1e262c;--rule:#2c363d;
+  --paper:#ebe2cd;--dim:#a5a99f;--bronze:#c9a24e;--cinnabar:#d0553d;--jade:#62b49d;
+  --r:3px;
+}
+
+/* ====================== TRANG GIAO CHIẾN ====================== */
+body.in-battle{overflow:hidden}
+.battle-page{position:fixed;inset:0;z-index:60;display:grid;grid-template-rows:auto minmax(0,1fr);background:var(--ink);color:var(--paper)}
+.battle-page[hidden]{display:none}
+.bp-bar{display:flex;align-items:center;gap:16px;padding:calc(env(safe-area-inset-top,0px) + 8px) 16px 8px;border-bottom:1px solid var(--rule);background:var(--ink)}
+.bp-back{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:6px 14px 6px 10px;border:1px solid var(--rule);border-radius:var(--r);background:var(--slate);color:var(--paper);font:600 14px/1 inherit;cursor:pointer}
+.bp-back:hover{border-color:var(--bronze)}
+.bp-title{min-width:0}
+.bp-title h2{margin:0;font:700 18px/1.25 var(--serif);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bp-title p{margin:0;font-size:12.5px;color:var(--dim)}
+.bp-body{min-height:0;overflow:auto;overscroll-behavior:contain}
+.bp-back:focus-visible,.zone-row:focus-visible,.battle-page .battle-skill:focus-visible{outline:2px solid var(--bronze);outline-offset:2px}
+
+.battle-page .battle-panel{display:grid;grid-template-columns:minmax(0,1fr) 380px;min-height:100%;border:0;border-radius:0;background:none;box-shadow:none;overflow:visible}
+.battle-page .battle-stage{min-height:0;height:100%;border-radius:0;box-shadow:none}
+.battle-page .battle-stage.boss{box-shadow:inset 0 0 0 1px #d0553d55}
+.battle-side{display:grid;align-content:start;gap:12px;min-width:0;padding:14px;border-left:1px solid var(--rule);background:var(--slate)}
+
+/* Thẻ hai bên: phẳng, cùng một cỡ bo, chỉ phe ta/địch khác nhau ở cạnh màu. */
+.battle-page .battle-card{border:0;border-radius:var(--r);background:#0c1013d9;box-shadow:none;backdrop-filter:none}
+.battle-page .battle-card.hero{border-left:3px solid var(--bronze)}
+.battle-page .battle-card.foe{border-right:3px solid var(--cinnabar);box-shadow:none}
+.battle-page .battle-card.foe.boss{border-right-color:var(--cinnabar);box-shadow:none}
+.battle-page .battle-round{border-radius:var(--r);background:#0c1013d9;border-color:var(--rule)}
+.battle-page .battle-ticker{border-radius:var(--r);border-color:var(--rule);background:#0c1013e6}
+.battle-page .battle-sprite.hero{height:clamp(200px,36vh,380px)}
+.battle-page .battle-sprite.foe{height:clamp(170px,31vh,330px)}
+.battle-page .battle-stage.boss .battle-sprite.foe{height:clamp(220px,40vh,420px)}
+.battle-page .battle-sprite.foe.human{height:clamp(200px,36vh,380px)}
+.battle-page .battle-fighters{padding:0 4% 52px}
+
+/* Ý đồ của địch là một con dấu chu sa: đòn nặng đóng dấu đỏ đặc, đòn thường chỉ viền đồng. */
+.battle-page .battle-telegraph{align-self:start;justify-self:center;gap:10px;margin:14px 0 0;padding:0;border:0;background:none;animation:none;color:var(--paper);font-size:13px}
+.battle-page .battle-telegraph .battle-pip{display:none}
+.battle-page .battle-telegraph::before{content:'常';display:grid;place-items:center;flex:none;width:40px;height:40px;border:2px solid var(--bronze);border-radius:var(--r);background:#0c1013d9;color:var(--bronze);font:900 22px/1 var(--serif);transform:rotate(-4deg)}
+.battle-page .battle-telegraph.heavy::before{content:'重';border-color:var(--cinnabar);background:var(--cinnabar);color:var(--ink)}
+.battle-page .battle-telegraph b{color:var(--paper)}
+@media(prefers-reduced-motion:no-preference){.battle-page .battle-telegraph.heavy::before{animation:bpStamp .32s ease-out}}
+@keyframes bpStamp{0%{opacity:0;transform:scale(1.7) rotate(-12deg)}100%{opacity:1;transform:scale(1) rotate(-4deg)}}
+
+/* Bảng lệnh: một khối, không phải bốn thẻ nổi. */
+.battle-page .battle-command{padding:0;background:none;gap:12px}
+.battle-page .battle-skills{gap:8px}
+.battle-page .battle-skill{border-radius:var(--r);border-color:var(--rule);background:var(--slate-2);box-shadow:none;padding:12px 6px 10px}
+.battle-page .battle-skill:not(:disabled):hover{transform:none;border-color:var(--bronze);background:#252f36;box-shadow:none}
+.battle-page .battle-skill-ico{border-radius:var(--r);background:var(--ink);border-color:var(--rule)}
+.battle-page .battle-skill.seal .battle-svg{color:var(--cinnabar)}
+.battle-page .battle-skill.jade .battle-svg{color:var(--jade)}
+.battle-page .battle-skill .battle-svg{color:var(--bronze)}
+.battle-page .battle-skill-cd{border-radius:var(--r)}
+.battle-page .battle-skill-hint{display:block;min-height:0}
+.battle-page .battle-tools{border-radius:var(--r);border-color:var(--rule);background:var(--ink)}
+.battle-page .battle-tool-tabs{background:var(--slate-2);border-color:var(--rule)}
+.battle-page .battle-tab.on{border-bottom-color:var(--bronze);background:var(--slate)}
+.battle-page .battle-tool{border-radius:var(--r);background:var(--slate);border-color:var(--rule)}
+.battle-page .battle-tool-list{max-height:200px}
+.battle-page .battle-log{padding:0;background:none}
+.battle-page .battle-log-head{margin:0;padding:4px 0;color:var(--dim);font:600 13px/1.4 inherit;letter-spacing:0;text-transform:none}
+.battle-page .battle-log .run-log{max-height:9em;margin:0;border-left:2px solid var(--rule);border-radius:0;background:none}
+.battle-page .battle-verdict{border:1px solid var(--rule);border-radius:var(--r);background:var(--slate-2)}
+.battle-page .battle-verdict-seal{border-radius:var(--r);box-shadow:none}
+.battle-page .battle-footactions{padding-top:2px}
+
+/* Bí cảnh: bốn nút hành động xếp lên đầu cột, cùng khuôn với bảng lệnh Lịch luyện. */
+.battle-page .dungeon-battle .battle-side>.run-actions{order:-2;margin:0}
+.battle-page .dungeon-battle .battle-side>.run-meter{order:-1;margin:0}
+.battle-page .run-actions{grid-template-columns:repeat(2,minmax(0,1fr))}
+.battle-page .run-actions .btn{border-radius:var(--r);min-height:56px}
+.battle-page .run-floors i{border-radius:1px;height:8px;background:var(--ink);border-color:var(--rule)}
+.battle-page .run-floors i.done{background:var(--jade);border-color:var(--jade)}
+.battle-page .run-floors i.now{background:var(--bronze);border-color:var(--bronze);box-shadow:none}
+.battle-page .run-intent{border-radius:var(--r);border-color:var(--rule);background:var(--ink)}
+.battle-page .run-intent.heavy{border-color:var(--cinnabar)}
+.battle-page .run-log{background:none}
+
+@media(max-width:940px){
+  .battle-page .battle-panel{grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto;min-height:0}
+  .battle-page .battle-stage{height:min(52dvh,470px);min-height:330px}
+  .battle-side{border-left:0;border-top:1px solid var(--rule);padding:12px 12px calc(env(safe-area-inset-bottom,0px) + 18px)}
+  .battle-page .battle-skills{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+  .battle-page .battle-skill-hint,.battle-page .battle-key{display:none}
+  .battle-page .battle-sprite.hero{height:clamp(120px,24vh,230px)}
+  .battle-page .battle-sprite.foe{height:clamp(100px,20vh,200px)}
+  .battle-page .battle-stage.boss .battle-sprite.foe{height:clamp(120px,25vh,250px)}
+  .battle-page .battle-fighters{padding:0 3% 44px}
+  .battle-page .run-actions{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .battle-page .run-actions .btn small{display:none}
+}
+@media(max-width:520px){
+  .bp-bar{gap:10px;padding-left:10px;padding-right:10px}
+  .bp-back span{display:none}
+  .bp-back{padding:6px 12px}
+  .battle-page .run-actions{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .battle-page .run-actions .btn small{display:block}
+  .battle-page .battle-telegraph::before{width:32px;height:32px;font-size:17px}
+}
+
+/* ====================== SẢNH: DÙNG CHUNG ====================== */
+.lt,.bc{display:grid;gap:18px;padding:18px;border:1px solid var(--rule);border-radius:var(--r);background:#0c1013e6;color:var(--paper)}
+.lt-head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px}
+.lt-head h3{margin:0 0 4px;font:700 26px/1.2 var(--serif);color:var(--paper)}
+.lt-head p{margin:0;max-width:62ch;color:var(--dim);font-size:14px;line-height:1.6}
+.lt-points{display:grid;margin:0;max-width:24ch;text-align:right}
+.lt-points b{font:700 28px/1.1 var(--serif);color:var(--bronze);font-variant-numeric:tabular-nums}
+.lt-points span{font-size:12px;line-height:1.4;color:var(--dim)}
+.lt-warn{margin:0;padding:8px 12px;border-left:3px solid var(--cinnabar);background:var(--slate);color:#f0c7bd;font-size:13.5px;line-height:1.5}
+.lt-note{margin:0 0 12px;color:var(--dim);font-size:13px}
+.lt-resume{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 18px;padding:14px 16px;border:1px solid var(--rule);border-left:3px solid var(--cinnabar);border-radius:var(--r);background:var(--slate)}
+.lt-resume.is-over{border-left-color:var(--jade)}
+.lt-resume b{font:700 16px/1.35 var(--serif)}
+.lt-resume p{margin:2px 0 0;color:var(--dim);font-size:13px}
+.lt-resume .btn{margin:0}
+
+/* ====================== SẢNH LỊCH LUYỆN ====================== */
+.lt-journey{display:grid;gap:14px}
+.lt-clock{display:grid;grid-template-columns:auto 1fr;align-items:baseline;gap:2px 14px}
+.lt-clock span{color:var(--dim);font-size:13px}
+.lt-clock strong{grid-column:1;font:700 clamp(30px,5vw,42px)/1.1 var(--serif);font-variant-numeric:tabular-nums;color:var(--paper)}
+.lt-line{grid-column:1/-1;height:3px;background:var(--rule);overflow:hidden}
+.lt-line i{display:block;height:100%;background:var(--bronze);transition:width 1s linear}
+.lt-journey .event-block{margin:0;padding:2px 0 2px 16px;border:0;border-left:3px solid var(--bronze);border-radius:0;background:none}
+.lt-journey .event-block.event-monster{border-left-color:var(--cinnabar)}
+.lt-journey .event-block.event-npc{border-left-color:var(--jade)}
+.lt-journey .ev-kind{display:block;font:600 13px/1.4 inherit;color:var(--bronze)}
+.lt-journey .event-monster .ev-kind{color:var(--cinnabar)}
+.lt-journey .event-npc .ev-kind{color:var(--jade)}
+.lt-journey .event-block h3{margin:2px 0 6px;font:700 22px/1.3 var(--serif)}
+.lt-journey .event-text{margin:0 0 10px;color:var(--paper);line-height:1.6;max-width:64ch}
+.lt-journey .ev-choices{display:grid;grid-template-columns:1fr;gap:0;margin:8px 0 6px;border-top:1px solid var(--rule)}
+.lt-journey .event-choice{display:grid;grid-template-columns:minmax(120px,190px) 1fr;gap:4px 16px;align-items:baseline;padding:11px 8px;border:0;border-bottom:1px solid var(--rule);border-radius:0;background:none;box-shadow:none;text-align:left;color:var(--paper);cursor:pointer}
+.lt-journey .event-choice b{font:700 15px/1.35 var(--serif);color:var(--bronze)}
+.lt-journey .event-choice small{font-size:13px;color:var(--dim)}
+.lt-journey .event-choice:hover:not(:disabled),.lt-journey .event-choice:focus-visible{background:var(--slate);border-color:var(--rule)}
+.lt-journey .event-choice:focus-visible{outline:2px solid var(--bronze);outline-offset:-2px}
+.lt-journey .event-choice.active{background:var(--slate-2);box-shadow:inset 3px 0 0 var(--bronze)}
+.lt-journey .event-choice:disabled:not(.active){opacity:.45}
+
+.lt-body{display:grid;grid-template-columns:minmax(220px,300px) minmax(0,1fr);gap:18px;align-items:start}
+.lt-zones{display:grid;gap:6px;margin:0;padding:0;list-style:none;max-height:520px;overflow:auto}
+.zone-row{display:grid;grid-template-columns:60px minmax(0,1fr);align-items:center;gap:10px;width:100%;padding:6px 10px 6px 6px;border:1px solid var(--rule);border-radius:var(--r);background:var(--slate);color:var(--paper);text-align:left;font:inherit;cursor:pointer}
+.zone-row:hover:not(:disabled){border-color:#4a5760}
+.zone-row .zr-art{display:block;height:42px;border-radius:2px;background:var(--zone-art) center/cover;filter:saturate(.8)}
+.zone-row .zr-text{display:grid;min-width:0}
+.zone-row b{font:700 14.5px/1.3 var(--serif);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.zone-row small{font-size:12px;color:var(--dim)}
+.zone-row.on{border-color:var(--bronze);background:var(--slate-2);box-shadow:inset 3px 0 0 var(--bronze)}
+.zone-row.is-locked{opacity:.5}
+.zone-row.is-locked .zr-art{filter:grayscale(1)}
+.zone-row:disabled{cursor:default}
+.lt-dest{position:sticky;top:0;display:flex;flex-direction:column;min-height:470px;border:1px solid var(--rule);border-radius:var(--r);background:var(--zone-art) center/cover,var(--slate);overflow:hidden}
+.lt-dest-body{margin-top:auto;padding:18px;border-top:1px solid var(--rule);background:#0c1013f5}
+.lt-dest h3{margin:0 0 4px;font:700 26px/1.2 var(--serif)}
+.lt-dest p{margin:0 0 12px;color:var(--dim);font-size:14px}
+.lt-facts{display:grid;gap:0;margin:0 0 16px;border-top:1px solid var(--rule)}
+.lt-facts div{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--rule);font-size:13.5px}
+.lt-facts dt{color:var(--dim)}
+.lt-facts dd{margin:0;text-align:right}
+.lt-go{width:100%;min-height:48px;margin:0;font-size:16px}
+.lt-journal h4{margin:0 0 6px;font:600 13px/1.4 inherit;color:var(--dim)}
+.lt-journal .journal{max-height:210px;color:var(--paper)}
+.lt-journal .journal div{border-bottom:1px solid var(--rule)}
+
+@media(max-width:760px){
+  .lt-body{grid-template-columns:minmax(0,1fr)}
+  .lt-dest{order:-1;position:static;min-height:300px}
+  .lt-zones{max-height:none}
+  .lt-points{text-align:left}
+  .lt-journey .event-choice{grid-template-columns:1fr}
+}
+
+/* ====================== SẢNH BÍ CẢNH ====================== */
+.bc-list{display:grid;gap:12px;margin:0;padding:0;list-style:none}
+.bc-item{display:grid;grid-template-columns:150px minmax(0,1fr) minmax(220px,270px);border:1px solid var(--rule);border-radius:var(--r);background:var(--slate);overflow:hidden}
+.bc-art{background:var(--zone-art) center/cover;border-right:3px solid var(--el,var(--bronze));min-height:150px}
+.bc-main{display:grid;align-content:start;gap:6px;min-width:0;padding:14px 16px}
+.bc-main h4{margin:0;font:700 20px/1.25 var(--serif)}
+.bc-boss{margin:0;color:var(--bronze);font-size:14px}
+.bc-desc{margin:0;font-size:13.5px;line-height:1.55}
+.bc-main .hu-dungeon-lore{margin:0;font-size:12.5px;line-height:1.55;color:var(--dim)}
+.bc-tags{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:2px;font-size:12.5px;color:var(--dim)}
+.bc-side{display:grid;align-content:start;gap:8px;padding:14px 16px;border-left:1px solid var(--rule)}
+.bc-ticks{display:flex;flex-wrap:wrap;gap:3px}
+.bc-ticks i{width:9px;height:14px;border-radius:1px;background:var(--ink);border:1px solid var(--rule)}
+.bc-ticks i.done{background:var(--el,var(--jade));border-color:var(--el,var(--jade))}
+.bc-record p,.bc-meta,.bc-lock{margin:0;font-size:12.5px;line-height:1.5;color:var(--dim)}
+.bc-record p{margin-top:5px}
+.bc-record b{color:var(--paper)}
+.bc-lock{color:#e0b98f}
+.bc-actions{display:grid;gap:6px;margin-top:2px}
+.bc-actions .btn{margin:0;width:100%;min-height:42px;border-radius:var(--r)}
+.bc-item.is-locked{opacity:.6}
+.bc-item.is-locked .bc-art{filter:grayscale(1)}
+.bc-item.is-live{border-color:var(--bronze)}
+.bc-live,.bc-last{display:grid;gap:6px;padding:12px 16px;border:1px solid var(--rule);border-left:3px solid var(--bronze);border-radius:var(--r);background:var(--slate)}
+.bc-live h4,.bc-last h4{margin:0;font:700 17px/1.35 var(--serif)}
+.bc-live .btn{margin:4px 0 0;justify-self:start}
+.bc-last p{margin:0;font-size:13.5px}
+.bc-last-rows{display:grid;gap:2px;max-width:340px}
+
+@media(max-width:860px){
+  .bc-item{grid-template-columns:minmax(0,1fr)}
+  .bc-art{min-height:76px;border-right:0;border-bottom:3px solid var(--el,var(--bronze))}
+  .bc-side{border-left:0;border-top:1px solid var(--rule)}
+  .bc-actions{grid-template-columns:1fr 1fr}
+}
+@media(max-width:420px){.bc-actions{grid-template-columns:1fr}}
+
+/* Thông báo không che bảng lệnh: đưa lên đầu trang khi đang giao chiến. */
+body.in-battle .toasts,body.in-game.in-battle .toasts{top:calc(env(safe-area-inset-top,0px) + 62px);bottom:auto;right:12px;left:auto}
+@media(max-width:700px){body.in-battle .toasts,body.in-game.in-battle .toasts{left:10px;right:10px}}
+@media(max-width:760px){.lt-dest{min-height:0;padding-top:150px}}
+.battle-page .run-log{list-style:none;padding-left:12px}
+.battle-page .run-log li+li{color:var(--dim)}

@@ -32,10 +32,11 @@
 
   function dungeonResult(r) {
     const d = H.DUNGEONS.find(x => x.id === r.id);
-    return card(d.name + ' · ' + r.floors + '/' + d.floors + ' tầng',
-      `<p class="${r.success ? 'gold' : 'muted'}">${r.success ? 'Đã hạ ' + d.boss : 'Đã rút lui dưỡng thương.'}${r.first ? ' · Thông quan đầu tiên!' : ''}</p>` +
-      row('Linh thạch', moneyHTML(r.stone)) + row('Tu vi thực nhận', '+' + num(r.exp)) +
-      '', { eyebrow: 'KẾT QUẢ GẦN NHẤT', cls: 'adventure-result' });
+    return `<section class="bc-last" aria-label="Kết quả chuyến gần nhất">
+      <h4>${esc(d.name)}, ${r.floors}/${d.floors} tầng</h4>
+      <p class="${r.success ? 'gold' : 'muted'}">${r.success ? 'Đã hạ ' + esc(d.boss) + '.' : 'Đã rút lui dưỡng thương.'}${r.first ? ' Thông quan lần đầu.' : ''}</p>
+      <div class="bc-last-rows">${row('Linh thạch', moneyHTML(r.stone))}${row('Tu vi thực nhận', '+' + num(r.exp))}</div>
+    </section>`;
   }
   /* Thanh chỉ số có nhãn chữ và vai trò meter để đọc được bằng trình đọc màn hình. */
   const meter = (label, value, max, cls) => {
@@ -103,45 +104,87 @@
       hero: { name: s.name, sub: g.realmLabel(), hp: s.hp, max: st.HP, mp: s.mp, maxMp: g.maxMp(), src: A.heroSrc(s.gender, s.realm, 'dung_chien', 0), alt: s.name + ' đang giao chiến' },
       foe: { tag: enemy.boss ? 'Thủ lĩnh' : 'Hộ vệ', name: enemy.name, sub: 'Tầng ' + run.floor + '/' + d.floors, hp: run.enemyHp, max: run.enemyMax, src: A.enemySrc(zone, kind, 'dung_yen', 0), alt: enemy.name + ' đang đối đầu' },
       center: { round: run.turn + 1, kind: `<span class="battle-kind">Tầng ${run.floor}/${d.floors}</span>` },
-      telegraph: `<p class="battle-telegraph${heavy ? ' heavy' : ''}" role="status"><i class="battle-pip" aria-hidden="true"></i><b>${esc(enemy.name)}</b> chuẩn bị ${heavy ? 'đòn nặng · thủ thế sẽ đỡ gần hết' : 'đòn thường'}</p>`,
+      telegraph: `<p class="battle-telegraph${heavy ? ' heavy' : ''}" role="status"><i class="battle-pip" aria-hidden="true"></i><b>${esc(enemy.name)}</b> chuẩn bị ${heavy ? 'đòn nặng, thủ thế sẽ đỡ gần hết' : 'đòn thường'}</p>`,
       ticker: run.log[0] || ''
     });
-    const body = `${arena}
-      <div class="run-floors" role="img" aria-label="Đã vượt ${run.cleared}/${d.floors} tầng">${pips}</div>
-      ${enemy.boss ? '<p class="hu-dungeon-lore">' + esc(H.STORY.DUNGEONS[d.id]?.boss || '') + '</p>' : ''}
-      ${phase ? '<p class="run-intent" role="status"><small>' + esc(phase['kỹ năng giai đoạn']) + '</small></p>' : ''}
-      ${meter('Thể lực', run.sta, run.staMax, 'sta')}
-      <div class="run-actions action-group">
-        ${act('attack', 'Xuất chiêu', '−' + R.attack + ' thể lực', run.sta < R.attack, 'btn-gold')}
-        ${act('power', 'Trọng kích ×2,2', '−' + R.power + ' thể lực', run.sta < R.power, 'btn-gold')}
-        ${act('guard', 'Thủ thế', '+' + R.guardGain + ' thể lực · đỡ đòn', false, 'btn-outline')}
-        ${act('heal', 'Hồi phục', run.healCd > 0 ? 'còn ' + run.healCd + ' lượt' : Math.round(R.healMp * 100) + '% linh lực', run.healCd > 0 || s.mp < mpCost, 'btn-outline')}
+    return `<section class="battle-panel dungeon-battle run-panel${enemy.boss ? ' boss' : ''}" aria-label="Chiến đấu trong ${esc(d.name)}, tầng ${run.floor}">
+      ${arena}
+      <div class="battle-side">
+        <div class="run-floors" role="img" aria-label="Đã vượt ${run.cleared}/${d.floors} tầng">${pips}</div>
+        ${enemy.boss ? '<p class="hu-dungeon-lore">' + esc(H.STORY.DUNGEONS[d.id]?.boss || '') + '</p>' : ''}
+        ${phase ? '<p class="run-intent" role="status"><small>' + esc(phase['kỹ năng giai đoạn']) + '</small></p>' : ''}
+        ${meter('Thể lực', run.sta, run.staMax, 'sta')}
+        <div class="run-actions action-group">
+          ${act('attack', 'Xuất chiêu', '−' + R.attack + ' thể lực', run.sta < R.attack, 'btn-gold')}
+          ${act('power', 'Trọng kích ×2,2', '−' + R.power + ' thể lực', run.sta < R.power, 'btn-gold')}
+          ${act('guard', 'Thủ thế', '+' + R.guardGain + ' thể lực, đỡ đòn', false, 'btn-outline')}
+          ${act('heal', 'Hồi phục', run.healCd > 0 ? 'còn ' + run.healCd + ' lượt' : Math.round(R.healMp * 100) + '% linh lực', run.healCd > 0 || s.mp < mpCost, 'btn-outline')}
+        </div>
+        <div class="battle-footactions">
+          ${UI.stage.autoKit.html(runAuto, { mode: 'dungeon', act: 'runAuto' })}
+          ${btn('Rút lui giữ thưởng', 'dungeonRetreat', '', false, 'btn-outline btn-sm')}
+        </div>
+        <p class="info-note">Phím 1–4. Mỗi lượt hồi ${R.passiveGain} thể lực, qua tầng hồi thêm ${R.floorGain}. Sinh lực và linh lực không tự hồi trong bí cảnh. Tự động chỉ chọn giữa bốn chiêu này, chưa dùng được công pháp và đan phù.</p>
+        <div class="battle-log is-open"><h4 class="battle-log-head">Diễn biến</h4>
+          <ol class="run-log" aria-live="polite" aria-label="Diễn biến lượt đánh">${run.log.map(v => `<li>${esc(v)}</li>`).join('')}</ol></div>
       </div>
-      ${UI.stage.autoKit.html(runAuto, { mode: 'dungeon', act: 'runAuto' })}
-      <p class="info-note">Phím tắt 1–4. Mỗi lượt thể lực tự hồi ${R.passiveGain}, qua tầng hồi thêm ${R.floorGain}. Đang đánh bí cảnh thì sinh lực và linh lực không tự hồi. Chế độ Tự động chọn xuất chiêu, trọng kích, thủ thế hoặc hồi phục thay bạn; trong bí cảnh chưa dùng được công pháp và đan phù.</p>
-      <ol class="run-log" aria-live="polite" aria-label="Diễn biến lượt đánh">${run.log.map(v => `<li>${esc(v)}</li>`).join('')}</ol>
-      <div class="action-group">${btn('Rút lui giữ thưởng đã vượt', 'dungeonRetreat', '', false, 'btn-outline')}</div>`;
-    return card('Chiến đấu · ' + d.name + ' · tầng ' + run.floor + '/' + d.floors, `<div class="battle-panel dungeon-battle${enemy.boss ? ' boss' : ''}">${body}</div>`, { eyebrow: 'TỰ TAY CHIẾN ĐẤU · LƯỢT ' + (run.turn + 1), cls: 'run-panel' });
+    </section>`;
   }
+  /* Chữ ký trận bí cảnh: giữ nguyên khi chiêu đang diễn hoạt để nhịp tick không vẽ lại giữa chừng. */
+  let heldRun = '';
+  function runSignature() {
+    if (runStage.busy() && heldRun) return heldRun;
+    const s = UI.s(), r = s.dungeon.run;
+    return heldRun = r ? [r.id, r.floor, r.turn, Math.round(r.enemyHp), Math.round(r.sta), r.healCd, r.intent, Math.round(s.hp), Math.round(s.mp), r.log[0], r.log.length, runAuto.on, runAuto.skills, runAuto.items].join('|') : '';
+  }
+  const runMeta = () => { const c = runDungeon(); return c ? { title: c.d.name, sub: 'Tầng ' + c.run.floor + ' trên ' + c.d.floors } : null; };
+
+  function runBanner() {
+    const c = runDungeon();
+    if (!c) return '';
+    return `<div class="lt-resume" role="status"><div><b>Đang ở tầng ${c.run.floor}/${c.d.floors} của ${esc(c.d.name)}</b>
+      <p>Trận được giữ nguyên, sinh lực và thể lực không đổi khi bạn rời đi.</p></div>${btn('Quay lại trận', 'battlePageResume', '', false, 'btn-gold')}</div>`;
+  }
+
   function dungeons() {
     const s = UI.s(), g = UI.g(), a = s.dungeon.active, active = H.DUNGEONS.find(d => d.id === a?.id), run = s.dungeon.run;
     const blocked = root.HU_COMMANDS?.activityConflict(s, 'startDungeon');
     const busy = !!a || !!run || !!s.sect.mission || !!blocked, hpOk = s.hp >= g.stats().HP * .5;
-    return `<p class="screen-lead">Vượt từng tầng, hạ thủ lĩnh để thu Tinh hoa. Có thể để chuyến đi tự chạy khi mở game (tạm dừng khi rời game, chiến lực chốt lúc khởi hành) hoặc tự tay chiến đấu từng lượt: quản lý thể lực, thủ thế đúng lúc, thưởng thêm ${Math.round((H.DUNGEON_RUN.bonus - 1) * 100)}% và 1 Tinh hoa khi thông quan.</p>
-      ${blocked && !a && !run ? '<p class="info-note">' + esc(blocked) + '</p>' : ''}
-      ${runPanel()}
-      ${active ? card('Đang thám hiểm · ' + active.name, clock(a) + `<p>Thủ lĩnh tầng ${active.floors}: ${active.boss}</p>` + btn('Rút lui', 'dungeonAbort', '', false, 'btn-outline'), { eyebrow: 'CHUYẾN ĐI' }) : ''}
+    const bonus = Math.round((H.DUNGEON_RUN.bonus - 1) * 100);
+    const items = H.DUNGEONS.map(d => {
+      const locked = s.realm < d.realm, r = s.dungeon.records[d.id], aff = g.affinity(d.element), off = locked || busy || !hpOk;
+      const best = r?.best || 0, art = UI.kit.abs(A?.zoneBg?.(dZone(d)) || A?.BG?.combat || '');
+      const ticks = Array.from({ length: d.floors }, (_, i) => `<i class="${i < best ? 'done' : ''}"></i>`).join('');
+      return `<li class="bc-item${locked ? ' is-locked' : ''}${run?.id === d.id || a?.id === d.id ? ' is-live' : ''}" style="--zone-art:url('${esc(art)}');--el:${color(d.element)}">
+        <div class="bc-art" aria-hidden="true"></div>
+        <div class="bc-main">
+          <h4>${esc(d.name)}</h4>
+          <p class="bc-boss">Thủ lĩnh ${esc(d.boss)}</p>
+          <p class="bc-desc">${esc(d.desc)}</p>
+          <p class="hu-dungeon-lore">${esc(H.STORY.DUNGEONS[d.id]?.intro || '')}</p>
+          <div class="bc-tags"><span>${elementLabel(d.element)}</span><span>${esc(F.REALMS[d.realm])}</span><span>${d.floors} tầng</span><span>${duration(d.seconds)} nếu để tự chạy</span></div>
+        </div>
+        <div class="bc-side">
+          <div class="bc-record" role="img" aria-label="Kỷ lục ${best} trên ${d.floors} tầng">
+            <div class="bc-ticks">${ticks}</div>
+            <p><b>${best}/${d.floors}</b> tầng, ${r?.clears || 0} lần thông quan</p>
+          </div>
+          ${locked ? `<p class="bc-lock">Mở ở ${esc(F.REALMS[d.realm])}</p>` : `<p class="bc-meta">Tương khắc ${signed(aff)} sát thương. Dự kiến ${g.estimateDungeon(d.id)}/${d.floors} tầng.</p>`}
+          <p class="bc-meta">${r?.clears ? 'Thủ lĩnh cho 1 đến ' + (d.floors >= 8 ? 3 : 2) + ' Tinh hoa.' : 'Thông quan đầu: thưởng ×2 và thêm 3 Tinh hoa.'}</p>
+          <div class="bc-actions">${btn(locked ? 'Chưa mở' : run?.id === d.id ? 'Đang chiến đấu' : 'Thân chinh giao chiến', 'dungeonEnter', `data-id="${d.id}"`, off, 'btn-gold')}${locked ? '' : btn(a?.id === d.id ? 'Đang thám hiểm' : 'Khởi hành tự động', 'dungeonStart', `data-id="${d.id}"`, off, 'btn-outline')}</div>
+        </div>
+      </li>`;
+    }).join('');
+    return `<div class="bc">
+      <header class="lt-head"><div><h3>Bí cảnh</h3>
+        <p>Vượt từng tầng, hạ thủ lĩnh để thu Tinh hoa. Khởi hành tự động thì chuyến đi tự chạy khi bạn mở game, chiến lực chốt lúc xuất phát. Thân chinh giao chiến thì tự quản thể lực, thưởng thêm ${bonus}% và 1 Tinh hoa khi thông quan.</p></div></header>
+      ${blocked && !a && !run ? '<p class="lt-warn">' + esc(blocked) + '</p>' : ''}
+      ${runBanner()}
+      ${active ? `<section class="bc-live"><h4>Đang thám hiểm ${esc(active.name)}</h4>${clock(a)}<p class="info-note">Thủ lĩnh tầng ${active.floors}: ${esc(active.boss)}</p>${btn('Rút lui', 'dungeonAbort', '', false, 'btn-outline')}</section>` : ''}
       ${s.dungeon.last ? dungeonResult(s.dungeon.last) : ''}
-      ${s.sect.mission ? '<p class="info-note">Đang nhận nhiệm vụ tông môn. Hoàn tất hoặc hủy nhiệm vụ để vào bí cảnh.</p>' : !hpOk && !run ? '<p class="info-note">Cần 50% sinh lực để khởi hành. Bạn đang tự hồi phục.</p>' : ''}
-      <div class="adventure-grid">${H.DUNGEONS.map(d => {
-        const locked = s.realm < d.realm, r = s.dungeon.records[d.id], aff = g.affinity(d.element), off = locked || busy || !hpOk;
-        return card(d.name, `<p>${esc(d.desc)}</p><p class="hu-dungeon-lore">${esc(H.STORY.DUNGEONS[d.id]?.intro || '')}</p><div class="adventure-tags"><span>${elementLabel(d.element)}</span><span>${d.floors} tầng · ${duration(d.seconds)}</span><span>${F.REALMS[d.realm]}</span></div>` +
-          row('Thủ lĩnh', d.boss) + row('Tương khắc', signed(aff) + ' sát thương') +
-          (locked ? '' : row('Dự kiến', g.estimateDungeon(d.id) + '/' + d.floors + ' tầng')) +
-          row('Kỷ lục', (r?.best || 0) + '/' + d.floors + ' · ' + (r?.clears || 0) + ' lần thông quan') +
-          `<p class="info-note">${r?.clears ? 'Thủ lĩnh cho 1–' + (d.floors >= 8 ? 3 : 2) + ' Tinh hoa.' : 'Thông quan đầu: thưởng ×2 và thêm 3 Tinh hoa.'}</p>` +
-          `<div class="action-group">${btn(locked ? 'Chưa mở' : a?.id === d.id ? 'Đang thám hiểm' : 'Khởi hành tự động', 'dungeonStart', `data-id="${d.id}"`, off, 'btn-outline')}${locked ? '' : btn(run?.id === d.id ? 'Đang chiến đấu' : 'Thân chinh giao chiến', 'dungeonEnter', `data-id="${d.id}"`, off)}</div>`, { cls: locked ? 'adventure-locked' : '' });
-      }).join('')}</div>`;
+      ${s.sect.mission ? '<p class="lt-warn">Đang nhận nhiệm vụ tông môn. Hoàn tất hoặc hủy nhiệm vụ để vào bí cảnh.</p>' : !hpOk && !run ? '<p class="lt-warn">Cần 50% sinh lực để khởi hành. Bạn đang tự hồi phục.</p>' : ''}
+      <ul class="bc-list" aria-label="Danh sách bí cảnh">${items}</ul>
+    </div>`;
   }
 
   function encounters() {
@@ -311,7 +354,7 @@
     document.querySelectorAll('[data-act="sectMissionClaim"]').forEach(el => { el.disabled = !UI.s().sect.mission || UI.s().sect.mission.end > now; });
     document.querySelectorAll('[data-act="encounter"]').forEach(el => { el.disabled = UI.s().encounter.usedAt + 90000 > now; });
   }
-  UI.adventure = { dungeons, encounters, sect, roots, update, runPanel, mountRun, runBusy: runStage.busy };
+  UI.adventure = { dungeons, encounters, sect, roots, update, runPanel, runSignature, runMeta, mountRun, runBusy: runStage.busy };
   UI.action('sectMeasure', () => {
     if (!UI.session?.playerId) throw Error('Chưa có đạo thân để đo linh căn.');
     measuredPlayer = UI.session.playerId;

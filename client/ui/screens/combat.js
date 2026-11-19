@@ -4,32 +4,80 @@
   const H = root.HU_GAME, F = H.F, A = root.HU_ASSETS, UI = root.HU_UI;
   const { $, esc, num, btn, card, abs, pct } = UI.kit;
 
-  function zoneCard() {
+  /* ======================================================================
+     SẢNH LỊCH LUYỆN
+     Chọn nơi đến ở cột trái, điểm đến đang chọn ở cột phải. Giao chiến diễn ra ở trang riêng
+     (battle-page.js); sảnh chỉ còn việc chuẩn bị, theo dõi chuyến đi và nhật ký.
+     ====================================================================== */
+  const fmtClock = sec => String(Math.floor(sec / 60)).padStart(2, '0') + ':' + String(sec % 60).padStart(2, '0');
+  const zoneArt = id => `style="--zone-art:url('${esc(abs(A?.zoneBg?.(id) || A?.BG?.combat || ''))}')"`;
+
+  function resumeBanner(e) {
+    const b = e.battle, active = b.state === 'active';
+    return `<div class="lt-resume${active ? '' : ' is-over'}" role="status">
+      <div><b>${active ? 'Đang giao chiến với ' + esc(e.name) : 'Trận vừa kết thúc'}</b>
+      <p>${active ? 'Đồng hồ chuyến đi tạm dừng cho đến khi phân thắng bại.' : 'Xem kết quả rồi tiếp tục chuyến đi.'}</p></div>
+      ${btn(active ? 'Quay lại trận' : 'Xem kết quả', 'battlePageResume', '', false, 'btn-gold')}</div>`;
+  }
+
+  function journeyBlock(journey) {
+    const now = UI.session.serverNow();
+    const remain = journey.battle ? Math.max(0, Math.ceil((journey.battle.remaining || 0) / 1000)) : Math.max(0, Math.ceil((journey.end - now) / 1000));
+    return `<section class="lt-journey" aria-label="Chuyến đi hiện tại">
+      <div class="lt-clock" role="timer" aria-label="Thời gian lịch luyện còn lại">
+        <span>Còn lại</span><strong${journey.battle ? '' : ' id="explorationCountdown"'}>${fmtClock(remain)}</strong>
+        <div class="lt-line" aria-hidden="true"><i${journey.battle ? '' : ' id="explorationProgress"'} style="width:${(100 - remain / 6).toFixed(1)}%"></i></div>
+      </div>
+      ${journey.battle ? resumeBanner(journey) : eventBlock()}
+    </section>`;
+  }
+
+  function destination(z, journey, blocked) {
+    const locked = z.realm > UI.s().realm;
+    return `<aside class="lt-dest" ${zoneArt(z.id)} aria-label="Điểm đến đã chọn">
+      <div class="lt-dest-body">
+        <h3>${esc(z.name)}</h3>
+        <p>${esc(z.desc)}</p>
+        <dl class="lt-facts">
+          <div><dt>Thời gian</dt><dd>10 phút</dd></div>
+          <div><dt>Phần thưởng</dt><dd>${H.EXPLORE_POINTS} điểm lịch luyện</dd></div>
+          <div><dt>Gặp trên đường</dt><dd>Yêu thú, đạo hữu, kỳ duyên</dd></div>
+        </dl>
+        ${blocked && !journey ? `<p class="lt-warn">${esc(blocked)}</p>` : ''}
+        ${journey ? '<p class="lt-note">Đang đi. Kết thúc chuyến mới đổi được nơi đến.</p>'
+          : btn(locked ? 'Chưa đủ cảnh giới' : 'Khởi hành', 'exploreStart', '', !!blocked || locked, 'btn-gold lt-go')}
+      </div>
+    </aside>`;
+  }
+
+  function lobby() {
     const s = UI.s(), journey = s.exploration?.active, blocked = root.HU_COMMANDS?.activityConflict(s, 'startExploration');
-    const now = UI.session.serverNow(), remain = journey ? Math.max(0, Math.ceil((journey.end - now) / 1000)) : 600;
-    const countdown = String(Math.floor(remain / 60)).padStart(2, '0') + ':' + String(remain % 60).padStart(2, '0');
-    return card('Chọn nơi lịch luyện', `
-      <p class="info-note">${journey
-        ? 'Đang hành tẩu trong bí cảnh. Phải kết thúc chuyến đi mới có thể trở về đài Tu luyện hoặc đổi địa điểm.'
-        : 'Chọn địa điểm phù hợp đạo hạnh, sau đó khởi hành. Một chuyến lịch luyện kéo dài đúng mười phút.'}</p>
-      ${blocked && !journey ? '<p class="info-note">' + esc(blocked) + '</p>' : ''}
-      <p class="info-note">Hoàn thành chuyến đi nhận ${H.EXPLORE_POINTS} điểm lịch luyện · hiện có ${num(s.adventurePoints || 0)} điểm. Dùng điểm để mượn sách tại Tàng Kinh Các trong tông môn.</p>
-      ${journey ? `<div class="exploration-clock" role="timer" aria-label="Thời gian lịch luyện còn lại">
-            <span>Thời gian trở về</span><strong id="explorationCountdown">${countdown}</strong>
-            <div class="meter-bar" aria-hidden="true"><i id="explorationProgress" style="width:${(100 - remain / 6).toFixed(1)}%"></i></div>
-          </div>${eventBlock()}` : ''}
-      <div class="zone-list">${H.ZONES.map(z => `
-        <button class="zone-button ${z.id === s.zone ? 'active' : ''}" data-act="travel" data-index="${z.id}"
-          ${journey || z.realm > s.realm ? 'disabled' : ''} aria-pressed="${z.id === s.zone}">
-          <b>${esc(z.name)}</b><small>${z.realm > s.realm ? 'Mở ở ' + F.REALMS[z.realm] : esc(z.desc)}</small>
-        </button>`).join('')}</div>
-      ${journey ? '' : btn('Khởi hành lịch luyện · 10 phút', 'exploreStart', '', !!blocked, 'btn-gold')}
-    `, { eyebrow: 'BÍ CẢNH', cls: 'zone-card' });
+    const here = H.ZONES[s.zone] || H.ZONES[0];
+    const rows = H.ZONES.map(z => {
+      const locked = z.realm > s.realm;
+      return `<li><button type="button" class="zone-row${z.id === s.zone ? ' on' : ''}${locked ? ' is-locked' : ''}" data-act="travel" data-index="${z.id}"
+        ${journey || locked ? 'disabled' : ''} aria-pressed="${z.id === s.zone}" ${zoneArt(z.id)}>
+        <span class="zr-art" aria-hidden="true"></span>
+        <span class="zr-text"><b>${esc(z.name)}</b><small>${locked ? 'Mở ở ' + esc(F.REALMS[z.realm]) : esc(F.REALMS[z.realm])}</small></span>
+      </button></li>`;
+    }).join('');
+    return `<div class="lt">
+      <header class="lt-head">
+        <div><h3>Lịch luyện</h3><p>Mỗi chuyến mười phút. Có thể gặp yêu thú chặn đường, đạo hữu hoặc một kỳ duyên.</p></div>
+        <p class="lt-points"><b>${num(s.adventurePoints || 0)}</b><span>điểm lịch luyện, dùng để mượn sách ở Tàng Kinh Các</span></p>
+      </header>
+      ${journey ? journeyBlock(journey) : ''}
+      <div class="lt-body">
+        <ul class="lt-zones" aria-label="Nơi lịch luyện">${rows}</ul>
+        ${destination(here, journey, blocked)}
+      </div>
+      <section class="lt-journal"><h4>Nhật ký</h4><div class="journal" id="combatJournal" aria-live="polite"></div></section>
+    </div>`;
   }
 
   /* Sự kiện ngẫu nhiên của chuyến đi hiện tại: quái, NPC hoặc kỳ duyên địa bảo.
      Quái và NPC cho chọn cách ứng phó; kết quả chỉ được tính khi hết chuyến. */
-  const EVENT_LABELS = { monster: 'YÊU THÚ CHẶN ĐƯỜNG', npc: 'GẶP GỠ ĐẠO HỮU', encounter: 'KỲ DUYÊN ĐỊA BẢO' };
+  const EVENT_LABELS = { monster: 'Yêu thú chặn đường', npc: 'Gặp gỡ đạo hữu', encounter: 'Kỳ duyên địa bảo' };
   /* Thanh chỉ số có nhãn chữ và role meter để trình đọc màn hình đọc được. */
   const meter = (label, value, max, cls) => {
     const v = Math.max(0, Math.min(max || 0, value || 0));
@@ -308,11 +356,13 @@
         </p>` : '',
         ticker: latest
       })}
+      <div class="battle-side">
       ${verdict}
       ${command}
       <div class="battle-log${logOpen ? ' is-open' : ''}">
         <button type="button" class="battle-log-head" data-act="battleLog" aria-expanded="${logOpen}">Diễn biến<i aria-hidden="true">${logOpen ? '▾' : '▸'}</i></button>
         ${logOpen ? `<ol class="run-log" role="log" aria-live="polite" aria-label="Diễn biến lượt đánh">${lines.map(v => `<li>${esc(v)}</li>`).join('')}</ol>` : ''}
+      </div>
       </div>
     </section>`;
   }
@@ -321,7 +371,7 @@
     const s = UI.s(), e = s.exploration?.active;
     if (!e) return '';
     const options = (H.EXPLORE_CHOICES || {})[e.kind], chosen = e.choice >= 0, tamMaMax = H.TAM_MA_MAX || 100;
-    const choices = options ? `<div class="event-choices" role="group" aria-label="Cách ứng phó">${options.map((o, i) => `
+    const choices = options ? `<div class="event-choices ev-choices" role="group" aria-label="Cách ứng phó">${options.map((o, i) => `
         <button class="event-choice ${chosen && e.choice === i ? 'active' : ''}" data-act="exploreChoice" data-index="${i}"
           ${chosen ? 'disabled' : ''} aria-pressed="${chosen && e.choice === i}">
           <b>${esc(o.label)}</b><small>${esc(o.desc)}</small>
@@ -332,22 +382,16 @@
         : e.kind === 'npc' ? 'Không chọn thì chỉ lướt qua, không đổi tâm ma. Tâm ma hiện tại: ' + num(s.tamMa || 0) + '/' + tamMaMax + '.'
           : 'Không chọn thì mặc định giao chiến. Tâm ma hiện tại: ' + num(s.tamMa || 0) + '/' + tamMaMax + '.';
     return `<section class="event-block event-${esc(e.kind)}" aria-label="Sự kiện lịch luyện">
-      <span class="eyebrow gold">${EVENT_LABELS[e.kind] || 'SỰ KIỆN'}</span><h3>${esc(e.name)}</h3>
+      <span class="ev-kind">${EVENT_LABELS[e.kind] || 'Sự kiện'}</span><h3>${esc(e.name)}</h3>
       <p class="event-text">${esc(e.text)}</p>${choices}<p class="info-note">${note}</p></section>`;
   }
 
-  function journalCard() {
-    return card('Nhật ký lịch luyện', '<div class="journal" id="combatJournal" aria-live="polite"></div>',
-      { eyebrow: 'DẤU CHÂN TIÊN LỘ' });
-  }
-
-  function panel() {
-    const e = UI.s().exploration?.active;
-    /* Đang giao chiến: bảng trận đứng riêng, không lồng trong thẻ chọn nơi,
-       để đồng hồ đếm ngược và toàn bộ nút hành động nằm trong một tầm mắt. */
-    if (e?.battle) return '<div class="screen-grid combat-grid exploration-grid battle-grid">' + battlePanel(e) + journalCard() + '</div>';
-    return '<div class="screen-grid combat-grid exploration-grid">' + zoneCard() + journalCard() + '</div>';
-  }
+  /* Sảnh luôn là sảnh; trận đấu có trang riêng nên không còn lồng vào cửa sổ. */
+  function panel() { return lobby(); }
+  UI.exploreBattle = {
+    html() { const e = UI.s().exploration?.active; return e?.battle ? battlePanel(e) : ''; },
+    meta() { const s = UI.s(), e = s.exploration?.active; return e?.battle ? { title: e.name, sub: 'Lịch luyện tại ' + (H.ZONES[s.zone]?.name || '') } : null; }
+  };
 
   function update() {
     const s = UI.s(), journey = s.exploration?.active, clock = $('explorationCountdown');
@@ -360,7 +404,7 @@
     }
     const journal = $('combatJournal');
     if (journal) journal.innerHTML = s.logs.slice(0, 24)
-      .map(v => '<div><time>✦</time>' + esc(v) + '</div>').join('');
+      .map(v => '<div>' + esc(v) + '</div>').join('');
   }
 
   // Không còn yêu thú, thanh kỹ năng hay tự chiến trên sân khấu Lịch luyện.

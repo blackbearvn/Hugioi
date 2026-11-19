@@ -337,7 +337,7 @@
     id: 'sect', label: 'Tông môn', icon: '⌂', eyebrow: 'TÔNG MÔN',
     tabs: ['missions','exploration','dungeons','library','shop','ranks'].map(id => ({ id })),
     pageBg: () => UI.kit.abs(root.HU_ASSETS.BG.sect),
-    render: tab => '<header class="screen-title"><span class="eyebrow gold">TIÊN MÔN</span><h2>Tông môn</h2></header><div class="screen-body">' + UI.adventure.sect(tab) + '</div>',
+    render: tab => '<header class="screen-title">' + (['exploration', 'dungeons'].includes(tab) ? '' : '<span class="eyebrow gold">TIÊN MÔN</span>') + '<h2>Tông môn</h2></header><div class="screen-body">' + UI.adventure.sect(tab) + '</div>',
     update: tab => { UI.adventure.update(); if (tab === 'exploration') UI.screens.combat.update(); },
     mount: tab => { if (tab === 'exploration') UI.screens.combat.mount?.(); UI.adventure.mountRun?.(); },
     /* Bảng Lịch luyện dùng chung chữ ký với màn giao chiến để hoạt ảnh
