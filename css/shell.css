@@ -347,7 +347,7 @@ body.in-game.log-collapsed{--log-panel-h:31px}
 
 /* ===== TIÊU ĐỀ MÀN ===== */
 .screen-title{margin:4px 0 12px}
-.screen-title h2{font:700 32px var(--serif);margin:4px 0 0}
+.screen-title h2{font:400 34px var(--display);margin:4px 0 0}
 .screen-lead{color:#b5b8be;font-size:13.5px;line-height:1.55;margin:0 0 14px;max-width:900px}
 /* ===== THANH KỸ NĂNG ===== */
 

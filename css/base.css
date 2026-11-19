@@ -1,3 +1,4 @@
+@font-face{font-family:"Fz Truyen Ky";src:url("../media/fonts/fz-truyen-ky.woff2") format("woff2");font-weight:400 900;font-style:normal;font-display:swap}
 /* ===== HƯ GIỚI · nền tảng ===== */
 :root{
   /* Bảng màu "dạ nguyệt": nền đen mực pha lam, chữ trắng ngà lam, vàng cổ làm điểm nhấn, nút chính đỏ son như ấn triện.
@@ -10,6 +11,7 @@
   --bar-hp:#e0786a; --bar-mp:#5fb3d4; --bar-qi:#79e0a4; --bar-age:#e0b95d; --bar-job:#6fcf9a;
   --shadow:0 10px 30px #0007;
   --font:"Be Vietnam Pro","Segoe UI",system-ui,-apple-system,Roboto,"Helvetica Neue",Arial,sans-serif;
+  --display:"Fz Truyen Ky","Noto Serif","Source Serif 4",Georgia,serif;
   --serif:"Noto Serif","Source Serif 4","Iowan Old Style","Palatino Linotype",Georgia,"Times New Roman",serif;
   /* Sprite chuẩn: tools/player-sprites.json. Chân tại (256,352) trên ảnh 512×384. */
   --player-frame-w:512;--player-frame-h:384;--player-standing:236;--player-seated:198;--player-ground-shift:8.333333%;
@@ -31,7 +33,7 @@ img{max-width:100%;display:block}
 a{color:var(--cyan)}
 [hidden]{display:none!important}
 h1,h2,h3,p,dl,dd,dt,ol,ul{margin:0}
-h1,h2,h3{font-family:var(--serif);line-height:1.15}
+h1,h2,h3{font-family:var(--display);font-weight:400;line-height:1.15}
 ::selection{background:#e6c16455;color:#fff}
 ::-webkit-scrollbar{width:10px;height:10px}
 ::-webkit-scrollbar-track{background:#0b0d12}
