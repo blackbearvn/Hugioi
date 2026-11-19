@@ -27,7 +27,7 @@
     el.tabIndex = -1;
     el.innerHTML = `<div class="intro-images" aria-hidden="true"><img class="intro-image" alt=""><img class="intro-image" alt=""></div>
       <div class="intro-shade"></div><div class="intro-dust" aria-hidden="true"></div><div class="intro-letterbox" aria-hidden="true"></div>
-      <header class="intro-top"><span>HƯ GIỚI</span><span>THIÊN MỆNH KHỞI NGUYÊN</span></header>
+      <header class="intro-top"><span>Hư giới</span><span>Thiên mệnh khởi nguyên</span></header>
       <div class="intro-bottom"><span id="introChapter" class="eyebrow gold"></span><h2 id="introTitle"></h2>
         <p id="introCaption" class="intro-caption" aria-hidden="true"><span id="introVisible"></span><span id="introPending"></span></p>
         <p id="introNarration" class="intro-narration" role="status" aria-live="polite" aria-atomic="true"></p>

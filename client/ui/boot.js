@@ -334,7 +334,7 @@
       '</div>' +
       '<p class="info-note">Bạn có thể bắt đầu lại từ Khởi Nguyên. Nhân vật, cảnh giới, lực chiến và vật phẩm sẽ về 0; Thiên Tinh và nâng cấp Thiên Mệnh Các vẫn được giữ cho đạo thân kế tiếp.</p>' +
       '<div class="death-actions"><button type="button" class="btn btn-gold btn-wide" data-act="resetAfterDeath">Bắt đầu lại từ đầu</button></div>',
-      null, 'Đóng', 'THIÊN MỆNH', { type: 'danger', symbol: '✝', vfx: ['loi_kiep', 'ha_gioi'], dismissible: false });
+      null, 'Đóng', 'Thiên mệnh', { type: 'danger', symbol: '✝', vfx: ['loi_kiep', 'ha_gioi'], dismissible: false });
   };
 
 
@@ -596,7 +596,7 @@
         start();
         UI.toast('Đã khôi phục hành trình · ' + value.name + '.', { type: 'success', title: 'Hành trình' });
         UI.vfx?.stage({ kind: 'chien_dau', variant: 'phi_thang', fps: 14, size: 'clamp(120px,19vw,200px)', style: { left: '50%', bottom: '22%', transform: 'translateX(-50%)' } });
-      }, 'Khôi phục hành trình', 'THIÊN MỆNH', { type: 'gold', symbol: '⛁', vfx: ['chien_dau', 'linh_phu'] });
+      }, 'Khôi phục hành trình', 'Thiên mệnh', { type: 'gold', symbol: '⛁', vfx: ['chien_dau', 'linh_phu'] });
     } catch (e) {
       UI.toast('Chưa thể khôi phục hành trình: ' + e.message, { type: 'danger', title: 'Khôi phục thất bại' });
     }

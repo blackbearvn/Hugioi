@@ -366,7 +366,7 @@
      peekRow lưu nội dung chi tiết theo id lúc vẽ; mọi thao tác trong cửa sổ này đều được phép chạy
      (shell tự đóng cửa sổ trước khi chạy hành động). */
   UI.peek = new Map();
-  UI.kit.peekRow = (id, title, { mark = '○', cls = '', eyebrow = 'CHI TIẾT', body = '', img = '', titleHtml = '' } = {}) => {
+  UI.kit.peekRow = (id, title, { mark = '○', cls = '', eyebrow = 'Chi tiết', body = '', img = '', titleHtml = '' } = {}) => {
     UI.peek.set(id, { title, eyebrow, body });
     const e = UI.kit.esc;
     return `<button type="button" class="peek-row ${cls}" data-act="peek" data-peek="${e(id)}">${img}<span class="peek-name">${titleHtml || e(title)}</span><i class="peek-mark" aria-hidden="true">${mark || '○'}</i></button>`;

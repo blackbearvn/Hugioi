@@ -318,7 +318,7 @@ body.in-game.log-collapsed{--log-panel-h:31px}
 .affinity-bar i{display:block;height:100%;background:linear-gradient(90deg,#38435d,#e6c164);transition:width .35s}
 .pvp-rating{display:flex;align-items:baseline;gap:9px;padding:4px 0 8px;border-bottom:1px solid #323b50;margin-bottom:5px}
 .pvp-rating b{font:700 34px/1 var(--serif);color:var(--gold);text-shadow:0 1px 2px #000a}
-.pvp-rating span{font-size:12.5px;letter-spacing:.12em;text-transform:uppercase;color:#a9acb4}
+.pvp-rating span{font-size:12.5px;letter-spacing:0;text-transform:none;color:#a9acb4}
 .pvp-list{margin-top:10px}
 .rank-list{display:flex;flex-direction:column;gap:5px;margin-top:10px}
 .rank-row{display:grid;grid-template-columns:38px minmax(0,1fr) auto;align-items:center;gap:8px;padding:8px 10px;border:1px solid #384258;border-radius:9px;background:#12141b;min-width:0}
@@ -686,14 +686,14 @@ img[data-q="4"]{background:radial-gradient(circle at 50% 50%,#f8f8f8 0,#111 48%,
 .item-tip-badges{display:flex;flex-wrap:wrap;gap:5px;margin-top:2px}
 .item-tip-head small{display:block;color:#b9ad8c;font-size:.78em;margin-top:1px}
 .item-tip-effect{margin:7px 0 0;font-size:.8em;line-height:1.4;color:#d9cfb6}
-.item-tip-effect span{color:#b9ad8c;text-transform:uppercase;letter-spacing:.08em;font-size:.88em;margin-right:.35em}
+.item-tip-effect span{color:#b9ad8c;text-transform:none;letter-spacing:0;font-size:.88em;margin-right:.35em}
 .item-tip-cond{margin:7px 0 0;font-size:.8em;line-height:1.4;color:#d9cfb6}
-.item-tip-cond span{color:#b9ad8c;text-transform:uppercase;letter-spacing:.08em;font-size:.88em;margin-right:.35em}
+.item-tip-cond span{color:#b9ad8c;text-transform:none;letter-spacing:0;font-size:.88em;margin-right:.35em}
 .item-tip-lore{margin:6px 0 0;font-size:.82em;font-style:italic;line-height:1.45;color:#b9ad8c;opacity:.9}
 /* Sách lật: công thức đan phương và luyện khí */
 .book-wrap{display:grid;gap:10px;perspective:1600px}
 .book{position:relative;padding:14px 14px 10px;border-radius:14px;background:linear-gradient(135deg,#2a1d14,#1b130e);border:1px solid #7a5a2e;box-shadow:0 10px 30px #000a,inset 0 0 0 3px #3a2a1a}
-.book-title{text-align:center;font:600 .78rem/1 inherit;letter-spacing:.3em;text-transform:uppercase;color:#e0b865;margin:0 0 10px}
+.book-title{text-align:center;font:600 .78rem/1 inherit;letter-spacing:0;text-transform:none;color:#e0b865;margin:0 0 10px}
 .book-spread{display:grid;grid-template-columns:1fr 1fr;position:relative;border-radius:8px;overflow:hidden;box-shadow:0 2px 10px #0008}
 .book-spread::after{content:"";position:absolute;left:50%;top:0;bottom:0;width:26px;margin-left:-13px;background:linear-gradient(90deg,transparent,#0006 50%,transparent);pointer-events:none}
 .book-page{position:relative;min-height:340px;padding:16px 18px 28px;background:linear-gradient(180deg,#e8dcc0,#d8c9a6);color:#2b2118}

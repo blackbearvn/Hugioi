@@ -31,9 +31,9 @@
         <div class="settings-row"><label for="cultivationEffectsSetting">Hào quang linh khí khi nhập định</label><input type="checkbox" id="cultivationEffectsSetting" ${st.cultivationEffects ? 'checked' : ''}></div>
         <div class="settings-row"><label for="combatEffectsSetting">Hiệu ứng chiến đấu và khung hình</label><input type="checkbox" id="combatEffectsSetting" ${st.combatEffects !== false ? 'checked' : ''}></div>
         <div class="settings-row"><label for="motionSetting">Chuyển động</label>${select('motionSetting', st.motionMode, [['auto', 'Theo cài đặt thiết bị'], ['full', 'Đầy đủ'], ['reduced', 'Giảm chuyển động']])}</div>
-        <p class="info-note" id="motionStatus">${UI.isReduced() ? 'Đang giảm chuyển động: lá, linh khí và hiệu ứng khung hình ở trạng thái tĩnh.' : 'Đang bật đầy đủ: lá rơi, linh khí và hiệu ứng chiến đấu chuyển động.'}</p>`, { eyebrow: 'CẢNH SẮC' })}
+        <p class="info-note" id="motionStatus">${UI.isReduced() ? 'Đang giảm chuyển động: lá, linh khí và hiệu ứng khung hình ở trạng thái tĩnh.' : 'Đang bật đầy đủ: lá rơi, linh khí và hiệu ứng chiến đấu chuyển động.'}</p>`, { eyebrow: 'Cảnh sắc' })}
       ${card('Chuyển động và hiển thị', `<p>Nếu thiết bị hoạt động chậm, hãy chọn <b>Giảm chuyển động</b>. Việc tu luyện và hoạt động nghề phụ vẫn tiếp tục bình thường.</p>
-        <p class="info-note">Tiến trình và cài đặt được ghi trên máy chủ game. Khi đăng nhập từ thiết bị khác, hành trình được tải lại theo tài khoản đã xác minh.</p>`, { eyebrow: 'THIẾT BỊ' })}
+        <p class="info-note">Tiến trình và cài đặt được ghi trên máy chủ game. Khi đăng nhập từ thiết bị khác, hành trình được tải lại theo tài khoản đã xác minh.</p>`, { eyebrow: 'Thiết bị' })}
     </div>`;
   }
 
@@ -48,7 +48,7 @@
         <div class="settings-row"><label for="musicVolumeSetting">Âm lượng <b id="musicVolumeValue">${volume}%</b></label><input type="range" id="musicVolumeSetting" min="0" max="100" step="5" value="${volume}"></div>
         <div class="settings-row"><label for="musicTrackSetting">Bản nhạc</label>${select('musicTrackSetting', st.musicTrack || 'auto', [['auto', 'Lần lượt tất cả'], ...tracks.map(t => [t.id, t.title])])}</div>
         ${UI.kit.row('Đang phát', '<span id="musicNowPlaying">—</span>')}
-        <p class="info-note">Trình duyệt chỉ cho phát nhạc sau khi bạn chạm hoặc bấm phím lần đầu trên trang.</p>`, { eyebrow: 'ÂM THANH' })}
+        <p class="info-note">Trình duyệt chỉ cho phát nhạc sau khi bạn chạm hoặc bấm phím lần đầu trên trang.</p>`, { eyebrow: 'Âm thanh' })}
     </div>`;
   }
 
@@ -62,7 +62,7 @@
         <p><b>5.</b> Khi tu vi đầy, bấm <b>Đột phá</b>. Tiểu cảnh giới đột phá ngay, kết quả ghi vào Nhật ký tu tiên; đại cảnh giới mở Độ kiếp đài.</p>
         <p><b>6.</b> <b>Tông môn → Bí cảnh</b>: hạ thủ lĩnh để nhận linh thạch, tu vi và vật phẩm. <b>Tông môn → Lịch luyện</b> đưa bạn đi tìm kỳ ngộ.</p>
         <p><b>7.</b> Chọn tông môn, làm ủy thác để thăng chức và đổi bảo vật. Mở <b>Nhiệm vụ</b> để theo tuyến tân thủ đến Trúc Cơ.</p>
-        <p>Bảng dẫn đường sẽ chỉ vị trí cần chạm, theo dõi nhiệm vụ hiện tại và có thể thu gọn hoặc ẩn bất cứ lúc nào.</p><button class="btn btn-gold" data-act="tutorial">Mở hướng dẫn tân thủ</button>`, { eyebrow: 'TIÊN LỘ' })}
+        <p>Bảng dẫn đường sẽ chỉ vị trí cần chạm, theo dõi nhiệm vụ hiện tại và có thể thu gọn hoặc ẩn bất cứ lúc nào.</p><button class="btn btn-gold" data-act="tutorial">Mở hướng dẫn tân thủ</button>`, { eyebrow: 'Tiên lộ' })}
       ${card('Phím tắt', `
         <div class="key-grid">
           <span><kbd>T</kbd> Tu luyện</span><span><kbd>L</kbd> Lịch luyện</span>
@@ -72,29 +72,29 @@
           <span><kbd>Esc</kbd> Đóng hộp thoại</span>
         </div>
         <p class="info-note">Phím kỹ năng chỉ có tác dụng ở màn Lịch luyện. Khi hộp thoại mở, phím tắt toàn cục tạm khóa. Thiên kiếp mở từ nút Đột phá khi đủ duyên, không có phím tắt riêng.</p>
-        <div class="action-group"><button class="btn btn-outline" data-go="character:bag">Hành trang</button><button class="btn btn-outline" data-go="world:quests">Nhiệm vụ</button></div>`, { eyebrow: 'ĐIỀU KHIỂN' })}
+        <div class="action-group"><button class="btn btn-outline" data-go="character:bag">Hành trang</button><button class="btn btn-outline" data-go="world:quests">Nhiệm vụ</button></div>`, { eyebrow: 'Điều khiển' })}
       ${card('Nhật ký & tiến trình xuyên kiếp', `
         <p>• Mở <b>Truyền âm → Nhật ký</b> để xem ghi chép tu hành và thông báo gần đây.</p>
         <p>• Khi bắt đầu lại sau tử vong, vật phẩm và thành tựu của đạo thân cũ không được kế thừa; Thiên Tinh và nâng cấp Thiên Mệnh Các thuộc về tài khoản nên được giữ lại.</p>
-        <p>• <b>Nhiệm vụ tông môn</b> chỉ tiếp tục tính thời gian khi bạn đang trong game và kết nối. Khi hoàn tất, hãy quay lại nhận cống hiến.</p>`, { eyebrow: 'XUYÊN KIẾP' })}
+        <p>• <b>Nhiệm vụ tông môn</b> chỉ tiếp tục tính thời gian khi bạn đang trong game và kết nối. Khi hoàn tất, hãy quay lại nhận cống hiến.</p>`, { eyebrow: 'Xuyên kiếp' })}
       ${card('Mẹo tu hành', `
         <p>• Bán yêu đan ở Lịch luyện hoặc Thế giới → Tàng bảo các để lấy linh thạch.</p>
         <p>• Đan cấp thấp vẫn dùng được nhưng hiệu quả giảm theo chênh lệch cảnh giới.</p>
         <p>• Độ kiếp đại cảnh giới: hộ kiếp không đủ khiến đạo thân tử vong; nếu lôi kiếp đã qua mà xác suất phá cảnh trượt, đạo thân chỉ mất một phần tu vi và tích lũy may mắn.</p>
         <p>• Tông môn mang lại linh thạch định kỳ và chúc phúc +10% tốc độ hấp thụ linh khí.</p>
-        <p>• Khi nhân vật <b>tọa hóa</b>, bạn có thể trở về Khởi Nguyên để tạo nhân vật mới. Tiến trình và quyền lợi kiếp cũ bị xóa; tài khoản đăng nhập được giữ.</p>`, { eyebrow: 'GHI NHỚ' })}
+        <p>• Khi nhân vật <b>tọa hóa</b>, bạn có thể trở về Khởi Nguyên để tạo nhân vật mới. Tiến trình và quyền lợi kiếp cũ bị xóa; tài khoản đăng nhập được giữ.</p>`, { eyebrow: 'Ghi nhớ' })}
     </div>`;
   }
 
   function legal() {
     return '<div class="screen-grid">' +
-      card('Dữ liệu cá nhân', '<p>Tài khoản và tiến trình được lưu để bạn tiếp tục hành trình trên các thiết bị. Tìm hiểu thông tin được sử dụng, thời gian lưu giữ và cách yêu cầu nhận bản sao hoặc xóa dữ liệu của mình.</p><p><a href="client/legal/privacy.html" target="_blank" rel="noopener noreferrer">Đọc Chính sách quyền riêng tư</a></p>', { eyebrow: 'QUYỀN RIÊNG TƯ' }) +
-      card('Điều khoản sử dụng', '<p>Hư Giới là dự án phi lợi nhuận, miễn phí, không có thanh toán trực tuyến. Vật phẩm trong game không có giá trị quy đổi ra tiền.</p><p><a href="client/legal/release.html" target="_blank" rel="noopener noreferrer">Đọc Điều khoản sử dụng</a></p>', { eyebrow: 'PHÁP LÝ' }) +
+      card('Dữ liệu cá nhân', '<p>Tài khoản và tiến trình được lưu để bạn tiếp tục hành trình trên các thiết bị. Tìm hiểu thông tin được sử dụng, thời gian lưu giữ và cách yêu cầu nhận bản sao hoặc xóa dữ liệu của mình.</p><p><a href="client/legal/privacy.html" target="_blank" rel="noopener noreferrer">Đọc Chính sách quyền riêng tư</a></p>', { eyebrow: 'Quyền riêng tư' }) +
+      card('Điều khoản sử dụng', '<p>Hư Giới là dự án phi lợi nhuận, miễn phí, không có thanh toán trực tuyến. Vật phẩm trong game không có giá trị quy đổi ra tiền.</p><p><a href="client/legal/release.html" target="_blank" rel="noopener noreferrer">Đọc Điều khoản sử dụng</a></p>', { eyebrow: 'Pháp lý' }) +
       '</div>';
   }
 
   function account() {
-    return '<div class="screen-grid">' + card('Tài khoản', '<p>Đăng xuất hoặc đổi sang tài khoản khác. Tiến trình đã được tự động lưu trên máy chủ.</p>' + btn('Đăng xuất / Đổi tài khoản', 'accountLogout', '', false, 'btn-outline'), { eyebrow: 'PHIÊN ĐĂNG NHẬP' }) + card('Xóa nhân vật', '<p>Xóa đạo thân hiện tại để tạo lại từ đầu. Cảnh giới, trang bị, vật phẩm và thứ hạng của nhân vật sẽ mất; Thiên Tinh và nâng cấp Thiên Mệnh Các được giữ lại. Tin nhắn do nhân vật gửi cũng bị xóa.</p><p>Tài khoản đăng nhập được giữ. Lượt gieo nhân vật sẽ được đặt lại.</p><button type="button" class="btn btn-danger" data-act="deleteCharacter">Xóa nhân vật</button>', { eyebrow: 'NHÂN VẬT' }) + '</div>';
+    return '<div class="screen-grid">' + card('Tài khoản', '<p>Đăng xuất hoặc đổi sang tài khoản khác. Tiến trình đã được tự động lưu trên máy chủ.</p>' + btn('Đăng xuất / Đổi tài khoản', 'accountLogout', '', false, 'btn-outline'), { eyebrow: 'Phiên đăng nhập' }) + card('Xóa nhân vật', '<p>Xóa đạo thân hiện tại để tạo lại từ đầu. Cảnh giới, trang bị, vật phẩm và thứ hạng của nhân vật sẽ mất; Thiên Tinh và nâng cấp Thiên Mệnh Các được giữ lại. Tin nhắn do nhân vật gửi cũng bị xóa.</p><p>Tài khoản đăng nhập được giữ. Lượt gieo nhân vật sẽ được đặt lại.</p><button type="button" class="btn btn-danger" data-act="deleteCharacter">Xóa nhân vật</button>', { eyebrow: 'Nhân vật' }) + '</div>';
   }
   UI.action('accountLogout', () => { root.document.getElementById('accountExit')?.click(); return UI.KEEP; });
   UI.action('deleteCharacter', () => {
@@ -103,13 +103,13 @@
       UI.store.ready = false;
       try { await UI.session.deleteCharacter(); root.location.reload(); }
       catch (error) { UI.store.ready = true; throw Error('Chưa xác nhận được việc xóa. Hãy tải lại trang để kiểm tra trạng thái. ' + error.message); }
-    }, 'Xóa vĩnh viễn', 'XÓA NHÂN VẬT', { type: 'danger', vfx: false });
+    }, 'Xóa vĩnh viễn', 'Xóa nhân vật', { type: 'danger', vfx: false });
     return UI.KEEP;
   });
   const body = { season, audio, guide, account, legal };
   UI.register({
-    id: 'settings', label: 'Cài đặt', icon: 'ICON-MENU-006', eyebrow: 'THIẾT LẬP', nav: false, tabs: TABS,
-    render: tab => `<header class="screen-title"><span class="eyebrow gold">THIẾT LẬP</span><h2>Cài đặt</h2></header>${tabs(TABS, tab)}<div class="screen-body">${body[tab]()}</div>`,
+    id: 'settings', label: 'Cài đặt', icon: 'ICON-MENU-006', eyebrow: 'Thiết lập', nav: false, tabs: TABS,
+    render: tab => `<header class="screen-title"><span class="eyebrow gold">Thiết lập</span><h2>Cài đặt</h2></header>${tabs(TABS, tab)}<div class="screen-body">${body[tab]()}</div>`,
     signature: () => ''
   });
 

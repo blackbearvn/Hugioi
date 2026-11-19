@@ -132,7 +132,7 @@ body:has(#game.page-open) .chat-bubble-panel::after{left:auto;right:18px}
 .chat-channel-toggle[aria-expanded="true"]{border-color:#e5bb6d;color:#ffe6af;background:#3b2d1e}
 .chat-channel-toggle:focus-visible{outline:2px solid #f9df9a;outline-offset:2px}
 .chat-channel-toggle-ico{flex:none;color:#e5bb6d;font-size:15px}
-.chat-channel-toggle-label{flex:none;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#bda77d}
+.chat-channel-toggle-label{flex:none;font-size:11px;letter-spacing:0;text-transform:none;color:#bda77d}
 .chat-channel-toggle-current{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#ffe6af}
 .chat-channel-toggle-chevron{flex:none;font-size:11px;line-height:1;transition:transform .15s}
 .chat-channel-toggle[aria-expanded="true"] .chat-channel-toggle-chevron{transform:rotate(180deg)}

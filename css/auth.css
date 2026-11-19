@@ -7,7 +7,7 @@
 .auth-story::after { content:""; position:absolute; inset:16px; border:1px solid #e7d3a530; pointer-events:none; }
 .auth-logo { width:clamp(180px,22vw,290px); max-width:80%; height:auto; filter:drop-shadow(0 3px 12px #000c) drop-shadow(0 0 9px #e7dbaa66); }
 .auth-story-copy { position:relative; z-index:1; }
-.auth-kicker { font-size:11px; font-weight:800; letter-spacing:.24em; color:#c5b48a; text-transform:uppercase; }
+.auth-kicker { font-size:11px; font-weight:800; letter-spacing:0; color:#c5b48a; text-transform:none; }
 .auth-story h2 { font:600 clamp(29px,4vw,49px)/1.2 var(--serif,serif); max-width:360px; color:#fff4d8; margin:18px 0; }
 .auth-story h2 em { color:#9bdac9; font-style:normal; }
 .auth-story p { font-size:14px; line-height:1.8; color:#c6c9cf; max-width:42ch; }

@@ -42,7 +42,7 @@
       ${bar(0, 'qi', 'idleQiBar')}
       ${row('Còn lại', '<span id="idleEta">—</span>')}
       ${row('Xác suất đột phá', '<span id="idleChance">—</span>')}
-      ${row('Thiên kiếp', '<span id="idlePity">Hộ kiếp vỡ = tọa hóa</span>')}`, { eyebrow: 'ĐẠO CẢNH', cls: 'qi-card' });
+      ${row('Thiên kiếp', '<span id="idlePity">Hộ kiếp vỡ = tọa hóa</span>')}`, { eyebrow: 'Đạo cảnh', cls: 'qi-card' });
   }
 
   function boostCard() {
@@ -53,7 +53,7 @@
     const pills = [...pillsBy('TU_VI').slice(0, 2), ...pillsBy('BUFF_TOC').slice(0, 1)].map(x =>
       `<div class="boost-row">${img(x.key, 'mini-img')}<div><b>${UI.kit.itemName(x)} <em>×${g.count(x.key)}</em></b><small>${UI.kit.pillEffectText ? UI.kit.pillEffectText(x) : (x.effect === 'TU_VI' ? 'Bồi bổ tu vi ngay' : 'Tăng tốc độ hấp thụ linh khí có thời hạn')}</small></div>${btn('Dùng', 'consume', codeAttr(x.key), false, 'btn-outline')}</div>`).join('');
     const coins = F.COINS.slice(0, 3).map(([name, value], i) => btn('Hấp thu 1 ' + coinLabel(name), 'absorb', `data-index="${i}"`, s.stone < value || s.qi >= g.need(), 'btn-outline')).join('');
-    return card('Bồi dưỡng đạo cơ', upgrade + (pills || '<p class="info-note">Chưa có đan tăng tu vi trong túi. Mua ở Thế giới → Tàng bảo các hoặc tự luyện ở Nghề phụ.</p>') + `<div class="action-group coin-row">${coins}</div>`, { eyebrow: 'ĐAN DƯỢC · TỤ LINH' });
+    return card('Bồi dưỡng đạo cơ', upgrade + (pills || '<p class="info-note">Chưa có đan tăng tu vi trong túi. Mua ở Thế giới → Tàng bảo các hoặc tự luyện ở Nghề phụ.</p>') + `<div class="action-group coin-row">${coins}</div>`, { eyebrow: 'Đan dược, tụ linh' });
   }
 
   function manualsCard() {
@@ -68,12 +68,12 @@
       }).join('');
     };
     return card('Công pháp đang vận', `<div class="manual-slots">${slots('ngoai', 'Ngoại tu')}${slots('noi', 'Nội tu')}</div><p class="info-note">Ngoại tu là skill chủ động (tự thi triển khi tự động chiến đấu), nội tu là bị động. Thuần thục tăng theo thời gian tu luyện.</p>`,
-      { eyebrow: 'TRUYỀN THỪA', aside: '<button class="text-btn" data-go="character:skills">Quản lý ›</button>' });
+      { eyebrow: 'Truyền thừa', aside: '<button class="text-btn" data-go="character:skills">Quản lý ›</button>' });
   }
 
   function goalsCard() {
     const items = nearGoals().map(x => `<div class="goal"><span class="goal-icon" aria-hidden="true">${x.icon}</span><p>${x.text}</p><button class="text-btn" data-go="${x.go}">${x.cta} ›</button></div>`).join('');
-    return card('Mục tiêu gần', items || empty('Không có mục tiêu gần.'), { eyebrow: 'GỢI Ý TIÊN LỘ' });
+    return card('Mục tiêu gần', items || empty('Không có mục tiêu gần.'), { eyebrow: 'Gợi ý tiên lộ' });
   }
 
   function retreatCard() {
@@ -82,7 +82,7 @@
     if (active) return card('Bế quan tu luyện',
       row('Thời gian còn lại', live(active.end)) + row('Đã tu luyện', duration(active.seconds)) +
       row('Tu vi ghi nhận', num(active.exp)) + note +
-      btn('Kết thúc bế quan', 'retreatStop', '', false, 'btn-outline'), { eyebrow: 'PHIÊN ĐANG DIỄN RA' });
+      btn('Kết thúc bế quan', 'retreatStop', '', false, 'btn-outline'), { eyebrow: 'Phiên đang diễn ra' });
     if (report) {
       const reasons = { finished: 'Đã hết thời gian', ready: 'Tu vi viên mãn · cần chuẩn bị độ kiếp',
         manual: 'Đã kết thúc theo yêu cầu', death: 'Đạo thân tọa hóa', life: 'Dừng vì thọ nguyên còn dưới 5 phút' };
@@ -94,7 +94,7 @@
         row('Vật phẩm', loot || 'Không có') + (events ? '<ul class="retreat-events">' + events + '</ul>' : '') +
         (report.reason === 'ready' ? '<button class="btn btn-outline" data-go="tribulation">Chuẩn bị độ kiếp</button>' : '') +
         btn('Đã xem báo cáo', 'retreatAcknowledge', '', false, 'btn-gold') + note,
-      { eyebrow: 'KẾT QUẢ TỪ MÁY CHỦ' });
+      { eyebrow: 'Kết quả từ máy chủ' });
     }
     const blocked = s.progress.meditate < 60 ? 'Tu luyện online đủ 60 giây để mở bế quan.'
       : s.completed ? 'Đạo quả kiếp này đã viên mãn.'
@@ -106,7 +106,7 @@
       btn(label, 'retreatStart', `data-duration="${seconds}"`, !!blocked, 'btn-outline')).join('');
     return card('Bế quan tu luyện', '<p>Chọn thời lượng, rồi trở lại xem báo cáo tu luyện.</p>' +
       (blocked ? '<p class="info-note">' + esc(blocked) + '</p>' : '') +
-      '<div class="action-group">' + choices + '</div>' + note, { eyebrow: 'TU LUYỆN ONLINE' });
+      '<div class="action-group">' + choices + '</div>' + note, { eyebrow: 'Tu luyện online' });
   }
 
   function panel() {
@@ -115,7 +115,7 @@
       (s.dungeon.run ? row(H.DUNGEONS.find(d => d.id === s.dungeon.run.id).name, 'Tầng ' + s.dungeon.run.floor + ' · đang chiến đấu') + '<button class="btn btn-gold" data-go="world:dungeons">Tiếp tục chiến đấu</button>' : a ? row(H.DUNGEONS.find(d => d.id === a.id).name, live(a.end)) : '<p>Bí cảnh đã sẵn sàng để thám hiểm.</p>') +
       (m ? row(H.SECT_MISSIONS.find(d => d.id === m.id).name, live(m.end)) : '') +
       row('Kỳ ngộ đã gặp', num(s.encounter.total)) +
-      `<div class="action-group"><button class="btn btn-outline" data-go="sect:dungeons">Bí cảnh</button><button class="btn btn-outline" data-go="sect:exploration">Lịch luyện</button><button class="btn btn-outline" data-go="sect:missions">Tông môn</button></div>`, { eyebrow: 'DUYÊN SỰ ĐANG TIẾN HÀNH' });
+      `<div class="action-group"><button class="btn btn-outline" data-go="sect:dungeons">Bí cảnh</button><button class="btn btn-outline" data-go="sect:exploration">Lịch luyện</button><button class="btn btn-outline" data-go="sect:missions">Tông môn</button></div>`, { eyebrow: 'Duyên sự đang tiến hành' });
     return `<div class="screen-grid idle-grid">${qiCard()}${retreatCard()}${tasks}${boostCard()}${manualsCard()}${goalsCard()}</div>`;
   }
 
@@ -137,12 +137,12 @@
   };
 
   UI.register({
-    id: 'idle', label: 'Tu luyện', icon: 'ICON-MENU-001', eyebrow: 'TU HÀNH',
+    id: 'idle', label: 'Tu luyện', icon: 'ICON-MENU-001', eyebrow: 'Tu hành',
     render: panel, panel, update, signature
   });
   UI.register({
-    id: 'retreat', label: 'Bế quan', icon: '☯', eyebrow: 'TĨNH TU',
-    render: () => '<header class="screen-title"><span class="eyebrow gold">TĨNH TU</span><h2>Bế quan</h2></header><div class="screen-grid">' +
+    id: 'retreat', label: 'Bế quan', icon: '☯', eyebrow: 'Tĩnh tu',
+    render: () => '<header class="screen-title"><span class="eyebrow gold">Tĩnh tu</span><h2>Bế quan</h2></header><div class="screen-grid">' +
       retreatCard() + (UI.s().retreat?.report ? goalsCard() : '') + '</div>',
     signature
   });

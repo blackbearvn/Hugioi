@@ -475,12 +475,12 @@
       stage.querySelector('.minor-breakthrough')?.remove();
       const el = document.createElement('div'); el.className = 'minor-breakthrough'; el.setAttribute('role', 'status');
       const title = document.createElement('strong'), subtitle = document.createElement('span');
-      title.textContent = 'ĐỘT PHÁ'; subtitle.textContent = (F.REALMS[event.realm] || '') + ' · Tầng ' + event.stage;
+      title.textContent = 'Đột phá'; subtitle.textContent = (F.REALMS[event.realm] || '') + ' · Tầng ' + event.stage;
       el.append(title, subtitle); stage.appendChild(el); root.setTimeout(() => el.remove(), 2800);
     }
   });
 
-  function modal(title, html, onConfirm = null, label = 'Tiếp tục', eyebrow = 'THIÊN MỆNH', opts = {}) {
+  function modal(title, html, onConfirm = null, label = 'Tiếp tục', eyebrow = 'Thiên mệnh', opts = {}) {
     modalAction = onConfirm;
     modalBusy = !!opts.busy;
     modalDismissible = opts.dismissible !== false;
@@ -1646,7 +1646,7 @@
       const major = this.major(), can = this.canStart(), world = this.worldOf();
       this.world = world;
       $('tribRealmChip').textContent = g.realmLabel();
-      $('tribEyebrow').textContent = s.completed ? 'THIÊN ĐẠO · ĐẠO QUẢ VIÊN MÃN' : major ? 'THIÊN ĐẠO · ĐẠI CẢNH GIỚI' : 'TIÊN LỘ · TIỂU CẢNH GIỚI';
+      $('tribEyebrow').textContent = s.completed ? 'Thiên đạo, đạo quả viên mãn' : major ? 'Thiên đạo, đại cảnh giới' : 'Tiên lộ, tiểu cảnh giới';
       $('tribTitle').textContent = s.completed ? 'Đạo Tổ viên mãn' : major ? 'Thiên kiếp' : 'Đột phá tầng';
       $('tribSubtitle').textContent = this.nextLabel();
       $('tribHeadTags').innerHTML = `<span${odds.doomed ? ' class="danger-text"' : ''}>${odds.doomed ? '0% · chưa đủ hộ kiếp' : pct(odds.chance) + ' xác suất'}</span><span>Hộ kiếp vỡ = tọa hóa</span><span>${events.reduce((n, e) => n + e.bolts, 0) || 0} đạo lôi</span><span>${pct(s.shield)} hộ thuẫn</span>`;
@@ -1775,7 +1775,7 @@
       const odds = g.breakthroughOdds();
       if (odds.doomed && !confirmed) {
         modal('Hộ kiếp chưa đủ sức', `<p>${esc(odds.failing.join(', '))} vượt quá sức chịu của đạo thân. Xác suất nền ${pct(odds.base)} không còn ý nghĩa: lôi kiếp là phép thử cố định nên lần này <b>chắc chắn thất bại và đạo thân tọa hóa vĩnh viễn</b>. Toàn bộ tiến trình kiếp này bị xóa.</p><p>Hãy dùng đan hoặc phù hộ kiếp phẩm cao hơn để tăng khiên và giảm sát thương, rồi quay lại.</p>`,
-          () => trib.start(true), 'Vẫn dẫn lôi', 'THIÊN KIẾP', { type: 'danger' });
+          () => trib.start(true), 'Vẫn dẫn lôi', 'Thiên kiếp', { type: 'danger' });
         return;
       }
       store.catchUp();
@@ -1882,7 +1882,7 @@
       $('tribulationFx').dataset.phase = 'result';
       if (result?.success) {
         $('tribTitle').textContent = 'Đột phá thành công';
-        $('tribEyebrow').textContent = 'THIÊN ĐẠO · ĐẠO CƠ TÁI TẠO';
+        $('tribEyebrow').textContent = 'Thiên đạo, đạo cơ tái tạo';
         $('tribSubtitle').textContent = g.realmLabel() + ' · cảnh giới mới đã mở';
         $('tribStatus').textContent = result.events.length ? 'Thiên kiếp đã qua, đạo cơ tái tạo.' : 'Đạo cơ đã thành · mở ra cảnh giới mới.';
         $('tribResult').className = 'trib-result success';
@@ -1904,7 +1904,7 @@
         UI.vfx?.screenFlash('flash-gold', 900);
       } else if (result?.died) {
         $('tribTitle').textContent = 'Đột phá thất bại';
-        $('tribEyebrow').textContent = 'THIÊN ĐẠO · LÔI KIẾP VÔ TÌNH';
+        $('tribEyebrow').textContent = 'Thiên đạo, lôi kiếp vô tình';
         $('tribSubtitle').textContent = g.realmLabel() + ' · đạo cơ chấn động';
         $('tribStatus').textContent = 'Hộ kiếp vỡ, đạo cơ chấn động.';
         $('tribResult').className = 'trib-result failure';
@@ -1919,7 +1919,7 @@
         UI.vfx?.screenFlash('flash-red', 700);
       } else {
         $('tribTitle').textContent = 'Đột phá chưa thành';
-        $('tribEyebrow').textContent = 'THIÊN ĐẠO · ĐẠO TÂM CHƯA VIÊN';
+        $('tribEyebrow').textContent = 'Thiên đạo, đạo tâm chưa viên';
         $('tribSubtitle').textContent = g.realmLabel() + ' · đạo cơ chấn động';
         $('tribStatus').textContent = 'Lôi kiếp đã qua, nhưng đạo cơ chưa chuyển hóa.';
         $('tribResult').className = 'trib-result failure';

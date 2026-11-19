@@ -207,7 +207,7 @@
     const ready = active && active.end <= UI.session.serverNow();
     const task = def ? card(def.name, clock(active) + row('Thưởng cống hiến', '+' + Math.round(def.contribution * (active.featured ? 1.5 : 1))) +
       row('Thành công', pct(active.chance)) + (active.featured ? '<p class="gold">★ Nổi bật · thưởng ×1,5</p>' : '') +
-      `<div class="action-group">${btn('Nhận thưởng', 'sectMissionClaim', '', !ready)}${btn('Hủy nhiệm vụ', 'sectMissionAbort', '', false, 'btn-outline')}</div>`, { eyebrow: ready ? 'ĐÃ HOÀN TẤT' : 'ĐANG THỰC HIỆN' }) : '';
+      `<div class="action-group">${btn('Nhận thưởng', 'sectMissionClaim', '', !ready)}${btn('Hủy nhiệm vụ', 'sectMissionAbort', '', false, 'btn-outline')}</div>`, { eyebrow: ready ? 'Đã hoàn tất' : 'Đang thực hiện' }) : '';
     return task + card('Ủy thác tông môn', `<p class="info-note">Ủy thác thành công cũng nhận điểm lịch luyện bằng số cống hiến thực nhận, dùng để mượn sách tại Tàng Kinh Các.</p><div class="action-group">${btn(s.sect.repeat ? 'Tự lặp: Bật' : 'Tự lặp: Tắt', 'sectRepeat', `aria-pressed="${s.sect.repeat}"`, false, 'btn-outline')}</div>
       <p class="info-note">Tự lặp: tự nhận thưởng và làm lại khi đang chơi. Khi rời game chỉ hoàn tất một nhiệm vụ, không nhận chuyến mới. Thất bại sẽ tắt tự lặp.</p>
       ${s.dungeon.active ? '<p class="info-note">Đang trong bí cảnh; chờ trở về để nhận nhiệm vụ.</p>' : ''}
@@ -216,7 +216,7 @@
         return `<details class="adventure-details" ${tier <= g.sectRank().tier ? 'open' : ''}><summary>Bậc ${tier} · ${list.filter(m => open.includes(m)).length}/${list.length} đã mở</summary><div class="peek-list">` + list.map(m => {
           const locked = !open.includes(m), bonus = featured?.id === m.id;
           return UI.kit.peekRow('sectmission:' + m.id, m.name, {
-            eyebrow: locked ? 'CHƯA MỞ' : bonus ? 'NỔI BẬT' : 'ỦY THÁC TÔNG MÔN', mark: bonus ? '★' : locked ? '🔒' : '○', cls: locked ? 'is-locked' : '',
+            eyebrow: locked ? 'Chưa mở' : bonus ? 'Nổi bật' : 'Ủy thác tông môn', mark: bonus ? '★' : locked ? '🔒' : '○', cls: locked ? 'is-locked' : '',
             body: `<p>${duration(m.seconds)} · ${pct(g.missionChance(m))} thành công · +${Math.round(m.contribution * (bonus ? 1.5 : 1))} cống hiến</p><p>${locked ? 'Cần bậc nhiệm vụ ' + m.tier + ' · ' + F.REALMS[m.minRealm] : esc(m.desc)}${bonus ? ' · thưởng ×1,5' : ''}</p><div class="action-group">${btn(locked ? 'Chưa mở' : 'Nhận', 'sectMissionStart', `data-id="${m.id}"`, locked || !!active || !!s.dungeon.active || s.hp < g.stats().HP * .4)}</div>`
           });
         }).join('') + '</div></details>';
@@ -228,7 +228,7 @@
       const o = g.sectShopOffer(d.id);
       const buttons = btn('Đổi · ' + num(o.cost), 'sectBuy', `data-id="${d.id}"`, o.locked || s.sect.contribution < o.cost);
       return UI.kit.peekRow('sectshop:' + d.id, o.item?.name || d.name, {
-        eyebrow: 'TÀNG BẢO CÁC', mark: o.locked ? '🔒' : '◈', cls: o.locked ? 'is-locked' : '',
+        eyebrow: 'Tàng bảo các', mark: o.locked ? '🔒' : '◈', cls: o.locked ? 'is-locked' : '',
         body: row('Số lượng', '×' + d.count) + row('Cống hiến', num(o.cost)) + `<p class="info-note">${H.SECT_RANKS[d.rank].name}${o.item ? ' · ' + F.REALMS[o.item.tier] : ''}</p><div class="action-group">${buttons}</div>`
       });
     }).join('')}</div>`;
@@ -261,17 +261,17 @@
     let reading = '';
     if (selected) {
       const entries = H.ITEMS.filter(x => x.kind === selected.kind && x.tier >= selected.minRealm && x.tier <= selected.maxRealm);
-      reading = card('Đang đọc · ' + esc(selected.name), `<p>${entries.length} mục · bấm vào từng mục để xem chi tiết. Công thức chế tạo chỉ dùng được khi đang mượn đúng sách; cảnh giới và điều kiện nghề vẫn áp dụng.</p>${selected.kind === 'EQ' || selected.kind === 'TAL' ? '<p class="info-note">Luyện khí và chế phù mở ở Kết Đan; một số công thức cần bí tịch riêng.</p>' : ''}${selected.kind === 'PILL' ? '<button class="btn btn-outline" data-go="craft:dan">Đến Luyện đan</button>' : ['EQ','TAL'].includes(selected.kind) ? '<button class="btn btn-outline" data-go="craft:khi">Đến Luyện khí & Chế phù</button>' : '<button class="btn btn-outline" data-go="craft:dien">Đến Linh điền</button>'}<div class="sect-book-recipes">${entries.map(x => libraryRecipe(x,g)).join('')}</div>`, { eyebrow: 'SÁCH ĐANG MƯỢN' });
+      reading = card('Đang đọc · ' + esc(selected.name), `<p>${entries.length} mục · bấm vào từng mục để xem chi tiết. Công thức chế tạo chỉ dùng được khi đang mượn đúng sách; cảnh giới và điều kiện nghề vẫn áp dụng.</p>${selected.kind === 'EQ' || selected.kind === 'TAL' ? '<p class="info-note">Luyện khí và chế phù mở ở Kết Đan; một số công thức cần bí tịch riêng.</p>' : ''}${selected.kind === 'PILL' ? '<button class="btn btn-outline" data-go="craft:dan">Đến Luyện đan</button>' : ['EQ','TAL'].includes(selected.kind) ? '<button class="btn btn-outline" data-go="craft:khi">Đến Luyện khí & Chế phù</button>' : '<button class="btn btn-outline" data-go="craft:dien">Đến Linh điền</button>'}<div class="sect-book-recipes">${entries.map(x => libraryRecipe(x,g)).join('')}</div>`, { eyebrow: 'Sách đang mượn' });
     }
-    return `<section class="sect-library"><div class="sect-library-intro"><span class="eyebrow gold">TÀNG KINH CÁC</span><h3>Tri thức trên tiên lộ</h3><p>Điểm lịch luyện: <b>${num(points)}</b>. Nhận 20 điểm mỗi chuyến lịch luyện và thêm điểm khi hoàn thành ủy thác tông môn.</p><p>Mỗi lần mượn trả điểm; bạn giữ một quyển để đọc đến khi mượn quyển khác. Những lần mở lại quyển đang mượn không mất thêm điểm.</p></div>${reading}<div class="sect-book-grid">${shelves}</div></section>`;
+    return `<section class="sect-library"><div class="sect-library-intro"><span class="eyebrow gold">Tàng kinh các</span><h3>Tri thức trên tiên lộ</h3><p>Điểm lịch luyện: <b>${num(points)}</b>. Nhận 20 điểm mỗi chuyến lịch luyện và thêm điểm khi hoàn thành ủy thác tông môn.</p><p>Mỗi lần mượn trả điểm; bạn giữ một quyển để đọc đến khi mượn quyển khác. Những lần mở lại quyển đang mượn không mất thêm điểm.</p></div>${reading}<div class="sect-book-grid">${shelves}</div></section>`;
   }
   function sectRite() {
     const s = UI.s(), g = UI.g(), seen = sectMeasured(), disciple = g.sectDisciple();
     const rootName = H.rootLabel(s.rootType, s.rootSub);
     const guide = H.DESIGN.npc.NPC001;
     const guideName = L ? L.span(guide?.['tên NPC'] || 'Người dẫn đường', 'role', 'npc', { variant: 'name' }) : esc(guide?.['tên NPC'] || 'Người dẫn đường');
-    const result = seen && disciple ? `<div class="sect-rite-result" role="status"><span>LINH CĂN</span><strong>${rootLabelHtml(s.rootType, s.rootSub)}</strong><span>DANH PHẬN NHẬP MÔN</span><b>${roleLabel(disciple)}</b>${s.sect.joined ? '<small>Danh phận được ghi nhận khi gia nhập.</small>' : '<small>Chọn tông môn để xác nhận danh phận.</small>'}</div>` : '<div class="sect-rite-prompt">Đặt tay lên bia đá để soi rõ linh căn.</div>';
-    return `<section class="sect-rite" aria-label="Bia đo linh căn"><div class="sect-rite-top"><span class="eyebrow gold">SƠ NHẬP SƠN MÔN</span><h2>Vấn Linh Đài</h2><p>Thiên địa làm chứng · một niệm khai linh</p></div>${result}<div class="sect-rite-bottom"><div class="sect-rite-guide"><img src="${esc(guide?.ảnh || '')}" alt="" loading="lazy"><p><b>${guideName}</b><br>Hãy chạm bia để xem linh căn và danh phận.</p></div>${btn(seen ? 'Đo lại linh căn' : 'Chạm bia đo linh căn', 'sectMeasure', '', false, 'btn-gold')}</div></section>`;
+    const result = seen && disciple ? `<div class="sect-rite-result" role="status"><span>Linh căn</span><strong>${rootLabelHtml(s.rootType, s.rootSub)}</strong><span>Danh phận nhập môn</span><b>${roleLabel(disciple)}</b>${s.sect.joined ? '<small>Danh phận được ghi nhận khi gia nhập.</small>' : '<small>Chọn tông môn để xác nhận danh phận.</small>'}</div>` : '<div class="sect-rite-prompt">Đặt tay lên bia đá để soi rõ linh căn.</div>';
+    return `<section class="sect-rite" aria-label="Bia đo linh căn"><div class="sect-rite-top"><span class="eyebrow gold">Sơ nhập sơn môn</span><h2>Vấn Linh Đài</h2><p>Thiên địa làm chứng · một niệm khai linh</p></div>${result}<div class="sect-rite-bottom"><div class="sect-rite-guide"><img src="${esc(guide?.ảnh || '')}" alt="" loading="lazy"><p><b>${guideName}</b><br>Hãy chạm bia để xem linh căn và danh phận.</p></div>${btn(seen ? 'Đo lại linh căn' : 'Chạm bia đo linh căn', 'sectMeasure', '', false, 'btn-gold')}</div></section>`;
   }
   function sect(tab = 'missions') {
     const s = UI.s(), g = UI.g(), d = g.sectDefinition();
@@ -316,7 +316,7 @@
         ? L.span(H.DI_LINH_CAN[k].name, 'element', k, { className: 'root-chip' + (type === 'Dị' && s.rootSub === k ? ' is-current' : '') })
         : `<span class="root-chip ${type === 'Dị' && s.rootSub === k ? 'is-current' : ''}">${esc(H.DI_LINH_CAN[k].name)}</span>`).join('<span class="root-sep">·</span>')}</div><p class="info-note">Dị khắc hệ gốc và không bị hệ gốc khắc.</p></div>` +
       (type === 'Hỗn Độn' ? `<div class="root-class"><b>Chí tôn</b><div>${rank(['Hỗn Độn'], type)}</div></div>` : '');
-    return card(rootLabelHtml(type, s.rootSub, 'badge'), body, { eyebrow: (group ? group.name : 'Linh căn').toUpperCase() }) + card('Phân loại linh căn', classes, { eyebrow: 'BA NHÓM' });
+    return card(rootLabelHtml(type, s.rootSub, 'badge'), body, { eyebrow: (group ? group.name : 'Linh căn').toUpperCase() }) + card('Phân loại linh căn', classes, { eyebrow: 'Ba nhóm' });
   }
 
   const ELEMENT_TEXT = [
@@ -336,10 +336,10 @@
     }).join('');
     const rules = card('Tương sinh và tương khắc',
       '<p><b>Tương sinh:</b> Mộc → Hỏa → Thổ → Kim → Thủy → Mộc.</p><p><b>Tương khắc:</b> Kim → Mộc → Thổ → Thủy → Hỏa → Kim.</p>' +
-      '<p class="info-note">Đánh trúng hệ bị khắc: sát thương +20%. Bị hệ khắc mình đánh: −20%. Dị linh căn khắc hệ gốc và không bị hệ gốc khắc.</p>', { eyebrow: 'QUY LUẬT' });
+      '<p class="info-note">Đánh trúng hệ bị khắc: sát thương +20%. Bị hệ khắc mình đánh: −20%. Dị linh căn khắc hệ gốc và không bị hệ gốc khắc.</p>', { eyebrow: 'Quy luật' });
     const count = card('Số hệ quyết định loại linh căn',
       '<p>Mỗi hệ đạt từ 50 điểm là một hệ linh căn. Càng ít hệ, linh lực càng tinh thuần và hấp thụ linh khí càng nhanh: Ngụy (5 hệ) → Tứ hành → Tam hành → Song → Thiên (1 hệ thuần).</p>' +
-      '<p class="info-note">Dị linh căn là biến thể cao cấp của một hệ gốc (Băng, Lôi, Phong, Độc), có thế mạnh riêng.</p>', { eyebrow: 'PHÂN LOẠI' });
+      '<p class="info-note">Dị linh căn là biến thể cao cấp của một hệ gốc (Băng, Lôi, Phong, Độc), có thế mạnh riêng.</p>', { eyebrow: 'Phân loại' });
     return `<div class="screen-grid">${rootOverview()}</div>
       <h3 class="root-section-title">Ngũ hành cơ bản</h3>
       <div class="adventure-grid">${elements}</div>

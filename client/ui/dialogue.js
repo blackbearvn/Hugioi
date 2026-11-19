@@ -21,7 +21,7 @@
     panel.setAttribute('aria-label', 'Vạn Giới Đối Thoại');
     panel.innerHTML = '<div class="hu-dialogue-shade" data-dialogue="close"></div>' +
       '<div class="hu-dialogue-frame" tabindex="-1"><header class="hu-dialogue-head">' +
-      '<span class="eyebrow gold">VẠN GIỚI ĐỐI THOẠI</span>' +
+      '<span class="eyebrow gold">Vạn giới đối thoại</span>' +
       '<button type="button" class="text-btn" data-dialogue="close" aria-label="Đóng hội thoại">✕ Đóng</button></header>' +
       '<div class="hu-dialogue-content"></div></div>';
     document.body.append(panel);
@@ -78,7 +78,7 @@
     }).join('');
     const npcName = L ? L.span(npc['tên NPC'], 'role', 'npc', { variant: 'name' }) : esc(npc['tên NPC']);
     show('<div class="hu-dialogue-topic-head">' + portrait +
-      '<div><span class="eyebrow gold">KỲ NHÂN HẠ GIỚI</span><h2>' + npcName +
+      '<div><span class="eyebrow gold">Kỳ nhân hạ giới</span><h2>' + npcName +
       '</h2><p>' + esc(npc['bối cảnh']) + '</p><small>Thiện cảm ' + affinity + '/100</small></div></div>' +
       '<p class="hu-dialogue-hint">Chọn chủ đề để hỏi chuyện. Những chuyện thầm kín chỉ mở khi đôi bên đủ tin cậy.</p>' +
       '<div class="hu-dialogue-topics">' + topics + '</div>');
@@ -113,7 +113,7 @@
         : line.who === 'npc' ? L.span(who, 'role', 'npc', { variant: 'name' }) : esc(who);
     const portrait = npc && line.who === 'npc' ? '<img class="hu-dialogue-speaker" src="' +
       esc(npc.ảnh) + '" alt="" loading="lazy" decoding="async">' : '';
-    const heading = chapter ? '<span class="eyebrow gold">THIÊN THƯ</span><h2>' + esc(entry.title) + '</h2>' : '';
+    const heading = chapter ? '<span class="eyebrow gold">Thiên thư</span><h2>' + esc(entry.title) + '</h2>' : '';
     const back = chapter ? '' : '<button type="button" class="btn btn-outline" data-dialogue="topics">Chủ đề</button>';
     show(heading + '<div class="hu-dialogue-line">' + portrait + '<div class="hu-dialogue-speech">' +
       '<b>' + whoHtml + '</b><p>' + esc(line.text) + '</p></div></div>' +
@@ -138,7 +138,7 @@
 
   function renderChoices() {
     const entry = current.entry;
-    show('<span class="eyebrow gold">LỜI ĐÁP</span><h2>' + esc(entry.title) + '</h2>' +
+    show('<span class="eyebrow gold">Lời đáp</span><h2>' + esc(entry.title) + '</h2>' +
       '<p class="hu-dialogue-hint">Lời đã ghi sẽ được giữ trong Thiên Thư qua những lần chuyển thế.</p>' +
       '<div class="hu-dialogue-topics">' + entry.choices.map(choice =>
         '<button type="button" class="hu-dialogue-topic" data-dialogue="answer" data-option="' +
@@ -154,7 +154,7 @@
 
   function renderReply(reply) {
     if (!current) return;
-    show('<span class="eyebrow gold">ĐÃ GHI NHẬN</span><h2>' + esc(current.entry.title) +
+    show('<span class="eyebrow gold">Đã ghi nhận</span><h2>' + esc(current.entry.title) +
       '</h2><p class="hu-dialogue-reply">' + esc(reply) + '</p>' +
       '<div class="hu-dialogue-actions">' +
       (current.type === 'npc' ? '<button type="button" class="btn btn-gold" data-dialogue="topics">Trở lại chủ đề</button>' :

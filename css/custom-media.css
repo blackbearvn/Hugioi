@@ -27,7 +27,7 @@
 .meridian-point:hover::after,.meridian-point:focus-visible::after,.meridian-point[aria-pressed="true"]::after{opacity:1}
 .meridian-map-legend{display:flex;justify-content:space-between;gap:8px;font-size:11px;color:#a8acb4;margin:8px 0 0}
 .meridian-info h4{margin:6px 0 14px;font-size:22px;color:#ffe2ad}
-.meridian-info .meridian-kind{font-size:12px;letter-spacing:.08em;color:#e0ba86;text-transform:uppercase}
+.meridian-info .meridian-kind{font-size:12px;letter-spacing:0;color:#e0ba86;text-transform:none}
 .meridian-info .stat-line{border-bottom:1px solid #ffffff17;padding:9px 0}
 .meridian-info .meridian-effect{line-height:1.6;font-size:14px;color:#ded5cb}
 .meridian-info .meridian-hint{font-size:12.5px;line-height:1.6;color:#a8acb4}

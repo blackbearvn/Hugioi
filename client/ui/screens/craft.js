@@ -47,7 +47,7 @@
         (furnaceOnly ? 'hero' : 'furnace') + '">' + (furnaceOnly ? 'Xem người luyện đan' : 'Xem riêng lò đan') + '</button>'
       : '';
     return '<section class="craft-scene" aria-label="Cảnh ' + title + '" style="--scene-bg:url(\'' +
-      abs(media.backgrounds[tab]) + '\')"><div class="craft-scene-head"><span class="eyebrow">NGHỀ PHỤ · CẢNH CHẾ TÁC</span>' +
+      abs(media.backgrounds[tab]) + '\')"><div class="craft-scene-head"><span class="eyebrow">Nghề phụ, cảnh chế tác</span>' +
       '<h3>' + title + '</h3><p>' + caption + '</p><span class="craft-scene-count">' +
       (tab === 'dan' ? 'Mẻ đang luyện: ' + s.craftQueue.length + '/3' : 'Luyện khí · Chế phù') + '</span></div>' +
       photo + '<div class="craft-scene-foot">' + switcher +
@@ -69,7 +69,7 @@
       .map(x => `<span class="stock" title="${esc(x.name)}">${img(x.key, 'mini-img')}<em>×${g.count(x.key)}</em></span>`).join('');
     return `<div class="screen-grid craft-top">
       ${card('Lò luyện đan', `<div class="furnace-row">${slots}</div><p class="info-note">Mỗi mẻ dùng bốn linh thảo, cho ba viên nếu thành công. Phẩm chất được ghi riêng trong túi.</p>`, { eyebrow: `HÀNG ĐỢI ${s.craftQueue.length}/3`, cls: 'wide' })}
-      ${card('Linh thảo trong túi', herbs ? `<div class="stock-row">${herbs}</div>` : empty('Chưa có linh thảo. Trồng ở mục Linh điền hoặc đi Lịch luyện.'), { eyebrow: 'NGUYÊN LIỆU' })}
+      ${card('Linh thảo trong túi', herbs ? `<div class="stock-row">${herbs}</div>` : empty('Chưa có linh thảo. Trồng ở mục Linh điền hoặc đi Lịch luyện.'), { eyebrow: 'Nguyên liệu' })}
     </div>`;
   }
 
@@ -98,7 +98,7 @@
     const total = Object.values(mix).reduce((a, n) => a + n, 0);
     const mixCard = card('Lò luyện thủ công', `<p class="info-note">Sách đan phương chỉ để tham khảo. Hãy tự bỏ đúng nguyên liệu vào lò rồi bấm luyện; sai công thức thì nổ lò (có thể né theo tỷ lệ né tránh) hoặc phế đan, mất nguyên liệu.</p>
       <div class="mix-row">${chips || empty('Chưa có nguyên liệu phù hợp trong túi.')}</div>
-      <div class="action-group">${btn('Luyện đan', 'mixCraft', '', total < 1 || !!root.HU_COMMANDS?.activityConflict(s, 'craft'))}${btn('Đổ ra', 'mixClear', '', total < 1, 'btn-outline')}</div>`, { eyebrow: 'THỦ CÔNG' });
+      <div class="action-group">${btn('Luyện đan', 'mixCraft', '', total < 1 || !!root.HU_COMMANDS?.activityConflict(s, 'craft'))}${btn('Đổ ra', 'mixClear', '', total < 1, 'btn-outline')}</div>`, { eyebrow: 'Thủ công' });
     const xs = UI.view.onlyReady ? all.filter(x => canMake(recipeOf.get(x.code))) : all;
     const cardOf = x => {
       const r = recipeOf.get(x.code), ok = canMake(r);
@@ -161,7 +161,7 @@
         <div class="plot-grid">${plots}</div></div>
       <div class="screen-grid">
         ${card('Hạt giống trong túi', seedRows ? `<div class="shop-list">${seedRows}</div>` : `${empty('Chưa có hạt giống.')}<button class="btn btn-outline" data-go="world:shop">Mua ở Tàng bảo các</button>`, { eyebrow: `Ô TRỐNG ${4 - s.garden.length}/4` })}
-        ${card('Phân bón', ferts ? `<div class="shop-list">${ferts}</div><p class="info-note">Giảm 30% thời gian còn lại của cây đang lớn đầu tiên.</p>` : empty('Chưa có phân bón.'), { eyebrow: 'TĂNG TỐC' })}
+        ${card('Phân bón', ferts ? `<div class="shop-list">${ferts}</div><p class="info-note">Giảm 30% thời gian còn lại của cây đang lớn đầu tiên.</p>` : empty('Chưa có phân bón.'), { eyebrow: 'Tăng tốc' })}
       </div>`;
   }
 
@@ -207,7 +207,7 @@
   }
 
   UI.register({
-    id: 'craft', label: 'Nghề phụ', icon: 'ICON-MENU-005', eyebrow: 'NGHỀ PHỤ',
+    id: 'craft', label: 'Nghề phụ', icon: 'ICON-MENU-005', eyebrow: 'Nghề phụ',
     tabs: TABS, render, update,
     /* Trang Nghề phụ toàn màn hình dùng nền riêng của từng nghề. */
     pageBg: tab => abs(tab === 'dien' ? root.HU_ASSETS.BG.garden : root.HU_CUSTOM_MEDIA?.installed ? root.HU_CUSTOM_MEDIA.backgrounds[tab] : tab === 'khi' ? UI.data.ART.talisman : UI.data.ART.workshop),

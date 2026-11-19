@@ -140,7 +140,7 @@
     if (cta.hidden === ready) cta.hidden = !ready;
     if (ready) {
       const next = s.realm < 13 ? F.REALMS[s.realm + 1] : 'Đạo Tổ';
-      const html = `⚡ ĐỘT PHÁ ĐẠI CẢNH GIỚI<small>${esc(F.REALMS[s.realm])} → ${esc(next)} · xác suất ${pct(g.chance())}</small>`;
+      const html = `Đột phá đại cảnh giới<small>${esc(F.REALMS[s.realm])} → ${esc(next)}, xác suất ${pct(g.chance())}</small>`;
       if (cta.dataset.html !== html) { cta.dataset.html = html; cta.innerHTML = html; }
     }
 

@@ -49,7 +49,7 @@
         <span class="${s.reduction > 0 ? 'on' : ''}">Giảm thương ${pct(s.reduction)}</span>
         <span class="${s.breakBonus > 0 ? 'on' : ''}">Hỗ trợ ${num(s.breakBonus)}</span>
       </div>
-      <p class="info-note">Đan và phù hộ kiếp chỉ lấy hiệu ứng mạnh nhất, và mất sau lần đột phá kế tiếp.</p>`, { eyebrow: 'PHÒNG NGỰ' });
+      <p class="info-note">Đan và phù hộ kiếp chỉ lấy hiệu ứng mạnh nhất, và mất sau lần đột phá kế tiếp.</p>`, { eyebrow: 'Phòng ngự' });
   }
 
   function itemsCard() {
@@ -57,26 +57,26 @@
     return card('Chuẩn bị đan / phù', prep
       ? `<div class="shop-list">${prep}</div>`
       : `${empty('Chưa có đan hay phù hộ kiếp trong túi.')}<div class="action-group"><button class="btn btn-outline" data-go="world:shop">Mua ở Tàng bảo các</button><button class="btn btn-outline" data-go="craft:dan">Tự luyện đan</button></div>`,
-      { eyebrow: 'HÀNH TRANG', cls: 'wide' });
+      { eyebrow: 'Hành trang', cls: 'wide' });
   }
 
   function minorCard() {
     const s = UI.s(), g = UI.g();
     return card('Tiểu cảnh giới · tu vi viên mãn', `
       <div class="trib-minor-head">
-        <div><span class="eyebrow">KHÔNG LÔI KIẾP</span><h3>${esc(stageName(s.realm, s.stage))} → ${esc(stageName(s.realm, s.stage + 1))}</h3></div>
+        <div><span class="eyebrow">Không lôi kiếp</span><h3>${esc(stageName(s.realm, s.stage))} → ${esc(stageName(s.realm, s.stage + 1))}</h3></div>
       </div>
       <p>Khi tu vi viên mãn, đạo thân tự vượt qua bình cảnh tiểu cảnh giới, không phải chịu lôi kiếp. Chỉ khi đột phá đại cảnh giới mới cần bước lên Độ kiếp đài.</p>
       ${row('Tu vi', '<span id="tribMinorQi">' + num(s.qi) + ' / ' + num(g.need()) + '</span>')}${bar(Math.min(100, s.qi / g.need() * 100), '', 'tribMinorQiFill')}
       <div class="action-group">${btn('Đột phá tiểu cảnh', 'break', '', s.qi < g.need())}<button class="btn btn-outline" data-go="idle">Về tu luyện</button></div>
-      <p class="info-note">Đạo cơ cần tích đủ tu vi để tiến sang tầng kế tiếp.</p>`, { eyebrow: 'TIỂU CẢNH GIỚI', cls: 'wide' });
+      <p class="info-note">Đạo cơ cần tích đủ tu vi để tiến sang tầng kế tiếp.</p>`, { eyebrow: 'Tiểu cảnh giới', cls: 'wide' });
   }
 
   function completedCard() {
     return card('Đạo Tổ viên mãn', `
       <p>Đạo cơ đã hợp nhất với Thiên đạo. Không còn lôi kiếp nào có thể lay chuyển bạn.</p>
       <p class="info-note">Đạo quả viên mãn. Hành trình tu luyện đã hoàn tất.</p>
-      <div class="action-group"><button class="btn btn-outline" data-go="idle">Về tiên sơn</button></div>`, { eyebrow: 'ĐẠO TỔ', cls: 'wide' });
+      <div class="action-group"><button class="btn btn-outline" data-go="idle">Về tiên sơn</button></div>`, { eyebrow: 'Đạo tổ', cls: 'wide' });
   }
 
   function render() {
@@ -106,7 +106,7 @@
       UI.modal('Thiên kiếp giáng thế',
         `<p>Đại cảnh giới <b>${esc(F.REALMS[s.realm])}</b> đã đủ duyên. Thiên đạo triệu hồi lôi kiếp để bước vào <b>${esc(next)}</b>.</p>` +
         `<p>Nhận kiếp sẽ mở Độ kiếp đài. Hộ kiếp không đủ khiến đạo thân tọa hóa vĩnh viễn; nếu chỉ trượt xác suất phá cảnh, đạo thân mất một phần tu vi và tích lũy may mắn. Đan và phù chỉ hỗ trợ trước khi nhập kiếp.</p>`,
-        () => UI.go('tribulation'), 'Nhận thiên kiếp', 'THIÊN ĐẠO',
+        () => UI.go('tribulation'), 'Nhận thiên kiếp', 'Thiên đạo',
         { type: 'gold', symbol: '⚡', vfx: ['loi_kiep', 'ha_gioi'] });
       return UI.KEEP;
     }
@@ -135,7 +135,7 @@
   }
 
   UI.register({
-    id: 'tribulation', label: 'Thiên kiếp', icon: 'ICON-MENU-010', eyebrow: 'THIÊN ĐẠO',
+    id: 'tribulation', label: 'Thiên kiếp', icon: 'ICON-MENU-010', eyebrow: 'Thiên đạo',
     render, update,
     signature: () => {
       const s = UI.s();

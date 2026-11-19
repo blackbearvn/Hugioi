@@ -128,7 +128,7 @@
 .root-tier-list i.is-current{color:#ffe08b;background:#161a22;border:1px solid #b99b4e;font-weight:700}
 .root-tier-list s{text-decoration:none;color:#6e747f}
 @media(max-width:620px){.root-tier-name{flex-basis:96px}}
-.root-elem-title{margin:10px 0 3px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#9b9fa8}
+.root-elem-title{margin:10px 0 3px;font-size:12px;letter-spacing:0;text-transform:none;color:#9b9fa8}
 .root-section-title{margin:16px 0 8px;font:700 16px var(--serif)}
 .root-section-title small{font:400 12px system-ui;color:#9b9fa8}
 /* Đang tiếp tục phiên đã lưu: ẩn biểu mẫu để không chớp trang đăng nhập. */

@@ -422,7 +422,7 @@
   };
 
   UI.register({
-    id: 'combat', label: 'Lịch luyện', icon: 'ICON-MENU-002', eyebrow: 'LỊCH LUYỆN',
+    id: 'combat', label: 'Lịch luyện', icon: 'ICON-MENU-002', eyebrow: 'Lịch luyện',
     render: panel, panel, update,
     mount() { UI.battleFx?.mount?.(); },
     signature: () => {

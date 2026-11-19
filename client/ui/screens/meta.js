@@ -13,7 +13,7 @@
     const choice = H.META_UPGRADES[UI.s().destiny];
     return `<header class="screen-title"><h2>Thiên mệnh</h2></header>
       <p class="screen-lead">Dấu ấn Thiên Mệnh là buff khởi đầu, phải mua tại Quầy Khởi Nguyên trước khi lập đạo thân. Mỗi đạo thân chỉ nhận một dấu ấn; khi tọa hóa, hành trình này kết thúc.</p>
-      ${choice ? card('Dấu ấn đã nhận', row('Dấu ấn', L ? L.span(choice.name, 'destiny', UI.s().destiny, { variant: 'name' }) : esc(choice.name)) + row('Hiệu ứng', esc(choice.desc)), { eyebrow: 'KHỞI NGUYÊN' }) : card('Chưa có Dấu ấn', '<p>Đạo thân này không mang Dấu ấn Thiên Mệnh. Dấu ấn chỉ có thể mua trước khi lập đạo thân.</p>', { eyebrow: 'KHỞI NGUYÊN' })}`;
+      ${choice ? card('Dấu ấn đã nhận', row('Dấu ấn', L ? L.span(choice.name, 'destiny', UI.s().destiny, { variant: 'name' }) : esc(choice.name)) + row('Hiệu ứng', esc(choice.desc)), { eyebrow: 'Khởi nguyên' }) : card('Chưa có Dấu ấn', '<p>Đạo thân này không mang Dấu ấn Thiên Mệnh. Dấu ấn chỉ có thể mua trước khi lập đạo thân.</p>', { eyebrow: 'Khởi nguyên' })}`;
   }
 
   function destiny() {
@@ -22,7 +22,7 @@
       const product = Object.values(H.PAVILION.starter).find(item => item.destiny === key);
       return card(L ? L.span(d.name, 'destiny', key, { variant: 'name' }) : esc(d.name), `<div class="meta-upgrade-head"><span class="meta-upgrade-icon" aria-hidden="true">${d.icon}</span>
         <div>${row('Hiệu ứng', esc(d.desc))}${row('Mua tại', 'Quầy Khởi Nguyên · ' + (product ? product.cost + ' Thiên Tinh' : 'không bán'))}${row('Trạng thái', key === current ? 'Dấu ấn hiện tại' : 'Chưa nhận')}</div></div>`,
-        { eyebrow: key === current ? 'ĐANG DÙNG' : 'KHỞI NGUYÊN' });
+        { eyebrow: key === current ? 'Đang dùng' : 'Khởi nguyên' });
     }).join('')}</div>`;
   }
   function achievements() {
@@ -39,7 +39,7 @@
     return '<p class="screen-lead">Vạn Kiếp Tàng Thư ghi lại dấu chân người lạc giới, từ Thanh Vân Sơn tới Hồng Mông Đạo Vực. ' +
       'Chương mới mở dần theo cảnh giới; lời đã ghi sẽ mất khi đạo thân tọa hóa.</p>' +
       card('Thiên Thư', row('Đã đọc', Object.keys(read).filter(id => all.some(ch => ch.id === id)).length + '/' + all.length),
-        { eyebrow: 'THIÊN MỆNH · TÀNG THƯ' }) +
+        { eyebrow: 'Thiên mệnh, tàng thư' }) +
       H.STORY.ACTS.map(act => '<section class="hu-story-act"><h3>' + esc(act.title) +
         ' <small>· ' + esc(act.world) + '</small></h3><div class="hu-story-list">' +
         act.chapters.map(ch => {
@@ -55,7 +55,7 @@
 
   const body = { destiny, achievements, story };
   UI.register({
-    id: 'meta', label: 'Thiên mệnh', icon: '✦', eyebrow: 'THIÊN MỆNH', tabs: TABS,
+    id: 'meta', label: 'Thiên mệnh', icon: '✦', eyebrow: 'Thiên mệnh', tabs: TABS,
     render: tab => header() + tabs(TABS, tab) + '<div class="screen-body">' + (body[tab] || destiny)() + '</div>',
     signature: () => {
       const s = UI.s();

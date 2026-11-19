@@ -185,8 +185,8 @@
       <div class="screen-grid">
         ${card('Sinh Tử Đài', `<div class="pvp-rating"><b>${num(pvp.rating)}</b><span>${pvpTier(pvp.rating)}</span></div>
           ${row('Thắng / Thua', num(pvp.wins) + ' / ' + num(pvp.losses))}${row('Chuỗi thắng', num(pvp.streak))}${row('Danh vọng cao nhất', num(pvp.best))}${row('Chiến lực của bạn', num(my))}
-          <p class="info-note">Sau mỗi trận cần điều tức ${Math.round(PVP_CD / 1000)} giây trước khi tái đấu. Thắng nhận 18–25 danh vọng; thua hao tổn 12–19 danh vọng.</p>`, { eyebrow: 'DANH VỌNG' })}
-        ${card('Quy tắc', `<p>Đối thủ trên Sinh Tử Đài tương ứng với chiến lực hiện tại của bạn. Mỗi cảnh giới đều có những thử thách riêng.</p>${row('Thắng', 'Linh thạch · tu vi · danh vọng')}${row('Thua', 'Mất danh vọng, không mất tu vi')}${row('Trạng thái', ready ? 'Sẵn sàng' : live(pvp.lastAt + PVP_CD))}`, { eyebrow: 'LUẬT ĐẤU' })}
+          <p class="info-note">Sau mỗi trận cần điều tức ${Math.round(PVP_CD / 1000)} giây trước khi tái đấu. Thắng nhận 18–25 danh vọng; thua hao tổn 12–19 danh vọng.</p>`, { eyebrow: 'Danh vọng' })}
+        ${card('Quy tắc', `<p>Đối thủ trên Sinh Tử Đài tương ứng với chiến lực hiện tại của bạn. Mỗi cảnh giới đều có những thử thách riêng.</p>${row('Thắng', 'Linh thạch · tu vi · danh vọng')}${row('Thua', 'Mất danh vọng, không mất tu vi')}${row('Trạng thái', ready ? 'Sẵn sàng' : live(pvp.lastAt + PVP_CD))}`, { eyebrow: 'Luật đấu' })}
       </div>
       <div class="social-list pvp-list">${RIVALS.map(f => {
         const power = g.rivalPower(f.id), chance = F.win_probability(my, power);
@@ -216,7 +216,7 @@
       '</span><em>' + value(me) + '</em></div>' +
       row('Lực chiến', num(me.power)) +
       row('Cảnh giới', esc(F.REALMS[me.realm] || '') + ' · tầng ' + num(me.stage)),
-      { eyebrow: 'NHÂN VẬT HIỆN TẠI' }) : '';
+      { eyebrow: 'Nhân vật hiện tại' }) : '';
     const items = entries.map((e,i) => '<div class="rank-row ' + (e.you ? 'you' : '') + ' ' +
       (i < 3 ? 'top' : '') + '"><span class="rank-no">' +
       (i < 3 ? ['Ⅰ','Ⅱ','Ⅲ'][i] : '#' + (i + 1)) + '</span><span class="rank-name"><b>' +
@@ -242,7 +242,7 @@
   }
 
   UI.register({
-    id: 'more', label: 'Giao du', icon: '♡', eyebrow: 'GIAO DU', tabs: TABS,
+    id: 'more', label: 'Giao du', icon: '♡', eyebrow: 'Giao du', tabs: TABS,
     render: tab => {
       const active = UI.release.allowed('more:' + tab) && body[tab] ? tab : 'online';
       return `<header class="screen-title"><h2>Giao du</h2></header>${tabs(UI.release.tabs(TABS), active)}<div class="screen-body">${UI.release.notice(active)}${(active === 'ranking' || (active === 'online' ? buddyOpen() : UI.g().featureOpen('social'))) ? body[active]() : (active === 'online' ? lockedBuddy() : lockedMore())}</div>`;
@@ -256,9 +256,9 @@
   });
 
   UI.register({
-    id: 'ranking', label: 'Bảng xếp hạng', icon: '♛', eyebrow: 'THIÊN BẢNG',
+    id: 'ranking', label: 'Bảng xếp hạng', icon: '♛', eyebrow: 'Thiên bảng',
     pageBg: () => UI.kit.abs(root.HU_ASSETS.BG.ranking),
-    render: () => '<header class="screen-title"><span class="eyebrow gold">THIÊN BẢNG</span><h2>Bảng xếp hạng</h2></header><div class="screen-body">' + ranking() + '</div>',
+    render: () => '<header class="screen-title"><span class="eyebrow gold">Thiên bảng</span><h2>Bảng xếp hạng</h2></header><div class="screen-body">' + ranking() + '</div>',
     mount: () => { void loadLeaderboard(); },
     signature: () => [leaderboardState.at,leaderboardState.mode,leaderboardState.owner].join('|')
   });
@@ -384,7 +384,7 @@
     const B = root.HU_BOUT_SCRIPT;
     const bout = B.build({ win: r.win, seed: B.seedOf(d.id, r.my, r.power, r.rating), myHp, foeHp: myHp * Math.max(.5, r.power / Math.max(1, r.my)), skills });
     UI.stage.replay({
-      mode: 'pvp', label: 'SINH TỬ ĐÀI', title: name + ' đấu ' + f.name, bg: UI.kit.abs(root.HU_ASSETS.zoneBg?.(Math.min(realm, 8)) || ''),
+      mode: 'pvp', label: 'Sinh tử đài', title: name + ' đấu ' + f.name, bg: UI.kit.abs(root.HU_ASSETS.zoneBg?.(Math.min(realm, 8)) || ''),
       bout, hero: { name, sub: label, gender, realm }, foe: { name: f.name, sub: f.school + ' · ' + H.F.REALMS[f.realm], tag: 'Đối thủ', gender: f.gender, realm: f.realm },
       resultHtml: `<p>${r.win ? 'Danh vọng +' + r.delta + ' · +' + esc(money(r.reward)) + ' · +' + num(r.exp) + ' tu vi.' : 'Danh vọng ' + r.delta + '. Đạo thân tọa hóa, kiếp này chấm dứt.'}</p>`,
       onClose: toast

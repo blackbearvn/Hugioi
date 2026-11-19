@@ -33,7 +33,7 @@ img{max-width:100%;display:block}
 a{color:var(--cyan)}
 [hidden]{display:none!important}
 h1,h2,h3,p,dl,dd,dt,ol,ul{margin:0}
-h1,h2,h3{font-family:var(--display);font-weight:400;line-height:1.15}
+h1,h2,h3{font-family:var(--serif);line-height:1.15}
 ::selection{background:#e6c16455;color:#fff}
 ::-webkit-scrollbar{width:10px;height:10px}
 ::-webkit-scrollbar-track{background:#0b0d12}
@@ -41,7 +41,9 @@ h1,h2,h3{font-family:var(--display);font-weight:400;line-height:1.15}
 ::-webkit-scrollbar-thumb:hover{background:#3b4458}
 
 /* ===== chữ & tiện ích ===== */
-.eyebrow{display:block;font-size:12.5px;font-weight:800;letter-spacing:.16em;color:#a8acb4;text-transform:uppercase}
+.eyebrow{display:block;font-size:13px;font-weight:600;letter-spacing:0;color:#a8acb4;text-transform:lowercase}
+.eyebrow::first-letter{text-transform:uppercase}
+.card-head .eyebrow,.screen-title .eyebrow{display:none}
 .eyebrow.gold{color:var(--gold)}
 .gold{color:var(--gold)} .jade{color:var(--jade)} .danger{color:var(--danger)} .muted{color:var(--muted)}
 .small{font-size:14px}.tiny{font-size:13px}
@@ -165,7 +167,7 @@ body.modal-open{overflow:hidden}
 .toast-item.out{opacity:0;transform:translateY(-6px) scale(.98)}
 .toast-icon{flex:0 0 auto;width:26px;height:26px;display:grid;place-items:center;border-radius:8px;background:#151921;color:var(--gold);font-size:16px;font-weight:800;margin-top:1px}
 .toast-copy{flex:1;min-width:0}
-.toast-copy b{display:block;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:2px}
+.toast-copy b{display:block;font-size:12px;letter-spacing:0;text-transform:none;color:var(--gold);margin-bottom:2px}
 .toast-copy p{font-size:14.5px;line-height:1.45;color:#eae5df;overflow-wrap:anywhere;max-height:18dvh;overflow:auto}
 .toast-close{flex:0 0 auto;width:24px;height:24px;display:grid;place-items:center;border:0;border-radius:6px;background:transparent;color:#8a8f9a;font-size:14px;line-height:1;margin:-2px -4px 0 0}
 .toast-close:hover{background:#ffffff0d;color:var(--gold)}
