@@ -5,21 +5,21 @@ body.intro-open{overflow:hidden}
 .intro-images,.intro-shade{position:absolute;inset:0;z-index:-1;overflow:hidden}
 .intro-image{position:absolute;width:100%;height:100%;object-fit:cover;object-position:center;opacity:0;transition:opacity 1.8s ease;will-change:transform,opacity}
 .intro-image.active{opacity:1}
-.intro-shade{background:linear-gradient(180deg,#050507a8,#07090b66 32%,#07090b99 65%,#07090bed),radial-gradient(ellipse at center,#07090b99,transparent 75%)}
-.intro-top{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:calc(22px + env(safe-area-inset-top,0px)) clamp(18px,5vw,70px);font-size:11px;letter-spacing:.3em;color:#d9c797}
-.intro-bottom{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:min(1060px,100%);padding:24px clamp(22px,5vw,64px);text-align:center}
-#introTitle{font:500 clamp(30px,4.6vw,60px)/1.2 var(--serif);color:#f3e4bd;margin:14px 0;text-shadow:0 3px 24px #000;letter-spacing:.08em}
-.intro-caption{font:400 clamp(18px,2vw,25px)/1.75 var(--serif);color:#e7e4e1;text-shadow:0 2px 12px #000;min-height:5.3em;margin:14px 0 26px}
-#introPending{visibility:hidden}
+.intro-shade{background:linear-gradient(90deg,#050507ee,#050507cc 55%,#07090b66 100%),linear-gradient(0deg,#07090bcc,transparent 40%)}
+/* Chữ thư pháp viết dọc: từ trên xuống, cột xếp từ trái sang phải; tên chương là cột đầu tiên. */
+.intro-page{position:absolute;left:clamp(24px,9vw,150px);top:50%;transform:translateY(-50%);writing-mode:vertical-lr;height:min(72vh,560px);display:flex;flex-direction:column;gap:clamp(18px,3vw,44px);max-width:calc(100% - clamp(40px,12vw,200px))}
+#introTitle{margin:0;font:400 clamp(40px,6vw,78px)/1.1 var(--display);color:#e8c46a;text-shadow:0 3px 22px #000;letter-spacing:.06em;white-space:nowrap}
+.intro-caption .w,#introTitle .tw{display:inline-block;writing-mode:horizontal-tb}
+#introTitle .tw{width:2.6em;text-align:center}
+.intro-caption{margin:0;height:100%;font:400 clamp(19px,2.5vw,32px)/1.45 var(--display);color:#f1ebdd;text-shadow:0 2px 14px #000,0 0 4px #000,0 0 2px #000;text-align:start}
+.intro-caption .w{display:inline-block;writing-mode:horizontal-tb;width:3.1em;text-align:center;opacity:0;transform:translateY(-.25em);transition:opacity .45s ease,transform .45s ease}
+.intro-caption .w.on{opacity:1;transform:none}
 .intro-narration{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-.intro-letterbox{position:absolute;inset:0;pointer-events:none;border-block:clamp(40px,7vh,80px) solid #242b3be8}
-.intro-dust{position:absolute;inset:0;pointer-events:none;opacity:.3;background-image:radial-gradient(1px 1px at 12% 35%,#ffe9b0 90%,transparent),radial-gradient(2px 2px at 65% 45%,#ffe9b0 90%,transparent),radial-gradient(1px 1px at 40% 24%,#fff 90%,transparent),radial-gradient(2px 2px at 82% 20%,#ffe9b0 90%,transparent);background-size:430px 320px;animation:introDust 24s linear infinite}
-@keyframes introDust{to{background-position:80px -320px}}
-#storyIntro.paused .intro-dust{animation-play-state:paused}
-body.reduced-motion .intro-dust{display:none}
-@media(prefers-reduced-motion:reduce){.intro-dust{display:none}.intro-image{transition:none}}
-.intro-controls{display:flex;align-items:center;justify-content:center;gap:18px}
-#introDots{display:flex;gap:8px}#introDots i{display:block;width:24px;height:3px;background:#ffffff44;transition:background .5s}#introDots i.on{background:var(--gold);box-shadow:0 0 12px #e6c16477}
+.intro-skip{padding:8px 18px;border:1px solid #e8c46a88;border-radius:3px;background:#07090b99;color:#f1ebdd;font:400 20px/1.2 var(--display);cursor:pointer;text-shadow:0 1px 6px #000}
+.intro-skip:hover,.intro-skip:focus-visible{border-color:#e8c46a;color:#e8c46a;outline:none}
+.intro-controls{position:absolute;left:clamp(24px,9vw,150px);right:clamp(24px,9vw,150px);bottom:calc(22px + env(safe-area-inset-bottom,0px))}
+@media(prefers-reduced-motion:reduce){.intro-image{transition:none}.intro-caption .w{transition:none;transform:none}}
+body.reduced-motion .intro-caption .w{transition:none;transform:none}
 #tutorialLayer{position:fixed;inset:0;z-index:4200;overflow:hidden}
 #tutorialLayer.no-target{background:#070709b8}
 #tutorialSpot{position:fixed;border:2px solid var(--gold);border-radius:12px;box-shadow:0 0 0 200vmax #0c0806b8,0 0 24px #e6c16499;pointer-events:none;animation:tutorialPulse 1.8s ease-in-out infinite;transition:top .2s,left .2s,width .2s,height .2s}
@@ -27,8 +27,8 @@ body.reduced-motion .intro-dust{display:none}
 #tutorialCard h2{font-size:25px;margin:10px 0;color:#f3e3b6}#tutorialCard p{font-size:14px;line-height:1.75;color:#e6dbc7}
 #tutorialCount{font-size:11px}.tutorial-actions{display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap;margin-top:18px}.tutorial-actions .text-btn{margin-right:auto;font-size:13px}.tutorial-actions .btn{font-size:13px;padding:9px 11px}
 @keyframes tutorialPulse{50%{border-color:#fff1bf;box-shadow:0 0 0 200vmax #0c0806b8,0 0 36px #e6c164cc}}
-@media(max-width:600px){.intro-top{font-size:11px;letter-spacing:.12em}.intro-top span:last-child{max-width:130px;text-align:right}.intro-bottom{padding:18px 22px}.intro-caption{font-size:17px;line-height:1.65;margin:12px 0 20px}#tutorialCard{padding:16px}#tutorialCard h2{font-size:22px}}
-@media(max-height:500px){.intro-top{padding:10px 20px}.intro-bottom{padding:10px 24px;width:100%}#introTitle{font-size:26px;margin:6px 0}.intro-caption{font-size:16px;line-height:1.5;min-height:0;margin:8px 0 12px}.intro-letterbox{border-block-width:28px}}
+@media(max-width:600px){.intro-page{left:16px;height:min(64vh,520px);gap:12px;max-width:calc(100% - 24px)}.intro-caption{font-size:17px}.intro-controls{left:16px;right:16px}#tutorialCard{padding:16px}#tutorialCard h2{font-size:22px}}
+@media(max-height:500px){.intro-page{height:78vh}#introTitle{font-size:30px}.intro-caption{font-size:16px}}
 @media(max-height:500px){#tutorialCard{width:min(340px,calc(100vw - 24px));padding:14px}#tutorialCard h2{font-size:20px;margin:8px 0}#tutorialCard p{font-size:13px;line-height:1.6}.tutorial-actions{margin-top:12px}}
 
 /* Dẫn đường đồng hành, không chặn nút hay thao tác của người chơi. */

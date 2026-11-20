@@ -12,9 +12,10 @@
     'Chào mừng đến với Hư Giới! Nơi muôn vàn sinh linh rơi xuống những góc trời xa lạ — kẻ hóa thành cô độc giữa muôn ngàn hiểm nguy, người đứng trước cơ duyên thành Tiên hóa Thánh. Và số phận của bạn... chính thức bắt đầu từ đây!'
   ];
   const CHAPTERS = ['Nhân gian', 'Thiên biến', 'Ly giới', 'Vượt hư không', 'Tiên lộ khởi nguyên'];
-  const TYPE_INTERVAL = 35, SCROLL_DURATION = 2400;
+  const TYPE_INTERVAL = 150, SCROLL_DURATION = 2400;
   const segmenter = typeof Intl.Segmenter === 'function' ? new Intl.Segmenter('vi', { granularity: 'grapheme' }) : null;
-  const lettersOf = text => segmenter ? Array.from(segmenter.segment(text), part => part.segment) : Array.from(text);
+  /* Tiếng Việt mỗi chữ là một âm tiết: xếp từng chữ thành một ô, đọc từ trên xuống, các cột xếp từ trái sang phải. */
+  const lettersOf = text => text.split(/\s+/).filter(Boolean);
   let intro = null;
 
   function playIntro() {
@@ -26,12 +27,10 @@
     el.setAttribute('aria-label', 'Khởi nguyên Hư Giới');
     el.tabIndex = -1;
     el.innerHTML = `<div class="intro-images" aria-hidden="true"><img class="intro-image" alt=""><img class="intro-image" alt=""></div>
-      <div class="intro-shade"></div><div class="intro-dust" aria-hidden="true"></div><div class="intro-letterbox" aria-hidden="true"></div>
-      <header class="intro-top"><span>Hư giới</span><span>Thiên mệnh khởi nguyên</span></header>
-      <div class="intro-bottom"><span id="introChapter" class="eyebrow gold"></span><h2 id="introTitle"></h2>
-        <p id="introCaption" class="intro-caption" aria-hidden="true"><span id="introVisible"></span><span id="introPending"></span></p>
-        <p id="introNarration" class="intro-narration" role="status" aria-live="polite" aria-atomic="true"></p>
-        <div class="intro-controls"><span id="introDots" aria-hidden="true"></span></div></div>`;
+      <div class="intro-shade"></div>
+      <div class="intro-page"><h2 id="introTitle"></h2><p id="introCaption" class="intro-caption" aria-hidden="true"></p></div>
+      <p id="introNarration" class="intro-narration" role="status" aria-live="polite" aria-atomic="true"></p>
+      <div class="intro-controls"><button type="button" id="introSkip" class="intro-skip">Rời đi</button></div>`;
     document.body.append(el);
     document.body.classList.add('intro-open');
     const welcome = $('welcome'), wasInert = welcome.inert && !$('gameLoading');
@@ -39,6 +38,11 @@
     let resolve;
     const state = intro = { el, index: 0, timer: 0, ended: false, elapsed: 0, started: null, welcome, wasInert,
       promise: new Promise(done => { resolve = done; }) };
+    /* Mọi ô chữ có sẵn trong bố cục (ẩn), nên cột không xô lệch khi chữ hiện dần. */
+    const setWords = (count, words) => {
+      $('introCaption').innerHTML = words.map((w, i) => `<span class="w${i < count ? ' on' : ''}">${w.replace(/&/g, '&amp;').replace(/</g, '&lt;')}</span>`).join(' ');
+    };
+    const showWords = count => $('introCaption').querySelectorAll('.w').forEach((w, i) => w.classList.toggle('on', i < count));
     const schedule = () => {
       clearTimeout(state.timer);
       if (state.started !== null) state.elapsed += performance.now() - state.started;
@@ -56,8 +60,7 @@
       state.ended = true;
       clearTimeout(state.timer);
       $('introCaption').getAnimations().forEach(animation => animation.cancel());
-      $('introVisible').textContent = 'Đang bước vào Hư Giới…';
-      $('introPending').textContent = '';
+      setWords(5, ['Đang', 'bước', 'vào', 'Hư', 'Giới…']);
       $('introNarration').textContent = 'Đang bước vào Hư Giới.';
       el.focus({ preventScroll: true });
       resolve();
@@ -68,8 +71,8 @@
       state.elapsed = 0;
       state.started = null;
       if (name === 'scroll' && duration) $('introCaption').animate([
-        { opacity: 1, transform: 'translateY(0)' },
-        { opacity: 0, transform: 'translateY(-24vh)' }
+        { opacity: 1 },
+        { opacity: 0 }
       ], { duration, fill: 'forwards', easing: 'ease-in-out' });
       schedule();
     };
@@ -80,8 +83,7 @@
         const count = Math.min(state.letters.length, Math.floor(elapsed / TYPE_INTERVAL));
         if (count !== state.written) {
           state.written = count;
-          $('introVisible').textContent = state.letters.slice(0, count).join('');
-          $('introPending').textContent = state.letters.slice(count).join('');
+          showWords(count);
         }
       }
       if (elapsed >= state.duration) {
@@ -108,14 +110,11 @@
         { transform: state.index % 2 ? 'scale(1.13) translateX(-1%)' : 'scale(1.02) translateX(1%)' },
         { transform: state.index % 2 ? 'scale(1.02) translateX(1%)' : 'scale(1.13) translateX(-1%)' }
       ], { duration: typingDuration + state.readingDuration + SCROLL_DURATION + 1800, fill: 'forwards', easing: 'linear' });
-      $('introChapter').textContent = `CHƯƠNG ${String(state.index + 1).padStart(2, '0')} / 05`;
-      $('introTitle').textContent = CHAPTERS[state.index];
+      $('introTitle').innerHTML = CHAPTERS[state.index].split(' ').map(w => `<span class="tw">${w}</span>`).join(' ');
       const caption = $('introCaption');
       caption.getAnimations().forEach(animation => animation.cancel());
-      $('introVisible').textContent = state.reduced ? STORY[state.index] : '';
-      $('introPending').textContent = state.reduced ? '' : STORY[state.index];
+      setWords(state.reduced ? state.letters.length : 0, state.letters);
       $('introNarration').textContent = CHAPTERS[state.index] + '. ' + STORY[state.index];
-      $('introDots').innerHTML = STORY.map((_, i) => `<i class="${i <= state.index ? 'on' : ''}"></i>`).join('');
       phase(state.reduced ? 'reading' : 'typing', state.reduced ? state.readingDuration : typingDuration);
     };
     function next() {
@@ -123,6 +122,7 @@
       if (state.index === STORY.length - 1) finish();
       else { state.index++; show(); }
     }
+    $('introSkip').addEventListener('click', finish);
     state.visibility = schedule;
     document.addEventListener('visibilitychange', schedule);
     show();
