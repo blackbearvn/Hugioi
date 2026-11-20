@@ -2,7 +2,7 @@
 (function (root) {
   'use strict';
   const H = root.HU_GAME, F = H.F, UI = root.HU_UI, L = root.HU_LABELS;
-  const { esc, num, moneyHTML, pct, duration, row, btn, card, empty, live, bar } = UI.kit;
+  const { esc, num, moneyHTML, pct, duration, row, btn, card, empty, live, bar, img } = UI.kit;
   const element = i => i < 0 ? 'Vô hệ' : H.ELEMENT_NAMES[i];
   const color = i => root.HU_MERIDIANS?.HE_COLOR?.[H.ELEMENT_NAMES[i]] || '#b6c7dc';
   const signed = n => (n >= 0 ? '+' : '') + pct(n);
@@ -213,25 +213,33 @@
       ${s.dungeon.active ? '<p class="info-note">Đang trong bí cảnh; chờ trở về để nhận nhiệm vụ.</p>' : ''}
       ${[1, 2, 3, 4, 5].map(tier => {
         const list = all.filter(m => m.tier === tier);
-        return `<details class="adventure-details" ${tier <= g.sectRank().tier ? 'open' : ''}><summary>Bậc ${tier} · ${list.filter(m => open.includes(m)).length}/${list.length} đã mở</summary><div class="peek-list">` + list.map(m => {
+        return `<details class="adventure-details" ${tier <= g.sectRank().tier ? 'open' : ''}><summary>Bậc ${tier} · ${list.filter(m => open.includes(m)).length}/${list.length} đã mở</summary><div class="mission-grid">` + list.map(m => {
           const locked = !open.includes(m), bonus = featured?.id === m.id;
-          return UI.kit.peekRow('sectmission:' + m.id, m.name, {
-            eyebrow: locked ? 'Chưa mở' : bonus ? 'Nổi bật' : 'Ủy thác tông môn', mark: bonus ? '★' : locked ? '🔒' : '○', cls: locked ? 'is-locked' : '',
-            body: `<p>${duration(m.seconds)} · ${pct(g.missionChance(m))} thành công · +${Math.round(m.contribution * (bonus ? 1.5 : 1))} cống hiến</p><p>${locked ? 'Cần bậc nhiệm vụ ' + m.tier + ' · ' + F.REALMS[m.minRealm] : esc(m.desc)}${bonus ? ' · thưởng ×1,5' : ''}</p><div class="action-group">${btn(locked ? 'Chưa mở' : 'Nhận', 'sectMissionStart', `data-id="${m.id}"`, locked || !!active || !!s.dungeon.active || s.hp < g.stats().HP * .4)}</div>`
-          });
+          const blocked = locked || !!active || !!s.dungeon.active || s.hp < g.stats().HP * .4;
+          return `<article class="mission-tile${locked ? ' is-locked' : ''}${bonus ? ' is-featured' : ''}">
+            <header><h4>${esc(m.name)}</h4>${bonus ? '<b class="mission-badge">★ Nổi bật</b>' : locked ? '<b class="mission-badge">🔒 Chưa mở</b>' : ''}</header>
+            <dl class="mission-stats"><div><dt>Thời gian</dt><dd>${duration(m.seconds)}</dd></div><div><dt>Thành công</dt><dd>${pct(g.missionChance(m))}</dd></div><div><dt>Cống hiến</dt><dd>+${Math.round(m.contribution * (bonus ? 1.5 : 1))}</dd></div></dl>
+            <p class="mission-desc">${locked ? 'Cần bậc nhiệm vụ ' + m.tier + ' · ' + F.REALMS[m.minRealm] : esc(m.desc)}${bonus ? ' · thưởng ×1,5' : ''}</p>
+            ${btn(locked ? 'Chưa mở' : 'Nhận', 'sectMissionStart', `data-id="${m.id}"`, blocked, locked ? 'btn-outline' : 'btn-gold')}</article>`;
         }).join('') + '</div></details>';
       }).join('')}`);
   }
+  /* Kho tông môn: lưới ô vật phẩm giống Tàng bảo các; chạm ô để xem chi tiết và đổi. */
   function sectShop() {
     const s = UI.s(), g = UI.g();
-    return `<p class="info-note">Vật phẩm gần bậc hiện tại; giá cống hiến tăng theo cảnh giới. Tiêu cống hiến không giảm chức vị.</p><div class="peek-list">${H.SECT_SHOP.filter(x => !x.sect || x.sect === s.sect.id).map(d => {
-      const o = g.sectShopOffer(d.id);
-      const buttons = btn('Đổi · ' + num(o.cost), 'sectBuy', `data-id="${d.id}"`, o.locked || s.sect.contribution < o.cost);
-      return UI.kit.peekRow('sectshop:' + d.id, o.item?.name || d.name, {
-        eyebrow: 'Tàng bảo các', mark: o.locked ? '🔒' : '◈', cls: o.locked ? 'is-locked' : '',
-        body: row('Số lượng', '×' + d.count) + row('Cống hiến', num(o.cost)) + `<p class="info-note">${H.SECT_RANKS[d.rank].name}${o.item ? ' · ' + F.REALMS[o.item.tier] : ''}</p><div class="action-group">${buttons}</div>`
-      });
-    }).join('')}</div>`;
+    const cards = H.SECT_SHOP.filter(x => !x.sect || x.sect === s.sect.id).map(d => {
+      const o = g.sectShopOffer(d.id), name = o.item?.name || d.name, id = 'sectshop:' + d.id;
+      const cannot = o.locked || s.sect.contribution < o.cost;
+      const meta = o.locked ? '🔒 ' + H.SECT_RANKS[d.rank].name : (o.item ? F.REALMS[o.item.tier] : H.SECT_RANKS[d.rank].name);
+      UI.peek.set(id, { title: name, eyebrow: 'Kho tông môn', body: (o.item ? `<div class="shop-peek-art">${img(o.item.code)}</div>` : '') + row('Số lượng', '×' + d.count) + row('Giá cống hiến', num(o.cost)) +
+        `<p class="info-note">${H.SECT_RANKS[d.rank].name}${o.item ? ' · ' + F.REALMS[o.item.tier] : ''}</p><div class="action-group">${btn('Đổi · ' + num(o.cost), 'sectBuy', `data-id="${d.id}"`, cannot, 'btn-gold btn-wide')}</div>` });
+      return `<button type="button" class="shop-card${o.locked ? ' is-locked' : ''}" data-act="peek" data-peek="${esc(id)}" aria-label="${esc(name)} · ${esc(meta)} · ${num(o.cost)} cống hiến">
+        <span class="shop-card-art">${o.item ? img(o.item.code) : '<span aria-hidden="true">◈</span>'}</span>
+        <span class="shop-card-name">${esc(name)}${d.count > 1 ? ' ×' + d.count : ''}</span>
+        <span class="shop-card-meta">${esc(meta)}</span>
+        <span class="shop-card-price">${num(o.cost)} cống hiến</span></button>`;
+    }).join('');
+    return `<p class="screen-lead">Cống hiến khả dụng: <b>${num(s.sect.contribution)}</b>. Vật phẩm gần bậc hiện tại; giá tăng theo cảnh giới. Tiêu cống hiến không giảm chức vị.</p><div class="shop-grid sect-shop-grid">${cards}</div>`;
   }
   function libraryRecipe(x, g) {
     const requirement = F.REALMS[x.tier];
@@ -299,7 +307,8 @@
     const nav = `<div class="sect-subhead"><button type="button" class="sect-back" data-act="sectPanel" data-panel="hub">‹ Sơn môn</button><h3>${SECT_ZONES.find(z => z[0] === sub)[1]}</h3></div>`;
     if (sub === 'exploration') return nav + UI.screens.combat.panel();
     if (sub === 'dungeons') return nav + dungeons();
-    const rite = sub === 'missions' ? sectRite() : '';
+    /* Đã đo linh căn thì ẩn bia đo; chỉ còn việc chọn tông môn hoặc làm nhiệm vụ. */
+    const rite = sub === 'missions' && !sectMeasured() ? sectRite() : '';
     /* Chưa đo linh căn: các tab khác không có bia đá, thêm lối tắt về Nhiệm vụ
        để người chơi không gặp nút "Gia nhập" bị khóa mà không rõ đường đi. */
     const riteLink = !d && !sectMeasured() && sub !== 'missions'

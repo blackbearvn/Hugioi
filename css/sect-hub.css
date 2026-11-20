@@ -49,3 +49,20 @@
 
 /* Sơn môn dùng nguyên tranh nền, không phủ mờ thêm */
 .win.page[data-window="sect"]:has(.sect-hub){background:var(--page-bg,#0c1013) center/cover no-repeat}
+
+/* Danh sách nhiệm vụ: thẻ có nút Nhận ngay trên thẻ; Kho tông môn dùng lưới ô như Tàng bảo các */
+.mission-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;margin-top:8px}
+.mission-tile{display:flex;flex-direction:column;gap:9px;min-width:0;padding:13px 14px 14px;border:1px solid #2c363d;border-left:3px solid #4a5a64;border-radius:3px;background:#0f1417d9}
+.mission-tile.is-featured{border-left-color:#c9a24e;background:linear-gradient(90deg,#c9a24e1f,#0f1417d9 60%)}
+.mission-tile.is-locked{opacity:.62}
+.mission-tile header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.mission-tile h4{margin:0;font:700 16px/1.3 var(--serif)}
+.mission-badge{flex:none;font-size:12px;color:#e8c46a;font-weight:600}
+.mission-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:0}
+.mission-stats div{min-width:0}
+.mission-stats dt{font-size:11.5px;color:#a5a99f}
+.mission-stats dd{margin:2px 0 0;font:700 14px/1.2 var(--font);color:#ebe2cd;overflow-wrap:anywhere}
+.mission-desc{margin:0;font-size:13px;line-height:1.5;color:#b8bbb2;flex:1}
+.mission-tile .btn{width:100%;min-height:40px}
+.sect-shop-grid .shop-card.is-locked{opacity:.6}
+.shop-peek-art{display:grid;place-items:center;margin-bottom:8px}.shop-peek-art img{width:72px;height:72px;object-fit:contain}
