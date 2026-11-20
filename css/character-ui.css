@@ -1,0 +1,93 @@
+/* HƯ GIỚI · NHÂN VẬT
+ * Trang Nhân vật đọc như một cuốn hồ sơ đạo thân đặt trên tranh nền, không phải bảng thẻ:
+ * một tấm nền mờ duy nhất, chỉ số dạng dòng có đường chấm, tiêu đề bằng phông bút lông, tab là chữ.
+ * Chỉ đổi giao diện của cửa sổ character; mã và dữ liệu giữ nguyên. */
+.win.page[data-window="character"]{--ink:#0c1013;--rule:#2c363d;--paper:#ebe2cd;--dim:#a5a99f;--bronze:#c9a24e;--cinnabar:#d0553d;--jade:#62b49d}
+.win.page[data-window="character"]:has(.char-header){background:var(--page-bg,#0c1013) center/cover no-repeat fixed}
+.win.page[data-window="character"] .win-body{padding-top:0}
+.win.page[data-window="character"] .win-body>.char-header,
+.win.page[data-window="character"] .win-body>.tabbar,
+.win.page[data-window="character"] .win-body>.screen-body{max-width:1120px}
+
+/* Đầu trang: tên bằng chữ bút lông, hai dải mảnh bên phải */
+.win.page[data-window="character"] .char-header{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(220px,320px);align-items:end;gap:6px 18px;
+  margin:0 auto;padding:22px 24px 14px;border:0;border-radius:0;background:linear-gradient(#0c1013f2,#0c1013d9);box-shadow:none}
+.win.page[data-window="character"] .portrait{width:64px;height:72px;border:1px solid var(--bronze);border-radius:2px;background:var(--ink);overflow:hidden}
+.win.page[data-window="character"] .char-header h2{margin:0;font:400 clamp(34px,4.6vw,52px)/1.05 var(--display,var(--serif));color:var(--paper);text-shadow:0 2px 12px #000}
+.win.page[data-window="character"] .char-realm{margin:4px 0 0;font-size:15px;color:var(--paper)}
+.win.page[data-window="character"] .char-header .muted{margin:2px 0 0;font-size:13px;color:var(--dim)}
+.win.page[data-window="character"] .char-meters{display:grid;gap:12px}
+.win.page[data-window="character"] .char-meter-top{display:flex;justify-content:space-between;font-size:12.5px;color:var(--dim);margin-bottom:4px}
+.win.page[data-window="character"] .char-meter-top b{color:var(--paper);font-weight:600}
+.win.page[data-window="character"] .char-meter .bar{height:4px;border:0;border-radius:1px;background:#ffffff26;overflow:hidden}
+.win.page[data-window="character"] .char-meter .bar i{border-radius:1px}
+
+/* Tab: chữ bút lông, gạch chân đồng cổ khi đang chọn */
+.win.page[data-window="character"] .tabbar{margin:0 auto;padding:0 24px;background:#0c1013d9;border:0;border-bottom:1px solid var(--rule);border-radius:0}
+.win.page[data-window="character"] .tab{padding:12px 16px 10px;font:400 21px/1.2 var(--display,var(--serif));color:#cbc4b2;border-bottom:2px solid transparent}
+.win.page[data-window="character"] .tab:hover{color:var(--paper)}
+.win.page[data-window="character"] .tab.active{color:var(--paper);border-bottom-color:var(--bronze)}
+.win.page[data-window="character"] .tab .ico{display:none}
+
+/* Một tấm nền mờ cho cả nội dung */
+.win.page[data-window="character"] .screen-body{margin:0 auto;padding:22px 24px 40px;background:#0c1013c4;backdrop-filter:blur(3px);min-height:calc(100dvh - 230px)}
+.win.page[data-window="character"] .card{background:none;border:0;border-radius:0;box-shadow:none;backdrop-filter:none;padding:0}
+.win.page[data-window="character"] .card+.card{margin-top:26px}
+.win.page[data-window="character"] .card-head{margin:0 0 8px;padding-bottom:6px;border-bottom:1px solid var(--rule)}
+.win.page[data-window="character"] .card-head h3,.win.page[data-window="character"] .section-title{margin:0;font:400 26px/1.2 var(--display,var(--serif));color:var(--paper)}
+.win.page[data-window="character"] .section-title{margin:26px 0 4px;padding-bottom:6px;border-bottom:1px solid var(--rule)}
+.win.page[data-window="character"] .screen-lead,.win.page[data-window="character"] .info-note{color:var(--dim);max-width:70ch}
+
+/* Đạo thể: người ngồi thiền bên trái, chỉ số bên phải */
+.win.page[data-window="character"] .char-sheet.has-figure{display:grid;grid-template-columns:minmax(220px,32%) minmax(0,1fr);gap:8px 40px;margin:0;align-items:start}
+.sheet-figure{position:sticky;top:12px;margin:0;display:grid;place-items:center}
+.sheet-figure img{width:100%;max-height:min(62vh,520px);object-fit:contain;filter:drop-shadow(0 12px 22px #000b)}
+.sheet-main{display:grid;gap:26px;min-width:0}
+.win.page[data-window="character"] .char-sheet>.sheet-power,.win.page[data-window="character"] .char-sheet>.sheet-glossary{grid-column:auto}
+
+/* Chỉ số: dòng có đường chấm thay cho ô vuông */
+.win.page[data-window="character"] .stat-tiles,.win.page[data-window="character"] .stat-tiles.tiles-4,.win.page[data-window="character"] .stat-tiles.tiles-3{grid-template-columns:repeat(2,minmax(0,1fr));gap:0 40px}
+.win.page[data-window="character"] .stat-tile{flex-direction:row;align-items:baseline;justify-content:space-between;gap:10px;padding:8px 0;border:0;border-bottom:1px dotted #ffffff33;border-radius:0;background:none}
+.win.page[data-window="character"] .stat-tile span{font-size:14px;color:var(--dim)}
+.win.page[data-window="character"] .stat-tile b{font:600 17px/1.2 var(--font);color:var(--paper);text-align:right}
+.win.page[data-window="character"] .stat-tile b small{font-size:12px;color:var(--dim)}
+.win.page[data-window="character"] .stat-tile.tile-warn{background:none;border-bottom-color:var(--cinnabar)}
+.win.page[data-window="character"] .stat-glossary summary{cursor:pointer;color:var(--bronze);font-weight:600}
+
+/* Thiên phú: dòng, không ô */
+.win.page[data-window="character"] .talent-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:0 40px}
+.win.page[data-window="character"] .talent-chip{padding:10px 0;border:0;border-bottom:1px dotted #ffffff33;border-radius:0;background:none}
+.win.page[data-window="character"] .talent-chip b{font:400 20px/1.2 var(--display,var(--serif))}
+.win.page[data-window="character"] .talent-chip span{color:var(--bronze)}
+
+/* Công pháp: dòng phẳng */
+.win.page[data-window="character"] .technique-item{border:0;border-bottom:1px dotted #ffffff33;border-radius:0;background:none;padding:10px 0}
+.win.page[data-window="character"] .skill-list{gap:0}
+
+/* Hành trang, kinh mạch: bỏ khung bo tròn của các khối con */
+.win.page[data-window="character"] .gear-stage,.win.page[data-window="character"] .inventory-pouch,.win.page[data-window="character"] .manual-gear-row,.win.page[data-window="character"] .inventory-scene-layout>*>section{border:0;border-radius:0;background:none;box-shadow:none;padding-left:0;padding-right:0}
+.win.page[data-window="character"] .gear-stage-heading h3{font:400 26px/1.2 var(--display,var(--serif))}
+.win.page[data-window="character"] .gear-stage-heading .eyebrow{display:none}
+
+@media(max-width:900px){
+  .win.page[data-window="character"] .char-sheet.has-figure{grid-template-columns:minmax(0,1fr)}
+  .sheet-figure{position:static}.sheet-figure img{max-height:210px}
+  .win.page[data-window="character"] .char-header{grid-template-columns:auto minmax(0,1fr);padding:16px 14px 10px}
+  .win.page[data-window="character"] .char-meters{grid-column:1/-1}
+}
+@media(max-width:560px){
+  .win.page[data-window="character"] .stat-tiles,.win.page[data-window="character"] .talent-list{grid-template-columns:minmax(0,1fr)}
+  .win.page[data-window="character"] .tab{font-size:18px;padding:10px 11px 8px}
+  .win.page[data-window="character"] .screen-body{padding:16px 14px 32px}
+  .win.page[data-window="character"] .tabbar{padding:0 8px}
+}
+
+/* Chữ số giữ phông dễ đọc: phông bút lông làm số 4 khó nhận ra */
+.win.page[data-window="character"] .title-count{font:600 .6em var(--font);color:var(--dim);letter-spacing:0}
+
+/* Kinh mạch: bỏ hai khối bo tròn */
+.win.page[data-window="character"] .meridian-panel,.win.page[data-window="character"] .meridian-info,.win.page[data-window="character"] .meridian-board{border-radius:0;background:none;box-shadow:none;border-color:var(--rule)}
+.win.page[data-window="character"] .meridian-panel{border-width:0 0 0 0;padding:0}
+.win.page[data-window="character"] .meridian-info{border-width:0 0 0 1px;padding-left:24px}
+.win.page[data-window="character"] .talent-chip{grid-template-columns:130px auto}
+.win.page[data-window="character"] .talent-chip b,.win.page[data-window="character"] .talent-chip b *{font:400 22px/1.2 var(--display,var(--serif))}

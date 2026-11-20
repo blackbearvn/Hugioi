@@ -37,10 +37,9 @@
     return `<header class="char-header">
       <div class="portrait"><img src="${A.heroPortrait(s.gender, s.realm)}" alt="${esc(s.name)}" decoding="async"></div>
       <div class="char-id">
-        <span class="eyebrow gold">${rootLabel(s.rootType, s.rootSub, { upper: true })}</span>
         <h2>${esc(s.name)}</h2>
         <p class="char-realm">${g.realmLabel()} · ${F.realm_map(s.zone)}</p>
-        <p class="muted">${H.raceName(s.race)}</p>
+        <p class="muted">${H.raceName(s.race)} · ${rootLabel(s.rootType, s.rootSub)}</p>
       </div>
       <div class="char-meters">
         ${meter('Tu vi', num(s.qi) + ' / ' + num(need), qiPct, 'qi')}
@@ -65,11 +64,11 @@
       [S.def, num(st.DEF), 'def'], [S.spd, num(st.SPD), 'spd'], [S.cp, num(st.CP), 'cp'], [S.crit, pct(st.CRIT), 'crit'],
       [S.critDamage, pct(st.CRIT_DMG), 'critDamage'], [S.dodge, pct(st.DODGE), 'dodge']];
     const pillCap = .25 * F.realm_exp_total(s.realm);
-    return `<div class="char-sheet">
+    return `<div class="char-sheet has-figure"><figure class="sheet-figure"><img src="${esc(A.heroSrc(s.gender, s.zone, 'dung_yen', 0))}" alt="${esc(s.name)} đang ngồi thiền" decoding="async"></figure><div class="sheet-main">
       ${card('Chiến lực', `<div class="stat-tiles">${power.map(([k, v, key]) => tile(k, v, '', key)).join('')}</div>`, { eyebrow: 'Chỉ số', cls: 'sheet-power' })}
       ${card('Tu luyện', `<div class="stat-tiles tiles-4">${tile(S.qiRate, num(g.rate()) + '<small>/giây</small>', '', 'qiRate')}${tile('Tu vi từ đan', num(s.pillRealmExp) + '<small>/ ' + num(pillCap) + '</small>')}${tile('Đan đã dùng', s.pillUses + '<small>viên · tầng này</small>')}${tile('Tâm ma', num(s.tamMa || 0) + '<small>/ ' + (H.TAM_MA_MAX || 100) + ' · đột phá −' + Math.min(15, (s.tamMa || 0) * (H.TAM_MA_BREAK_PENALTY || .0015) * 100).toLocaleString('vi-VN', { maximumFractionDigits: 1 }) + '%</small>', s.tamMa >= 50 ? 'tile-warn' : '')}</div>`, { eyebrow: 'Đạo cảnh', cls: 'sheet-cultivate' })}
       ${card('Giải nghĩa chỉ số', `<details class="stat-glossary"><summary>Xem ý nghĩa các chỉ số</summary><dl>${glossary}</dl></details>`, { eyebrow: 'Đạo thể', cls: 'sheet-glossary' })}
-    </div>`;
+    </div></div>`;
   }
 
   /* Tab Thiên phú: điểm khởi nguyên của nhân vật và tác dụng hiện tại của từng điểm. */
@@ -99,7 +98,7 @@
       const keys = Object.keys(s.learned).filter(k => H.item(k) && H.MANUALS.school(H.item(k)) === sc);
       const used = s.activeManuals.filter(k => H.MANUALS.school(H.item(k)) === sc).length;
       const count = sc === 'nghe' ? `${keys.length} bí tịch` : `${used}/${room[sc]} ô`;
-      return `<h3 class="section-title">${title} · ${count}</h3><p class="info-note">${hint}</p>
+      return `<h3 class="section-title">${title}<small class="title-count"> · ${count}</small></h3><p class="info-note">${hint}</p>
         <div class="skill-list">${keys.map(entry).join('') || empty('Chưa lĩnh ngộ sách nào thuộc hệ này.')}</div>`;
     };
     const learned = group('ngoai', 'Ngoại tu · chủ động', 'Đặt vào ô để thi triển khi chiến đấu; khi tự động chiến đấu, skill sẵn sàng sẽ tự được thi triển. Tốn linh lực và có hồi chiêu.')
@@ -313,7 +312,7 @@
     const manualRow = (sc, label, note) => `<div class="manual-gear-row ${sc}" role="group" aria-label="${label}: ${used(sc)}/${room[sc]} ô"><header><b>${label}</b><small>${note} · ${used(sc)}/${room[sc]}</small></header><div class="manual-gear-grid">${manualCells(sc, label)}</div></div>`;
     const manuals = manualRow('ngoai', 'Ngoại tu', 'chủ động') + manualRow('noi', 'Nội tu', 'bị động');
     return `<div class="inventory-scene-layout">
-      <div class="inventory-hero-column"><section id="equippedItems" class="gear-stage" aria-label="Đạo thân và pháp bảo"><div class="gear-stage-heading"><span class="eyebrow gold">Đạo thân</span><h3>Pháp bảo · ${s.equipment.length}/4</h3></div><img class="gear-hero" src="${esc(A.heroSrc(s.gender, s.zone, 'dung_yen', 0))}" alt="${esc(s.name)} đang ngồi thiền">${slots}<p class="gear-stage-hint">Chạm ô pháp bảo để mở cửa sổ trang bị, hoặc kéo pháp bảo vào ô trống.</p></section><section class="manual-gear-panel"><div><span class="eyebrow gold">Truyền thừa</span><h3>Công pháp · 4 ngoại · 4 nội</h3></div>${manuals}</section></div>
+      <div class="inventory-hero-column"><section id="equippedItems" class="gear-stage" aria-label="Đạo thân và pháp bảo"><div class="gear-stage-heading"><span class="eyebrow gold">Đạo thân</span><h3>Pháp bảo<small class="title-count"> · ${s.equipment.length}/4</small></h3></div><img class="gear-hero" src="${esc(A.heroSrc(s.gender, s.zone, 'dung_yen', 0))}" alt="${esc(s.name)} đang ngồi thiền">${slots}<p class="gear-stage-hint">Chạm ô pháp bảo để mở cửa sổ trang bị, hoặc kéo pháp bảo vào ô trống.</p></section><section class="manual-gear-panel"><div><span class="eyebrow gold">Truyền thừa</span><h3>Công pháp · 4 ngoại · 4 nội</h3></div>${manuals}</section></div>
       <section class="inventory-pouch card"><header class="card-head"><div><span class="eyebrow gold">Túi trữ vật</span><h3>Hành trang</h3></div><small>${xs.length} loại</small></header><p class="rarity-legend">${F.SUBPHAM.map(q => L ? L.span(q, 'quality', q) : esc(q)).join('')}</p><div class="inventory-items">${visible.map(i => {
         const quality = F.SUBPHAM[i.sub];
         const qClass = L ? ' ' + L.keyClass('quality', quality) : '';
