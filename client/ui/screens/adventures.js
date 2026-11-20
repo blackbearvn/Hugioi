@@ -273,10 +273,30 @@
     const result = seen && disciple ? `<div class="sect-rite-result" role="status"><span>Linh căn</span><strong>${rootLabelHtml(s.rootType, s.rootSub)}</strong><span>Danh phận nhập môn</span><b>${roleLabel(disciple)}</b>${s.sect.joined ? '<small>Danh phận được ghi nhận khi gia nhập.</small>' : '<small>Chọn tông môn để xác nhận danh phận.</small>'}</div>` : '<div class="sect-rite-prompt">Đặt tay lên bia đá để soi rõ linh căn.</div>';
     return `<section class="sect-rite" aria-label="Bia đo linh căn"><div class="sect-rite-top"><span class="eyebrow gold">Sơ nhập sơn môn</span><h2>Vấn Linh Đài</h2><p>Thiên địa làm chứng · một niệm khai linh</p></div>${result}<div class="sect-rite-bottom"><div class="sect-rite-guide"><img src="${esc(guide?.ảnh || '')}" alt="" loading="lazy"><p><b>${guideName}</b><br>Hãy chạm bia để xem linh căn và danh phận.</p></div>${btn(seen ? 'Đo lại linh căn' : 'Chạm bia đo linh căn', 'sectMeasure', '', false, 'btn-gold')}</div></section>`;
   }
-  function sect(tab = 'missions') {
+  /* Sơn môn: cảnh toàn màn hình, mỗi khu là một tấm biển đặt trên cảnh. Chọn khu để mở trang con. */
+  const SECT_ZONES = [['missions', 'Nhiệm vụ'], ['exploration', 'Lịch luyện'], ['dungeons', 'Bí cảnh'], ['library', 'Tàng Kinh Các'], ['shop', 'Kho tông môn'], ['ranks', 'Chức vị']];
+  function zoneStatus(id, d) {
+    const s = UI.s(), g = UI.g(), m = s.sect.mission, e = s.exploration?.active, a = s.dungeon.active, run = s.dungeon.run;
+    if (id === 'missions') return m ? { text: 'Đang làm · ' + live(m.end), alert: m.end <= Date.now() } : { text: d ? 'Nhận việc tông môn' : 'Chưa nhập môn · soi linh căn', alert: !d };
+    if (id === 'exploration') return e ? { text: e.battle ? 'Đang giao chiến' : 'Đang lịch luyện', alert: !!e.battle } : { text: 'Điểm lịch luyện ' + num(s.adventurePoints || 0) };
+    if (id === 'dungeons') return run ? { text: 'Tầng ' + run.floor + ' · đang chiến đấu', alert: true } : a ? { text: 'Còn ' + live(a.end) } : { text: 'Sẵn sàng thám hiểm' };
+    if (id === 'library') { const b = H.SECT_BOOKS.find(x => x.id === s.borrowedBook); return { text: b ? esc(b.name) : 'Chưa mượn sách' }; }
+    if (id === 'shop') return { text: d ? 'Cống hiến ' + num(s.sect.contribution) : 'Cần nhập môn' };
+    return { text: d ? esc(g.sectRank().name) : 'Cần nhập môn' };
+  }
+  function sectHub() {
+    const d = UI.g().sectDefinition();
+    const zones = SECT_ZONES.map(([id, label], i) => {
+      const st = zoneStatus(id, d);
+      return `<button type="button" class="hub-zone" style="--i:${i}" data-act="sectPanel" data-panel="${id}"><span class="hub-zone-name">${label}${st.alert ? '<i class="hub-dot" aria-hidden="true"></i>' : ''}</span><span class="hub-zone-line">${st.text}</span></button>`;
+    }).join('');
+    return `<section class="sect-hub" aria-label="Sơn môn"><header class="hub-title"><h2>${d ? sectLabel(d) : 'Sơn môn'}</h2><p>${d ? 'Chọn một nơi trong tông môn.' : 'Chưa gia nhập tông môn. Soi linh căn ở mục Nhiệm vụ để chọn môn phái.'}</p></header><div class="hub-zones">${zones}</div></section>`;
+  }
+  function sect(tab = 'hub') {
     const s = UI.s(), g = UI.g(), d = g.sectDefinition();
-    const sub = ['missions','library','shop','ranks','exploration','dungeons'].includes(tab) ? tab : 'missions';
-    const nav = `<div class="action-group adventure-nav" role="group" aria-label="Bảng tông môn">${[['missions','Nhiệm vụ'],['exploration','Lịch luyện'],['dungeons','Bí cảnh'],['library','Tàng Kinh Các'],['shop','Kho tông môn'],['ranks','Chức vị']].map(([id,label]) => btn(label, 'sectPanel', `data-panel="${id}" aria-pressed="${sub === id}"`, false, sub === id ? 'btn-gold' : 'btn-outline')).join('')}</div>`;
+    if (tab === 'hub') return sectHub();
+    const sub = SECT_ZONES.some(z => z[0] === tab) ? tab : 'missions';
+    const nav = `<div class="sect-subhead"><button type="button" class="sect-back" data-act="sectPanel" data-panel="hub">‹ Sơn môn</button><h3>${SECT_ZONES.find(z => z[0] === sub)[1]}</h3></div>`;
     if (sub === 'exploration') return nav + UI.screens.combat.panel();
     if (sub === 'dungeons') return nav + dungeons();
     const rite = sub === 'missions' ? sectRite() : '';
@@ -404,7 +424,7 @@
     if (b && !b.disabled) { e.preventDefault(); b.click(); }
   });
   UI.action('dungeonAbort', async () => { UI.modal('Rút khỏi bí cảnh?', '<p>Chuyến đi hiện tại sẽ không có phần thưởng.</p>', async () => await UI.command('abortDungeon'), 'Rút lui'); return UI.KEEP; });
-  UI.action('sectPanel', async (el, d) => { if (['missions', 'library', 'shop', 'ranks','exploration','dungeons'].includes(d.panel)) UI.go('sect:' + d.panel); });
+  UI.action('sectPanel', async (el, d) => { if (['hub', 'missions', 'library', 'shop', 'ranks','exploration','dungeons'].includes(d.panel)) UI.go('sect:' + d.panel); });
   UI.action('borrowSectBook', async (el, d) => { const book = await UI.command('buySect', { id: d.id }); UI.toast('Đã mượn ' + book.name + ' · còn ' + num(book.points) + ' điểm lịch luyện.', { type: 'success', title: 'Tàng Kinh Các' }); });
   UI.action('sectRepeat', async () => { await UI.command('setSectRepeat', { enabled: !UI.s().sect.repeat }); });
   UI.action('sectMissionAbort', async () => { UI.modal('Hủy nhiệm vụ?', '<p>Nhiệm vụ hiện tại không có phần thưởng; tự lặp sẽ tắt.</p>', async () => await UI.command('abortSectMission'), 'Hủy nhiệm vụ'); return UI.KEEP; });

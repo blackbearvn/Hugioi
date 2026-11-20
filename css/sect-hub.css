@@ -1,0 +1,51 @@
+/* HƯ GIỚI · SƠN MÔN
+ * Trang Tông môn mở ra là một cảnh toàn màn hình. Mỗi khu (Nhiệm vụ, Lịch luyện, Bí cảnh, Tàng Kinh Các,
+ * Kho tông môn, Chức vị) là một tấm biển đặt trên cảnh; bấm vào biển để mở trang con. Trang con có nút ‹ Sơn môn. */
+.win.page[data-window="sect"] .win-body:has(.sect-hub){padding:0;overflow:hidden}
+.win.page[data-window="sect"] .win-body>.sect-hub-body{max-width:none;margin:0}
+.sect-hub-body{padding:0}
+.sect-hub{
+  --ink:#0c1013;--slate:#161c21;--rule:#2c363d;--paper:#ebe2cd;--dim:#a5a99f;--bronze:#c9a24e;--cinnabar:#d0553d;
+  position:relative;min-height:calc(100dvh - 62px);color:var(--paper)
+}
+.sect-hub::before{content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(#0c1013b3,#0c101300 24%,#0c101300 66%,#0c101399)}
+.hub-title{position:absolute;z-index:2;left:clamp(16px,4vw,56px);top:clamp(14px,3vh,36px);max-width:min(520px,70%);text-shadow:0 2px 14px #000,0 0 3px #000}
+.hub-title h2{margin:0;font:400 clamp(34px,5vw,56px)/1.05 var(--display,var(--serif));color:var(--paper)}
+.hub-title p{margin:6px 0 0;font-size:14.5px;line-height:1.5;color:#d6d2c6}
+
+.hub-zones{position:absolute;inset:0;z-index:2}
+.hub-zone{position:absolute;transform:translate(-50%,-50%);min-width:176px;max-width:250px;padding:10px 18px 10px 14px;text-align:left;
+  background:#0c1013d9;border:1px solid var(--rule);border-left:3px solid var(--bronze);border-radius:2px;color:var(--paper);font:inherit;cursor:pointer}
+.hub-zone::after{content:"";position:absolute;left:50%;top:100%;width:1px;height:24px;background:linear-gradient(var(--bronze),#c9a24e00);pointer-events:none}
+.hub-zone:hover,.hub-zone:focus-visible{background:#161c21f5;border-color:var(--bronze);outline:0;box-shadow:0 0 0 1px var(--bronze)}
+.hub-zone-name{display:block;font:400 23px/1.2 var(--display,var(--serif));text-shadow:none}
+.hub-zone-line{display:block;margin-top:3px;font-size:12.5px;line-height:1.4;color:var(--dim)}
+.hub-dot{display:inline-block;width:8px;height:8px;margin-left:9px;border-radius:50%;background:var(--cinnabar);vertical-align:middle}
+@media(prefers-reduced-motion:no-preference){.hub-dot{animation:hubDot 1.6s ease-in-out infinite}}
+@keyframes hubDot{50%{opacity:.35}}
+
+/* Vị trí các biển trên cảnh (tỉ lệ theo vùng cảnh) */
+.hub-zone:nth-child(1){left:50%;top:72%}
+.hub-zone:nth-child(2){left:84%;top:50%}
+.hub-zone:nth-child(3){left:73%;top:17%}
+.hub-zone:nth-child(4){left:19%;top:63%}
+.hub-zone:nth-child(5){left:81%;top:78%}
+.hub-zone:nth-child(6){left:19%;top:34%}
+@media(max-width:700px){
+  .hub-zone{left:50%!important;min-width:min(250px,76vw)}
+  .hub-zone:nth-child(1){top:30%}.hub-zone:nth-child(2){top:41%}.hub-zone:nth-child(3){top:52%}
+  .hub-zone:nth-child(4){top:63%}.hub-zone:nth-child(5){top:74%}.hub-zone:nth-child(6){top:85%}
+  .hub-zone::after{display:none}
+}
+@media(max-height:560px) and (min-width:701px){.hub-zone-line{display:none}.hub-zone{min-width:150px}}
+
+/* Trang con */
+.sect-subhead{display:flex;align-items:center;gap:14px;margin:0 0 14px}
+.sect-subhead h3{margin:0;font:400 clamp(26px,4vw,38px)/1.1 var(--display,var(--serif));text-shadow:0 2px 12px #000}
+.sect-back{padding:8px 14px;border:1px solid #2c363d;border-radius:3px;background:#0c1013e6;color:#ebe2cd;font:600 14px var(--font);white-space:nowrap;cursor:pointer}
+.sect-back:hover{border-color:#c9a24e}
+.sect-back:focus-visible{outline:2px solid #c9a24e;outline-offset:2px}
+
+/* Sơn môn dùng nguyên tranh nền, không phủ mờ thêm */
+.win.page[data-window="sect"]:has(.sect-hub){background:var(--page-bg,#0c1013) center/cover no-repeat}
