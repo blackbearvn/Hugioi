@@ -120,7 +120,10 @@
       }
     }
 
+    /* Khi tài nguyên nằm trong gói, ảnh chưa giải mã là ảnh trong suốt (data:): bỏ qua để nhân vật không biến mất. */
+    const ready = list => list.filter(src => src && !/^data:/.test(src));
     function playFrames(img, frames, interval, done) {
+      frames = ready(frames);
       if (!img || !frames.length) { done?.(); return; }
       if (reduced()) return;
       img.dataset.anim = 'busy';
@@ -290,7 +293,6 @@
       if (fx.idle || reduced()) return;
       /* Nạp sẵn cả ba động tác để nhịp đầu vào trận không bị trống khung. */
       for (const action of ['dung_chien', 'tan_cong', 'tu_vong']) ctx.heroFrames(action).forEach(src => { const im = new Image(); im.src = src; im.decode?.().catch(() => {}); });
-      const heroFrames = ctx.heroFrames('dung_chien');
       let tick = 0;
       /* Thế đứng giao chiến là bốn khung, nhịp riêng của từng đạo thân (nam 250 ms, nữ 180 ms);
          đối thủ giữ nhịp thở 160 ms. Vòng lặp 60 ms chỉ đổi ảnh khi khung thật sự đổi. */
@@ -298,6 +300,8 @@
         const hero = $('battleSelf'), foe = $('battleFoeSprite');
         if (!hero || !foe) { root.clearInterval(fx.idle); fx.idle = 0; return; }
         if (document.hidden || !ctx.active()) return;
+        /* Đọc lại danh sách mỗi nhịp: ảnh trong gói được giải mã sau, địa chỉ của chúng đổi từ trong suốt sang ảnh thật. */
+        const heroFrames = ready(ctx.heroFrames('dung_chien'));
         if (hero.dataset.anim !== 'busy' && heroFrames.length) {
           const src = heroFrames[Math.floor(Date.now() / (ctx.heroIdleMs?.() || 200)) % heroFrames.length];
           if (hero.getAttribute('src') !== src) hero.src = src;
