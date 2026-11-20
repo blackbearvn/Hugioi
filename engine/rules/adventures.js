@@ -93,7 +93,7 @@
         record.best = Math.max(record.best, floors);
         s.dungeon.records[d.id] = record;
         const text = d.name + ' · ' + floors + '/' + d.floors + ' tầng' + (full ? ' · hạ ' + d.boss : ' · rút lui dưỡng thương') +
-          (first ? ' · thông quan đầu tiên!' : '.') + ' Nhận ' + F.format_linh_thach(stone) + ', ' + F.fmt(exp) + ' tu vi.';
+          (first ? ' · thông quan đầu tiên!' : '.') + ' Nhận ' + F.format_linh_thach(stone, s.realm) + ', ' + F.fmt(exp) + ' tu vi.';
         const result = { id: d.id, at, floors, success: full, first, stone, exp, text };
         s.dungeon.last = result;
         this.log('Bí cảnh · ' + text);
@@ -234,7 +234,7 @@
           const n = F.income_rate(s.realm) * 45 * mult;
           const gain = ev.effect === 'loss' ? -Math.min(s.stone * .02, n * .3) : n;
           s.stone += gain;
-          reward.push((gain < 0 ? 'mất ' : '+') + F.format_linh_thach(Math.abs(gain)));
+          reward.push((gain < 0 ? 'mất ' : '+') + F.format_linh_thach(Math.abs(gain), s.realm));
         } else if (ev.effect === 'hurt') {
           const n = Math.min(Math.max(0, s.hp - 1), this.stats(now).HP * .08);
           s.hp -= n;

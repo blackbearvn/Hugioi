@@ -203,7 +203,7 @@
         if (i !== 1) throw Error('Nâng cấp không hợp lệ.');
         const owned = this.s.tech[i] - 1, base = this.upgradeBase(i);
         const n = Math.min(20 - owned, wanted === 'max' ? F.max_buy(this.s.stone, base, F.P.UP_GROWTH, owned) : wanted);
-        if (n <= 0) throw Error('Đã đủ cấp hoặc không đủ linh thạch.');
+        if (n <= 0) throw Error('Đã đủ cấp hoặc không đủ ' + F.currency(this.s.realm).name.toLocaleLowerCase('vi-VN') + '.');
         this.spend(F.bulk_cost(base, F.P.UP_GROWTH, owned, n));
         this.s.tech[i] += n;
         return n;
@@ -245,11 +245,13 @@
         }
       },
       absorb(payload, now) {
-        const coin = payload.index;
-        if (!Number.isInteger(coin) || !F.COINS[coin]) throw Error('Số lượng không hợp lệ.');
+        const coin = payload.index, count = payload.count === undefined ? 1 : payload.count;
+        const currency = F.currency(this.s.realm);
+        if (coin !== currency.index) throw Error('Đại giới này chỉ hấp thu ' + currency.name.toLocaleLowerCase('vi-VN') + '.');
+        if (!Number.isSafeInteger(count) || count < 1 || count > F.ABSORB_COUNTS.at(-1)) throw Error('Số lượng hấp thu không hợp lệ.');
         if (this.s.qi >= this.need()) throw Error('Tu vi đã đầy.');
-        this.spend(F.COINS[coin][1]);
-        return this.gainExp(F.absorb_exp(this.s.realm, coin, 1));
+        this.spend(currency.value * count);
+        return this.gainExp(F.absorb_exp(this.s.realm, coin, count));
       },
       setAuto(payload) { this.s.auto = payload.enabled; return payload.enabled; }
     });

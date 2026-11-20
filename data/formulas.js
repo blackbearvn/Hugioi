@@ -10,6 +10,14 @@ const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const sum=xs=>xs.reduce((a,b)=>a+b,0);
 const range=n=>Array.from({length:n},(_,i)=>i);
 const F={...D,BOLTS};
+/* Ba loại tiền theo đại giới. Giá và số dư vẫn lưu bằng đơn vị hạ phẩm để
+   giữ nguyên giá trị bản lưu cũ. Giữ mã lệnh hấp thu 0/3/4, tránh đổi giá
+   của một lệnh đã gửi từ client cũ khi bỏ các bậc tiền trung gian. */
+F.CURRENCIES=Object.freeze(D.COINS.map(([name,value],i)=>Object.freeze({
+  name,value,index:[0,3,4][i],icon:['low','high','jade'][i],world:['Hạ Giới','Linh Giới','Tiên Giới'][i]
+})));
+F.currency=(realm=0)=>F.CURRENCIES[D.COIN_OF_REALM[realm]??0];
+F.ABSORB_COUNTS=Object.freeze([1,100,1e4,1e8]);
 /* Hệ số tốc tu mới. */
 F.LINH_CAN_RATE={...D.LINH_CAN_RATE,'Ngụy':.6,'Tứ hành':.8,'Tam hành':1,'Song':1.2,'Thiên':1.5,'Dị':2,'Hỗn Độn':3};
 F.LINH_CAN_COMBAT={...D.LINH_CAN_COMBAT,'Dị':1,'Hỗn Độn':1};
@@ -77,7 +85,10 @@ F.shop_sell_price=value=>value*P.SHOP_SELL_RATIO;
 F.auction_net=(value,factor=1)=>value*factor*(1-P.AUCTION_FEE);
 F.barter_value=(value,kind)=>value*D.BARTER_LIQ[kind];
 F.exp_per_ha=r=>F.ref_rate(r,0)/F.income_rate(r);
-F.absorb_exp=(r,coin,count=1)=>count*P.ABSORB_EFF*D.COINS[coin][1]*F.exp_per_ha(r)*P.ABSORB_MISMATCH**Math.max(0,D.COIN_OF_REALM[r]-coin);
+F.absorb_exp=(r,coin,count=1)=>{
+  const currency=F.CURRENCIES.find(c=>c.index===coin);
+  return currency?count*P.ABSORB_EFF*currency.value*F.exp_per_ha(r):0;
+};
 F.herb_price=(h,sub=0,age=null)=>{let p=P.BATCH_YIELD/(P.HERBS_PER_BATCH*P.DAN_MARGIN)*F.price_ha(h,sub);if(age&&D.HERB_AGE[h]){const [lo,hi]=D.HERB_AGE[h];p*=.7+.6*clamp(Math.log(age/lo)/Math.log(hi/lo),0,1)}return p};
 F.dan_by_loai=type=>D.DAN_TABLE.filter(d=>d[3]===type);
 F.dan_effect=(type,r,s,sub=0,used=0,diff=0)=>{const m=P.DAN_MISMATCH**diff,q=2**sub*m;switch(type){
@@ -107,7 +118,15 @@ F.ascension_bolts=(r=4,rootType=null)=>{const n=D.ASCEND_BOLTS[r]||0,total=F.tri
 F.survive_ascension=(r,hp,shield=0,red=0,heal=0,rootType=null)=>{const bolts=F.ascension_bolts(r,rootType);return survive(bolts,hp,shield,red,heal,bolts.length)};
 F.tribulation_events=r=>[...(BOLTS[r]?[[`Lôi kiếp ${REALMS[r]}`,BOLTS[r]]]:[]),...(D.ASCEND_BOLTS[r]?[['Phi Thăng Lôi Kiếp',D.ASCEND_BOLTS[r]]]:[])];
 F.fmt=x=>{if(!Number.isFinite(x))return '—';const sign=x<0?'-':'';x=Math.abs(x);if(x>=1e36)return sign+x.toExponential(2);for(const [v,n] of [[1e32,'Câu'],[1e28,'Nhưỡng'],[1e24,'Tỷ'],[1e20,'Cai'],[1e16,'Kinh'],[1e12,'Triệu'],[1e8,'Ức'],[1e4,'Vạn']])if(x>=v)return sign+(x/v).toLocaleString('vi-VN',{maximumFractionDigits:2})+' '+n;return sign+x.toLocaleString('vi-VN',{maximumFractionDigits:1})};
-F.format_linh_thach=x=>{if(x<1)return '0 Hạ';const i=D.COINS.findLastIndex(([,v])=>v<=x*(1+1e-12)),[name,value]=D.COINS[i],whole=Math.floor(x/value+1e-9);let out=F.fmt(whole)+' '+name;if(i>0){const [small,unit]=D.COINS[i-1],rest=Math.floor((x-whole*value)/unit+1e-9);if(rest>0)out+=' '+F.fmt(rest)+' '+small}return out};
+F.money_amount=(x,realm=0,compact=true)=>{
+  if(!Number.isFinite(x))return '—';
+  const amount=x/F.currency(realm).value;
+  if(!compact)return amount.toLocaleString('vi-VN',{maximumFractionDigits:20});
+  if(amount!==0&&Math.abs(amount)<.01)return (amount<0?'-':'')+'<0,01';
+  return Math.abs(amount)>=1e4?F.fmt(amount).toLocaleLowerCase('vi-VN')
+    :amount.toLocaleString('vi-VN',{maximumFractionDigits:2});
+};
+F.format_linh_thach=(x,realm=0,compact=true)=>F.money_amount(x,realm,compact)+' '+F.currency(realm).name.toLocaleLowerCase('vi-VN');
 root.HU_FORMULAS=Object.freeze(F);
 if(typeof module!=='undefined'&&module.exports)module.exports=F;
 })(typeof window!=='undefined'?window:globalThis);

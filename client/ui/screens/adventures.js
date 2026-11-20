@@ -35,7 +35,7 @@
     return `<section class="bc-last" aria-label="Kết quả chuyến gần nhất">
       <h4>${esc(d.name)}, ${r.floors}/${d.floors} tầng</h4>
       <p class="${r.success ? 'gold' : 'muted'}">${r.success ? 'Đã hạ ' + esc(d.boss) + '.' : 'Đã rút lui dưỡng thương.'}${r.first ? ' Thông quan lần đầu.' : ''}</p>
-      <div class="bc-last-rows">${row('Linh thạch', moneyHTML(r.stone))}${row('Tu vi thực nhận', '+' + num(r.exp))}</div>
+      <div class="bc-last-rows">${row(F.currency(UI.s().realm).name, moneyHTML(r.stone))}${row('Tu vi thực nhận', '+' + num(r.exp))}</div>
     </section>`;
   }
   /* Thanh chỉ số có nhãn chữ và vai trò meter để đọc được bằng trình đọc màn hình. */
@@ -287,7 +287,7 @@
     if (!d) return nav + rite + `<p class="screen-lead">${sectMeasured() ? 'Chọn một tông môn để bước lên tiên lộ.' : 'Chạm bia đo linh căn trước khi chọn tông môn.'}</p>${riteLink}<div class="adventure-grid">${H.SECTS.map(x => card(sectLabel(x), `<p>${x.desc}</p><p class="gold">${x.bonus}</p>` + btn('Gia nhập', 'joinSect', `data-id="${x.id}"`, !sectMeasured()))).join('')}</div>`;
     const rank = g.sectRank();
     const header = card(sectLabel(d), `<p>${d.desc} <b class="gold">${d.bonus}</b></p>` + row('Danh phận', g.sectDisciple() ? roleLabel(g.sectDisciple()) : 'Chưa xác định') + row('Cấp cống hiến', rank.name) + row('Cống hiến khả dụng', num(s.sect.contribution)) + row('Điểm lịch luyện', num(s.adventurePoints || 0)) + row('Tổng đã kiếm', num(s.sect.earned)) +
-      row('Linh thạch tự tích lũy', moneyHTML(g.sectIncome()) + '/giây') +
+      row('Thu nhập tông môn', moneyHTML(g.sectIncome()) + '/giây') +
       (rank.next ? bar((s.sect.earned - rank.at) / (rank.next.at - rank.at) * 100) + `<p class="info-note">Còn ${num(rank.next.at - s.sect.earned)} cống hiến đã kiếm để lên ${rank.next.name}.</p>` : '<p class="gold">Đã đạt chức vị tối cao.</p>') +
       `<div class="action-group">${btn(s.sect.blessing ? 'Tắt chúc phúc' : 'Chúc phúc +10% tốc độ hấp thụ linh khí', 'blessing', '', false, 'btn-outline')}${btn('Cống hiến · ' + moneyHTML(F.price_ha(s.realm)), 'donate', '', s.stone < F.price_ha(s.realm), 'btn-outline')}</div>`);
     const panels = { missions: missionBoard, library: sectLibrary, shop: sectShop, ranks: () => card('Lộ trình chức vị', H.SECT_RANKS.map(r => row(r.name, num(r.at) + ' tổng cống hiến · bậc ' + r.tier)).join('') + '<p class="info-note">Cống hiến đã kiếm tính cả nhiệm vụ và quyên góp. Rời tông môn sẽ đặt lại chức vị, cống hiến và chúc phúc.</p>' + btn('Rời tông môn', 'sectLeave', '', !!s.sect.mission, 'btn-outline')) };

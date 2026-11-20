@@ -6,7 +6,7 @@
   'use strict';
   const UI = root.HU_UI, H = root.HU_GAME;
   if (!UI || !H) return;
-  const { $, esc, img, abs, moneyHTML } = UI.kit;
+  const { $, esc, img, abs, money, moneyHTML } = UI.kit;
   const F = H.F, WORK_MS = 3600, WORK_MS_REDUCED = 900;
   const TRADES = {
     khi: { kind: 'EQ', title: 'Lò rèn', leave: 'Rời lò rèn', work: 'Đang rèn', done: 'Rèn xong', verb: 'Rèn', book: 'luyện pháp bảo', alt: 'Tu sĩ đang rèn pháp bảo' },
@@ -69,7 +69,7 @@
     const el = $('forgePageBody');
     if (!el) return;
     el.innerHTML = st.phase === 'work' ? work() : st.phase === 'done' ? done() : pick();
-    $('fpSub').textContent = 'Linh thạch: ' + Math.floor(S().stone).toLocaleString('vi-VN');
+    $('fpSub').textContent = 'Số dư: ' + money(S().stone);
   }
 
   function open(trade) {

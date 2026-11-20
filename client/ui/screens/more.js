@@ -143,7 +143,7 @@
     const aff = st?.affinity || 0, got = st?.claimed || [];
     return `<div class="bond-marks">${BOND_MILESTONES.map(m => {
       const done = got.includes(m.at), ready = !done && aff >= m.at;
-      const what = [m.reward.stone ? 'linh thạch' : '', m.reward.exp ? 'tu vi' : ''].filter(Boolean).join(' + ');
+      const what = [m.reward.stone ? F.currency(UI.s().realm).name.toLocaleLowerCase('vi-VN') : '', m.reward.exp ? 'tu vi' : ''].filter(Boolean).join(' + ');
       return `<button type="button" class="bond-mark ${done ? 'done' : ready ? 'ready' : ''}" data-act="moreClaimBond" data-id="${f.id}" data-at="${m.at}" ${ready ? '' : 'disabled'} title="${esc(m.name + ': ' + what)}">${done ? '✓' : m.at}<small>${esc(m.name)}</small></button>`;
     }).join('')}</div>`;
   }
@@ -181,12 +181,12 @@
 
   function pvp() {
     const s = UI.s(), pvp = s.social.pvp, g = UI.g(), my = g.stats().CP, ready = Date.now() >= pvp.lastAt + PVP_CD;
-    return `<p class="screen-lead">Sinh Tử Đài: giao đấu với đối thủ NPC, không phải người chơi thật. Thắng tăng danh vọng, nhận linh thạch và tu vi; thua mất một ít danh vọng.</p>
+    return `<p class="screen-lead">Sinh Tử Đài: giao đấu với đối thủ NPC, không phải người chơi thật. Thắng tăng danh vọng, nhận ${F.currency(s.realm).name.toLocaleLowerCase('vi-VN')} và tu vi; thua mất một ít danh vọng.</p>
       <div class="screen-grid">
         ${card('Sinh Tử Đài', `<div class="pvp-rating"><b>${num(pvp.rating)}</b><span>${pvpTier(pvp.rating)}</span></div>
           ${row('Thắng / Thua', num(pvp.wins) + ' / ' + num(pvp.losses))}${row('Chuỗi thắng', num(pvp.streak))}${row('Danh vọng cao nhất', num(pvp.best))}${row('Chiến lực của bạn', num(my))}
           <p class="info-note">Sau mỗi trận cần điều tức ${Math.round(PVP_CD / 1000)} giây trước khi tái đấu. Thắng nhận 18–25 danh vọng; thua hao tổn 12–19 danh vọng.</p>`, { eyebrow: 'Danh vọng' })}
-        ${card('Quy tắc', `<p>Đối thủ trên Sinh Tử Đài tương ứng với chiến lực hiện tại của bạn. Mỗi cảnh giới đều có những thử thách riêng.</p>${row('Thắng', 'Linh thạch · tu vi · danh vọng')}${row('Thua', 'Mất danh vọng, không mất tu vi')}${row('Trạng thái', ready ? 'Sẵn sàng' : live(pvp.lastAt + PVP_CD))}`, { eyebrow: 'Luật đấu' })}
+        ${card('Quy tắc', `<p>Đối thủ trên Sinh Tử Đài tương ứng với chiến lực hiện tại của bạn. Mỗi cảnh giới đều có những thử thách riêng.</p>${row('Thắng', F.currency(s.realm).name + ' · tu vi · danh vọng')}${row('Thua', 'Mất danh vọng, không mất tu vi')}${row('Trạng thái', ready ? 'Sẵn sàng' : live(pvp.lastAt + PVP_CD))}`, { eyebrow: 'Luật đấu' })}
       </div>
       <div class="social-list pvp-list">${RIVALS.map(f => {
         const power = g.rivalPower(f.id), chance = F.win_probability(my, power);

@@ -86,15 +86,13 @@
   const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
   const num = F.fmt;
-  const money = F.format_linh_thach;
-  const coinTier = name => /Tiên tinh|Hỗn Độn/.test(name) ? 'jade' : name === 'Hạ' ? 'low' : 'high';
-  const coinImg = (name, cls = 'coin') => `<img class="${cls}" src="${esc(A.moneyIcon(coinTier(name)))}" alt="" aria-hidden="true" decoding="async">`;
-  const coinLabel = name => `<span class="coin-label">${coinImg(name)}${esc(name)}</span>`;
-  const moneyHTML = value => {
-    const text = money(value);
-    let name = 'Hạ';
-    for (const [label, amount] of F.COINS) if (Number(value) >= amount) name = label;
-    return `<span class="coin-value" title="${esc(text)}">${coinImg(name)}<span>${esc(text)}</span></span>`;
+  const currency = (realm = UI.s?.()?.realm ?? 0) => F.currency(realm);
+  const money = (value, realm = UI.s?.()?.realm ?? 0, compact = true) => F.format_linh_thach(value, realm, compact);
+  const coinImg = (coin, cls = 'coin') => `<img class="${cls}" src="${esc(A.moneyIcon(coin.icon))}" alt="" aria-hidden="true" decoding="async">`;
+  const coinLabel = (coin = currency()) => `<span class="coin-label">${coinImg(coin)}${esc(coin.name.toLocaleLowerCase('vi-VN'))}</span>`;
+  const moneyHTML = (value, realm = UI.s?.()?.realm ?? 0) => {
+    const text = money(value, realm), exact = money(value, realm, false);
+    return `<span class="coin-value" title="${esc(exact)}" aria-label="${esc(exact)}">${coinImg(currency(realm))}<span>${esc(text)}</span></span>`;
   };
   const pct = x => (x * 100).toLocaleString('vi-VN', { maximumFractionDigits: 1 }) + '%';
   const duration = x => !Number.isFinite(x) ? '—'
@@ -278,7 +276,7 @@
     return Object.entries(effects || {}).map(([k, v]) => (labels[k] || k) + ' +' + (v * weight * 100).toLocaleString('vi-VN', { maximumFractionDigits: 2 }) +
       (['crit', 'dodge', 'regen'].includes(k) ? ' điểm %' : '%')).join(' · ');
   };
-  UI.kit = { itemName, rankOf, rankLabelOf, qualityOf, qualityLabelOf, useCondition, itemEffectText, pillEffectText, itemSheet, $, $$, esc, clamp, num, money, moneyHTML, coinLabel, pct, duration, abs, row, btn, img, codeAttr, bar, card, empty, tabs, live };
+  UI.kit = { itemName, rankOf, rankLabelOf, qualityOf, qualityLabelOf, useCondition, itemEffectText, pillEffectText, itemSheet, $, $$, esc, clamp, num, currency, money, moneyHTML, coinLabel, pct, duration, abs, row, btn, img, codeAttr, bar, card, empty, tabs, live };
 
   /* ======================================================================
      2. DỮ LIỆU HIỂN THỊ

@@ -304,9 +304,10 @@
         <span class="shop-card-price">${moneyHTML(price)}</span>
       </button>`;
     }).join('');
+    const coin = F.currency(s.realm);
     return `<p class="screen-lead">Tàng bảo các bày bán vật phẩm cao hơn cảnh giới hiện tại một bậc. Giá mua bằng 120% giá trị vật phẩm. Số dư ${moneyHTML(s.stone)}.</p>${lists.controls({ quality: true })}${lists.pager(xs.length)}
       <div class="shop-grid">${cards || empty('Không có vật phẩm phù hợp bộ lọc.')}</div>
-      ${card('Yêu đan và linh thạch', `${row('Giá trị yêu đan', moneyHTML(s.yaoValue))}${btn('Bán yêu đan', 'sellYao', '', s.yaoValue <= 0)}<p>Hấp thu linh thạch để đổi lấy tu vi với hiệu suất 15%; loại thấp hơn cảnh giới bị giảm hiệu quả.</p><div class="action-group coin-row">${F.COINS.map(([n, val], i) => btn('Hấp thu 1 ' + coinLabel(n), 'absorb', `data-index="${i}"`, s.stone < val, 'btn-outline')).join(' ')}</div>`)}`;
+      ${card('Yêu đan và tiền tệ', `${row('Giá trị yêu đan', moneyHTML(s.yaoValue))}${btn('Bán yêu đan', 'sellYao', '', s.yaoValue <= 0)}<p>Hấp thu ${coin.name.toLocaleLowerCase('vi-VN')} để đổi lấy tu vi với hiệu suất 15%.</p><div class="action-group coin-row">${F.ABSORB_COUNTS.map(count => btn('Hấp thu ' + moneyHTML(coin.value * count), 'absorb', `data-index="${coin.index}" data-count="${count}"`, s.stone < coin.value * count || s.qi >= g.need(), 'btn-outline')).join('')}</div>`)}`;
   };
 
   const auction = () => {

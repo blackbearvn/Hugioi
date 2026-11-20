@@ -21,7 +21,7 @@
   /* Tên lệnh → schema các trường payload. Thêm lệnh mới: khai báo ở đây và gán cho đúng một module trong engine/rules/. */
   const SCHEMAS = Object.freeze({
     // progression
-    absorb: { index: integer(0, F.COINS.length - 1) },
+    absorb: { index: oneOf(F.CURRENCIES.map(c => c.index)), count: optional(integer(1, F.ABSORB_COUNTS.at(-1))) },
     upgrade: { index: integer(0, 3), count: v => v === 'max' || integer(1, 20)(v) },
     breakthrough: {},
     setAuto: { enabled: boolean },

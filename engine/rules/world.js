@@ -165,7 +165,7 @@
         const disciple = H.sectDiscipleForRoot(this.s.rootType);
         if (!disciple) throw Error('Không thể xác định linh căn để gia nhập tông môn.');
         this.s.sect = { ...sectDefault(), joined: true, id, discipleClass: disciple.id };
-        this.log('Gia nhập ' + d.name + ' · ' + disciple.name + ' · được hưởng linh thạch định kỳ và nhận ủy thác tông môn.');
+        this.log('Gia nhập ' + d.name + ' · ' + disciple.name + ' · được hưởng ' + F.currency(this.s.realm).name.toLocaleLowerCase('vi-VN') + ' định kỳ và nhận ủy thác tông môn.');
         return { ...d, disciple };
       },
       leaveSect() {
@@ -236,7 +236,7 @@
         if (success) { this.addContribution(contribution); s.adventurePoints = Math.min(1e9, (s.adventurePoints || 0) + contribution); s.stone += stone; s.sect.missionsDone++; }
         else { s.hp = Math.max(1, s.hp - this.stats().HP * .1); s.sect.repeat = false; }
         s.sect.mission = null;
-        const text = def.name + (success ? (excellent ? ' · xuất sắc' : ' · hoàn thành') + ' · cống hiến +' + contribution + ', điểm lịch luyện +' + contribution + ', ' + F.format_linh_thach(stone) + ', tu vi +' + F.fmt(exp) : ' · thất bại, mất 10% sinh lực tối đa.') + (m.featured ? ' · ủy thác nổi bật ×1,5.' : '.');
+        const text = def.name + (success ? (excellent ? ' · xuất sắc' : ' · hoàn thành') + ' · cống hiến +' + contribution + ', điểm lịch luyện +' + contribution + ', ' + F.format_linh_thach(stone, s.realm) + ', tu vi +' + F.fmt(exp) : ' · thất bại, mất 10% sinh lực tối đa.') + (m.featured ? ' · ủy thác nổi bật ×1,5.' : '.');
         const result = { id: def.id, at: now, success, contribution, stone, exp, text };
         s.sect.last = result;
         this.log('Tông môn · ' + text);

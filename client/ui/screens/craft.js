@@ -117,7 +117,7 @@
     const manualOk = !r.manual || Object.keys(s.learned).some(k => H.item(k)?.code === r.manual);
     const inkOk = !r.ink || g.ingredientCount(r.ink) > 0;
     const ok = !!(mat && haveMat >= r.count && inkOk && manualOk && s.stone >= r.stone);
-    const why = !mat || haveMat < r.count ? 'Thiếu linh tài' : !inkOk ? 'Thiếu mực phù' : !manualOk ? 'Chưa lĩnh ngộ ' + (H.item(r.manual)?.name || 'bí tịch') : s.stone < r.stone ? 'Thiếu linh thạch' : '';
+    const why = !mat || haveMat < r.count ? 'Thiếu linh tài' : !inkOk ? 'Thiếu mực phù' : !manualOk ? 'Chưa lĩnh ngộ ' + (H.item(r.manual)?.name || 'bí tịch') : s.stone < r.stone ? 'Thiếu ' + F.currency(s.realm).name.toLocaleLowerCase('vi-VN') : '';
     return { r, mat, haveMat, manualOk, inkOk, ok, why };
   }
   UI.forgeStatus = forgeStatus;
@@ -157,7 +157,7 @@
       return `<div class="plot growing farm-plot" data-plot="${i}" data-start="${p.plantedAt}" data-end-at="${p.end}"><img src="${plotArt(p, now)}" alt="Linh thảo" loading="lazy" decoding="async"><b>Ô ${i + 1} · ${esc(H.item(p.herb).name)}</b>
         <span class="plot-status"></span><div class="meter-bar job-bar"><i></i></div>
         <details class="farm-care"><summary>Chăm sóc</summary><div class="farm-care-body"><div class="farm-meters"><label>Nước <meter class="farm-water" min="0" max="1" value="${p.water}"></meter></label><label>Đất <meter class="farm-soil" min="0" max="1" value="${p.soil}"></meter></label></div><small class="farm-pest"></small>
-        <div class="farm-actions">${action('water', 'Tưới nước')}${action('soil', 'Bón thổ · 1 linh thạch')}${action('pest', 'Trừ sâu')}${action('harvest', 'Thu hoạch')}</div></div></details></div>`;
+        <div class="farm-actions">${action('water', 'Tưới nước')}${action('soil', 'Bón thổ · ' + moneyHTML(1))}${action('pest', 'Trừ sâu')}${action('harvest', 'Thu hoạch')}</div></div></details></div>`;
     }).join('');
     const seeds = Object.keys(s.bag).map(H.item).filter(x => x?.kind === 'SEED' && x.tier <= s.realm + 1).sort((a, b) => a.tier - b.tier);
     const seedRows = seeds.map(x => {

@@ -324,7 +324,8 @@
 
   /* ---- tiền tệ ----
    * Ba biểu tượng gốc: linh thạch hạ phẩm (lam), thượng phẩm (tím) và tiên ngọc (ngọc bích).
-   * Trung/Thượng/Cực dùng chung biểu tượng thượng phẩm; các bậc Tiên tinh dùng tiên ngọc. */
+   * Hạ giới dùng biểu tượng hạ phẩm; Linh giới dùng biểu tượng tím cho cực phẩm;
+   * Tiên giới dùng tiên ngọc. Biểu tượng theo đại giới, không theo số dư. */
   const MONEY = {
     low: BASE + 'ui/icon/money/linh_thach_ha_pham.webp',
     high: BASE + 'ui/icon/money/linh_thach_thuong_pham.webp',

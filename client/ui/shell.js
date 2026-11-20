@@ -1258,7 +1258,9 @@
     const moneyEl = $('moneyTop'), moneyText = money(s.stone);
     if (moneyEl) {
       if (moneyEl.textContent !== moneyText) moneyEl.innerHTML = moneyHTML(s.stone);
-      moneyEl.setAttribute('aria-label', 'Linh thạch ' + moneyText);
+      moneyEl.setAttribute('aria-label', money(s.stone, s.realm, false));
+      const label = $('moneyLabel');
+      if (label) label.textContent = F.currency(s.realm).name;
     }
     const trainingBusy = !!root.HU_COMMANDS?.activityConflict(s, 'breakthrough');
     $('topRate').textContent = trainingBusy && !s.retreat?.active ? 'Tạm dừng' : '+' + num(g.rate()) + '/giây';

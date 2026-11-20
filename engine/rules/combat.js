@@ -102,7 +102,7 @@
             const gain = F.loot_linh_thach(s.zone, s.enemyKind) * .6;
             s.stone += gain;
             e.cleared = true;
-            return 'Thương lượng thành công, ' + e.name + ' nhường đường và tặng ' + F.format_linh_thach(gain) + '.';
+            return 'Thương lượng thành công, ' + e.name + ' nhường đường và tặng ' + F.format_linh_thach(gain, s.realm) + '.';
           }
           const loss = Math.min(Math.max(0, s.hp - 1), this.stats(e.end).HP * .06);
           s.hp -= loss;
@@ -547,7 +547,7 @@
           const drops = offline ? Math.floor(count * .3 * herbFortune) : (this.rng() < Math.min(1, .3 * herbFortune) ? 1 : 0);
           if (drops && herbs.length) this.add(pick(herbs, this.rng).code, drops);
         }
-        if (!offline) this.log('Hạ ' + this.enemy().name + ', nhận ' + F.format_linh_thach(F.loot_linh_thach(r, kind) * fortune) + '.');
+        if (!offline) this.log('Hạ ' + this.enemy().name + ', nhận ' + F.format_linh_thach(F.loot_linh_thach(r, kind) * fortune, s.realm) + '.');
       },
       _strike(mult = 1, now = this.s.lastUpdate, free = false, element = null) {
         now = at(this, now);

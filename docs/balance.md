@@ -217,6 +217,34 @@ nhân vật. Tử vong chỉ còn đến từ hộ kiếp không đủ, thọ ng
 
 ## 8. Kinh tế
 
+### Tiền tệ theo đại giới
+
+| Đại giới của nhân vật | Cảnh giới | Tiền tệ | Giá trị theo đơn vị lưu trữ |
+|---|---|---|---:|
+| Hạ Giới | Luyện Khí – Hóa Thần (0–4) | Linh thạch hạ phẩm | 1 |
+| Linh Giới | Luyện Hư – Độ Kiếp (5–8) | Linh thạch cực phẩm | 1.000.000 |
+| Tiên Giới | Chân Tiên – Đạo Tổ (9–13) | Tiên ngọc | 10¹⁸ |
+
+`COINS` và `COIN_OF_REALM` trong `data/balance.js` quy định ba loại tiền. Mọi nơi đọc
+`F.currency(realm)`; loại tiền không thay đổi theo độ lớn số dư hoặc khu vực đang đánh quái.
+Ví `state.stone`, giá, chi phí và phần thưởng vẫn tính bằng đơn vị hạ phẩm cũ. Khi chuyển đại giới,
+chỉ đổi đơn vị hiển thị: không sửa bản lưu, không cộng/trừ số dư và không thay giá trị giao dịch.
+Tỷ lệ giữ từ mô hình cũ: 1 cực phẩm = 10⁶ hạ phẩm; 1 tiên ngọc = 10¹² cực phẩm.
+Thiên Tinh của tài khoản tiếp tục dùng riêng ở Thiên Mệnh Các.
+
+`F.money_amount` rút gọn số theo vạn (10⁴), ức (10⁸), triệu (10¹²), kinh (10¹⁶)…;
+`F.format_linh_thach(value, realm)` kèm tên tiền. Ví dụ 125.000 ở Hạ Giới hiển thị
+`12,5 vạn linh thạch hạ phẩm`. Tooltip và nhãn hỗ trợ đọc dùng số đầy đủ.
+Số dương nhỏ hơn 0,01 đơn vị hiển thị `<0,01` để không nhầm thành hết tiền.
+
+Mỗi đại giới chỉ hấp thu loại tiền đang dùng, hiệu suất 15%, với các mức 1, 100, 1 vạn, 1 ức.
+`absorb.count` là số nguyên 1–10⁸; máy chủ tính và trừ chi phí, không nhận giá từ client.
+Lệnh cũ không có `count` tiếp tục hấp thu một đơn vị.
+Mã payload `absorb.index` giữ 0 (hạ phẩm), 3 (cực phẩm), 4 (tiên ngọc) như trước để
+không đổi chi phí của lệnh từ client cũ; các mã tiền đã bỏ và tiền khác đại giới bị từ chối.
+
+### Giá và thu nhập
+
 ```text
 price_ha(r, sub) = PRICE0 × PRICE_STEP^r × 2^sub
 income_rate(r)   = INC_DAN_PER_STAGE × price_ha(r) / avg_stage_time(r)

@@ -32,7 +32,7 @@
     const plot = [...s.garden].sort((a, b) => a.end - b.end)[0];
     if (plot) goals.push({ icon: '❀', text: `Linh điền: ${esc(H.item(plot.herb).name)} chín sau ${live(plot.end)}.`, go: 'craft:dien', cta: 'Linh điền' });
     if (!Object.keys(s.learned).length && Object.keys(s.bag).some(k => H.item(k)?.kind === 'BT')) goals.push({ icon: '✧', text: 'Có công pháp trong túi chưa lĩnh ngộ.', go: 'character:bag', cta: 'Hành trang' });
-    if (!s.sect.joined) goals.push({ icon: '⌂', text: 'Gia nhập tông môn để tích lũy linh thạch và nhận ủy thác.', go: 'world:sect', cta: 'Tông môn' });
+    if (!s.sect.joined) goals.push({ icon: '⌂', text: 'Gia nhập tông môn để tích lũy ' + F.currency(s.realm).name.toLocaleLowerCase('vi-VN') + ' và nhận ủy thác.', go: 'world:sect', cta: 'Tông môn' });
     return goals.slice(0, 3);
   }
 
@@ -52,7 +52,8 @@
       <div class="action-group">${[1, 10, 'max'].map(k => btn(k === 'max' ? 'Tối đa' : '×' + k, 'upgrade', `data-index="1" data-count="${k}"`, capped || s.stone < one, 'btn-outline')).join('')}</div></div>`;
     const pills = [...pillsBy('TU_VI').slice(0, 2), ...pillsBy('BUFF_TOC').slice(0, 1)].map(x =>
       `<div class="boost-row">${img(x.key, 'mini-img')}<div><b>${UI.kit.itemName(x)} <em>×${g.count(x.key)}</em></b><small>${UI.kit.pillEffectText ? UI.kit.pillEffectText(x) : (x.effect === 'TU_VI' ? 'Bồi bổ tu vi ngay' : 'Tăng tốc độ hấp thụ linh khí có thời hạn')}</small></div>${btn('Dùng', 'consume', codeAttr(x.key), false, 'btn-outline')}</div>`).join('');
-    const coins = F.COINS.slice(0, 3).map(([name, value], i) => btn('Hấp thu 1 ' + coinLabel(name), 'absorb', `data-index="${i}"`, s.stone < value || s.qi >= g.need(), 'btn-outline')).join('');
+    const coin = F.currency(s.realm);
+    const coins = F.ABSORB_COUNTS.map(count => btn('Hấp thu ' + moneyHTML(coin.value * count), 'absorb', `data-index="${coin.index}" data-count="${count}"`, s.stone < coin.value * count || s.qi >= g.need(), 'btn-outline')).join('');
     return card('Bồi dưỡng đạo cơ', upgrade + (pills || '<p class="info-note">Chưa có đan tăng tu vi trong túi. Mua ở Thế giới → Tàng bảo các hoặc tự luyện ở Nghề phụ.</p>') + `<div class="action-group coin-row">${coins}</div>`, { eyebrow: 'Đan dược, tụ linh' });
   }
 
@@ -90,7 +91,7 @@
       const events = (report.events || []).map(text => '<li>' + esc(text) + '</li>').join('');
       return card('Báo cáo bế quan', '<p>' + esc(reasons[report.reason] || 'Phiên đã kết thúc') + '</p>' +
         row('Thời gian online', duration(report.seconds)) + row('Tu vi', '+' + num(report.exp)) +
-        row('Linh thạch', moneyHTML(report.stone)) + row('Tiểu cảnh giới', '+' + num(report.stages)) +
+        row(F.currency(s.realm).name, moneyHTML(report.stone)) + row('Tiểu cảnh giới', '+' + num(report.stages)) +
         row('Vật phẩm', loot || 'Không có') + (events ? '<ul class="retreat-events">' + events + '</ul>' : '') +
         (report.reason === 'ready' ? '<button class="btn btn-outline" data-go="tribulation">Chuẩn bị độ kiếp</button>' : '') +
         btn('Đã xem báo cáo', 'retreatAcknowledge', '', false, 'btn-gold') + note,
@@ -149,8 +150,9 @@
 
 
   UI.action('absorb', async (el, d) => {
-    const gain = await UI.command('absorb', { index: Number(d.index) });
-    UI.toast('Hấp thu linh thạch · +' + num(gain) + ' tu vi.', { type: 'loot', title: 'Tu vi' });
+    const count = d.count === undefined ? 1 : Number(d.count);
+    const gain = await UI.command('absorb', { index: Number(d.index), count });
+    UI.toast('Hấp thu ' + F.currency(UI.s().realm).name.toLocaleLowerCase('vi-VN') + ' · +' + num(gain) + ' tu vi.', { type: 'loot', title: 'Tu vi' });
     UI.vfx?.effect('qi');
     UI.vfx?.ring('hero', '#70d4e8');
     UI.vfx?.floatNumber?.(gain, 'hero', 'qi', { label: 'tu vi' });

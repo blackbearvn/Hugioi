@@ -1,8 +1,8 @@
 /* HƯ GIỚI · MÀN CÀI ĐẶT */
 (function (root) {
   'use strict';
-  const UI = root.HU_UI;
-  const { card, tabs, btn } = UI.kit;
+  const UI = root.HU_UI, H = root.HU_GAME;
+  const { card, tabs, btn, esc } = UI.kit;
 
   const TABS = [
     { id: 'season', label: 'Tứ thời', icon: '✿' },
@@ -60,9 +60,14 @@
         <p><b>3.</b> Mở <b>Lịch luyện</b>, chọn nơi muốn đến rồi bấm <b>Khởi hành</b>. Trong mười phút, đạo thân luân phiên đi bộ và ngồi thiền nghỉ ngơi; nhật ký ghi lại cơ duyên, thử thách gặp phải. Không thể về đài Tu luyện hay đổi địa điểm trước khi đồng hồ về 00:00. Tu luyện và nghề phụ tạm dừng, sau đó tự tiếp tục.</p>
         <p><b>4.</b> <b>Nghề phụ</b> gồm luyện đan, rèn pháp bảo, chế phù và trồng linh điền. Thời gian chế tác chỉ tiến triển khi tab game đang mở và kết nối; khi rời game, công việc sẽ tạm dừng.</p>
         <p><b>5.</b> Khi tu vi đầy, bấm <b>Đột phá</b>. Tiểu cảnh giới đột phá ngay, kết quả ghi vào Nhật ký tu tiên; đại cảnh giới mở Độ kiếp đài.</p>
-        <p><b>6.</b> <b>Tông môn → Bí cảnh</b>: hạ thủ lĩnh để nhận linh thạch, tu vi và vật phẩm. <b>Tông môn → Lịch luyện</b> đưa bạn đi tìm kỳ ngộ.</p>
+        <p><b>6.</b> <b>Tông môn → Bí cảnh</b>: hạ thủ lĩnh để nhận tiền tệ của đại giới, tu vi và vật phẩm. <b>Tông môn → Lịch luyện</b> đưa bạn đi tìm kỳ ngộ.</p>
         <p><b>7.</b> Chọn tông môn, làm ủy thác để thăng chức và đổi bảo vật. Mở <b>Nhiệm vụ</b> để theo tuyến tân thủ đến Trúc Cơ.</p>
         <p>Bảng dẫn đường sẽ chỉ vị trí cần chạm, theo dõi nhiệm vụ hiện tại và có thể thu gọn hoặc ẩn bất cứ lúc nào.</p><button class="btn btn-gold" data-act="tutorial">Mở hướng dẫn tân thủ</button>`, { eyebrow: 'Tiên lộ' })}
+      ${card('Tiền tệ theo đại giới', `
+        ${H.F.CURRENCIES.map(coin => UI.kit.row(coin.world, esc(coin.name))).join('')}
+        <p>Loại tiền theo đại giới của nhân vật. Khi lên đại giới mới, giá trị số dư được giữ nguyên và hiển thị theo loại tiền mới.</p>
+        <p>Số lớn dùng vạn (10.000), ức (100.000.000), triệu, kinh… Xem phần mô tả của số tiền để đọc số đầy đủ.</p>
+        <p>Thiên Tinh ở Thiên Mệnh Các là tài sản riêng của tài khoản.</p>`, { eyebrow: 'Linh tài' })}
       ${card('Phím tắt', `
         <div class="key-grid">
           <span><kbd>T</kbd> Tu luyện</span><span><kbd>L</kbd> Lịch luyện</span>
@@ -78,10 +83,10 @@
         <p>• Khi bắt đầu lại sau tử vong, vật phẩm và thành tựu của đạo thân cũ không được kế thừa; Thiên Tinh và nâng cấp Thiên Mệnh Các thuộc về tài khoản nên được giữ lại.</p>
         <p>• <b>Nhiệm vụ tông môn</b> chỉ tiếp tục tính thời gian khi bạn đang trong game và kết nối. Khi hoàn tất, hãy quay lại nhận cống hiến.</p>`, { eyebrow: 'Xuyên kiếp' })}
       ${card('Mẹo tu hành', `
-        <p>• Bán yêu đan ở Lịch luyện hoặc Thế giới → Tàng bảo các để lấy linh thạch.</p>
+        <p>• Bán yêu đan ở Lịch luyện hoặc Thế giới → Tàng bảo các để lấy tiền tệ của đại giới.</p>
         <p>• Đan cấp thấp vẫn dùng được nhưng hiệu quả giảm theo chênh lệch cảnh giới.</p>
         <p>• Độ kiếp đại cảnh giới: hộ kiếp không đủ khiến đạo thân tử vong; nếu lôi kiếp đã qua mà xác suất phá cảnh trượt, đạo thân chỉ mất một phần tu vi và tích lũy may mắn.</p>
-        <p>• Tông môn mang lại linh thạch định kỳ và chúc phúc +10% tốc độ hấp thụ linh khí.</p>
+        <p>• Tông môn mang lại tiền tệ định kỳ và chúc phúc +10% tốc độ hấp thụ linh khí.</p>
         <p>• Khi nhân vật <b>tọa hóa</b>, bạn có thể trở về Khởi Nguyên để tạo nhân vật mới. Tiến trình và quyền lợi kiếp cũ bị xóa; tài khoản đăng nhập được giữ.</p>`, { eyebrow: 'Ghi nhớ' })}
     </div>`;
   }

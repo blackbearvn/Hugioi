@@ -11,6 +11,9 @@
 .idle-chip .chip-ico{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:#0e1015;border:1px solid #485471;font-size:13px;line-height:1;color:#e6d4b4}
 .idle-chip .chip-ico img{width:16px;height:16px;object-fit:contain;display:block}
 .idle-chip.stone{border-color:#8f7535}.idle-chip.stone b{color:#f6de92}
+.idle-chip.stone .chip-balance{display:grid;gap:3px;min-width:0}
+.idle-chip.stone .chip-balance small{font:600 10px/1.2 var(--font);color:var(--dim)}
+.idle-chip.stone .chip-balance b{white-space:nowrap}
 .idle-chip.rate b{color:#eadabe}
 .idle-chip.dao .chip-ico{color:#d9b6ff}.idle-chip.dao b{color:#e6ccff}
 .idle-chip .chip-gain{position:absolute;right:6px;top:-4px;font:800 13px var(--font);color:#fff1b8;text-shadow:0 1px 4px #000,0 0 10px #e5b13f;pointer-events:none;animation:chipGain 1.3s ease-out forwards;white-space:nowrap}

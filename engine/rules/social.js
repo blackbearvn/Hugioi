@@ -212,7 +212,7 @@
         if (reward.stone) {
           const gain = F.income_rate(s.realm) * reward.stone;
           s.stone += gain;
-          parts.push(F.format_linh_thach(gain));
+          parts.push(F.format_linh_thach(gain, s.realm));
         }
         if (reward.exp) parts.push('tu vi +' + F.fmt(this.gainExp(Math.max(1, this.need() * reward.exp))));
         const it = reward.item, offer = npc.offer;

@@ -48,7 +48,7 @@
       if (!this.s.bag[key]) delete this.s.bag[key];
     }
     spend(value) {
-      if (!Number.isFinite(value) || value < 0 || this.s.stone < value) throw Error('Không đủ linh thạch.');
+      if (!Number.isFinite(value) || value < 0 || this.s.stone < value) throw Error('Không đủ ' + F.currency(this.s.realm).name.toLocaleLowerCase('vi-VN') + '.');
       this.s.stone -= value;
     }
   }

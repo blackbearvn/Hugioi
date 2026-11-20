@@ -36,7 +36,7 @@
     if (!scene || !hud || !$('playerRealm')) return false;
 
     hud.append(mk('div', 'idle-chips', `
-      <div class="idle-chip stone" id="chipStone" title="Linh thạch"><span class="chip-ico" id="chipStoneIco"></span><b id="chipStoneVal">0</b></div>
+      <div class="idle-chip stone" id="chipStone"><span class="chip-ico" id="chipStoneIco"></span><span class="chip-balance"><small id="chipStoneName"></small><b id="chipStoneVal">0</b></span></div>
       <div class="idle-chip rate" id="chipRate" title="Tốc độ hấp thụ linh khí mỗi giây"><span class="chip-ico" aria-hidden="true">☯</span><b id="chipRateVal">+0/giây</b></div>
       <div class="idle-chip dao" id="chipDao" title="Thiên Tinh"><span class="chip-ico" aria-hidden="true">✧</span><b id="chipDaoVal">0</b></div>`));
     hud.querySelector('.idle-chips').id = 'idleChips';
@@ -90,33 +90,32 @@
     requestAnimationFrame(step);
   }
 
-  function coinTierFor(value) {
-    let name = 'Hạ';
-    for (const [label, amount] of F.COINS) if (Number(value) >= amount) name = label;
-    return /Tiên tinh|Hỗn Độn/.test(name) ? 'jade' : name === 'Hạ' ? 'low' : 'high';
-  }
-
   function updateChips(s, g) {
     const val = $('chipStoneVal'), ico = $('chipStoneIco');
     if (!val) return;
+    const coin = F.currency(s.realm), changed = coin.icon !== state.coinTier || state.prev?.created !== s.created;
+    if (changed) {
+      state.coinTier = coin.icon;
+      state.tweens.delete('stone'); state.shown.stone = null;
+      ico.innerHTML = `<img src="${esc(A.moneyIcon(coin.icon))}" alt="" decoding="async">`;
+    }
+    textIfChanged($('chipStoneName'), coin.name);
     const gain = s.stone - state.stone;
-    if (state.prev && gain >= 1 && state.stone !== 0) {
-      const chip = $('chipStone'), tag = mk('span', 'chip-gain', '+' + money(gain));
+    if (!changed && state.prev && gain / coin.value >= .01 && state.stone !== 0) {
+      const chip = $('chipStone'), tag = mk('span', 'chip-gain', '+' + F.money_amount(gain, s.realm));
       chip.append(tag); setTimeout(() => tag.remove(), 1400);
       chip.classList.remove('bump'); void chip.offsetWidth; chip.classList.add('bump');
     }
     state.stone = s.stone;
     tween('stone', s.stone, v => {
-      val.textContent = money(Math.max(0, v));
-      const tier = coinTierFor(v);
-      if (tier !== state.coinTier) { state.coinTier = tier; ico.innerHTML = `<img src="${esc(A.moneyIcon(tier))}" alt="" decoding="async">`; }
+      val.textContent = F.money_amount(Math.max(0, v), s.realm);
     });
-    const stoneText = money(s.stone);
+    const stoneText = money(s.stone, s.realm, false);
     const stoneChip = $('chipStone');
-    const stoneLabel = 'Linh thạch ' + stoneText;
+    const stoneLabel = stoneText;
     if (stoneChip.getAttribute('aria-label') !== stoneLabel)
       stoneChip.setAttribute('aria-label', stoneLabel);
-    const stoneTitle = 'Linh thạch: đơn vị Hạ, Trung, Thượng · ' + stoneText;
+    const stoneTitle = coin.world + ' · ' + stoneText;
     if (stoneChip.title !== stoneTitle) stoneChip.title = stoneTitle;
     const thienTinh = UI.session.pavilion?.balance || 0;
     const daoChip = $('chipDao');
