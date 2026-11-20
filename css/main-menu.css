@@ -1,0 +1,55 @@
+#mainMenu {
+  min-height: 100dvh;
+  display: grid;
+  align-items: center;
+  justify-items: center;
+  padding: clamp(12px, 4vw, 40px);
+  padding-top: max(clamp(12px, 4vw, 40px), env(safe-area-inset-top));
+  padding-right: max(clamp(12px, 4vw, 40px), env(safe-area-inset-right));
+  padding-bottom: max(clamp(12px, 4vw, 40px), env(safe-area-inset-bottom));
+  padding-left: max(clamp(12px, 4vw, 40px), env(safe-area-inset-left));
+  background: url('../media/assets/world/bg/background.webp') center / cover #101719;
+}
+
+.main-menu-content {
+  width: min(100%, 320px);
+  color: #f1e6c8;
+  text-align: center;
+}
+
+#menuTitle { margin: 0 0 12px; }
+#menuTitle img { display: block; width: 100%; height: min(30dvh, 240px); object-fit: contain; }
+#mainMenu nav { display: grid; gap: 6px; }
+#mainMenu button {
+  min-height: 46px;
+  padding: 8px 16px;
+  background: #161e1c;
+  color: #f5e9cf;
+  border: 1px solid #887855;
+  font: 600 16px var(--font);
+}
+#mainMenu nav > button {
+  font: 400 24px/1.5 var(--display);
+}
+#mainMenu button:hover:not(:disabled) { background: #26362e; border-color: #e2c88e; }
+#mainMenu button:disabled { opacity: .75; cursor: wait; }
+#menuStart { border-color: #dac18a; }
+#menuStatus { margin: 8px 0 0; padding: 6px; background: #161e1c; overflow-wrap: anywhere; }
+#menuStatus:empty { display: none; }
+#menuSettingsDialog {
+  width: min(360px, calc(100% - 32px - env(safe-area-inset-left) - env(safe-area-inset-right)));
+  max-height: calc(100dvh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  overflow: auto;
+  padding: 20px;
+  background: #161e1c;
+  color: #f5e9cf;
+  border: 1px solid #887855;
+}
+#menuSettingsDialog::backdrop { background: #090e0dd9; }
+#menuSettingsTitle { margin: 0 0 12px; font: 28px var(--display); }
+#menuSettingsDialog label { display: flex; gap: 10px; align-items: center; min-height: 44px; }
+#menuSettingsDialog input { width: 20px; height: 20px; }
+#mainMenu :focus-visible, #backToMenu:focus-visible {
+  outline: 2px solid #ffe3a3;
+  outline-offset: 3px;
+}

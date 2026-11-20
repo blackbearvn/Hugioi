@@ -81,16 +81,16 @@ for (const commit of commits) {
   }
 }
 
-const headers = fs.readFileSync('_headers', 'utf8');
+const headers = fs.readFileSync('dist/_headers', 'utf8');
 const csp = headers.match(/^\s*Content-Security-Policy:\s*(.+)$/m)?.[1] || '';
 assert.ok(csp, 'CSP is missing');
 const script = csp.match(/(?:^|;)\s*script-src\s+([^;]+)/)?.[1]?.trim() || '';
-assert.equal(script, "'self'", 'script-src must only permit self');
-const config = fs.readFileSync('client/config.js', 'utf8');
-const host = config.match(/https:\/\/([a-z0-9-]+\.supabase\.co)\//)?.[1];
-assert.ok(host, 'Missing known Supabase host in client/config.js');
+assert.equal(script, "'self' https://js.hcaptcha.com https://*.hcaptcha.com");
+const url = (process.env.VITE_SUPABASE_URL ?? process.env.SUPABASE_URL ?? '').trim().replace(/\/+$/, '');
 const connect = csp.match(/(?:^|;)\s*connect-src\s+([^;]+)/)?.[1]?.trim() || '';
-assert.equal(connect, "'self' https://" + host, 'connect-src must contain exactly self and the configured Supabase host');
+assert.deepEqual(connect.split(/\s+/), ["'self'", ...(url ? [url] : []), 'https://hcaptcha.com', 'https://*.hcaptcha.com']);
+const html = fs.readFileSync('dist/index.html', 'utf8');
+assert.ok(html.includes('connect-src ' + connect + ';'), 'CSP meta/header mismatch');
 assert.match(headers, /\/media\/\*\s*\n\s*Cache-Control:\s*public,\s*max-age=/,
   'Media cache headers missing');
 
@@ -98,7 +98,7 @@ const unique = [...new Map(findings.map(f => [f.scope+':'+f.file+':'+f.pattern, 
 console.log(JSON.stringify({
   tracked: tracked.length,
   ...refs,
-  csp: 'script-src self, connect-src exact Supabase host, media cache: verified in source',
+  csp: 'script-src self and hCaptcha, connect-src configured Supabase and hCaptcha, media cache verified in dist',
   secretPatternCandidates: unique // categories and filenames ONLY, never actual values
 }, null, 2));
 if (unique.length) process.exitCode = 1;

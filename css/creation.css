@@ -95,6 +95,11 @@
 }
 body.reduced-motion .scene-photo,body.reduced-motion .scene-mist,body.reduced-motion .scene-orbit,body.reduced-motion .scene-orbit::before,body.reduced-motion .scene-motes i{animation:none!important}
 body.reduced-motion .scene-motes{display:none}
+body.device-reduced-motion .create-scene *,body.device-reduced-motion .create-scene *::before,
+body.device-reduced-motion .scene-headline,body.device-reduced-motion .scene-headline em,
+body.device-reduced-motion .scene-kicker,body.device-reduced-motion .scene-copy .story,
+body.device-reduced-motion .journey-features>div,body.device-reduced-motion .welcome-brand .brand-logo{animation:none!important}
+body.device-reduced-motion .scene-motes{display:none}
 
 /* Quầy Thiên Mệnh Các trong màn Khởi Nguyên — thu gọn thành một nút, mở hộp thoại shop. */
 .creation-shop-trigger{display:flex;align-items:center;gap:8px;width:100%;min-height:46px;padding:8px 10px;
@@ -134,3 +139,9 @@ body.reduced-motion .scene-motes{display:none}
 .creation-shop-item button{min-height:44px;min-width:102px;flex-shrink:0;font-size:12px;padding:8px}
 @media(max-width:900px){.creation-shop-grid{grid-template-columns:1fr}}
 @media(max-width:420px){.creation-shop-item{flex-wrap:wrap}.creation-shop-item button{width:100%}}
+.welcome {
+  padding-top: max(16px, env(safe-area-inset-top));
+  padding-right: max(16px, env(safe-area-inset-right));
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+  padding-left: max(16px, env(safe-area-inset-left));
+}

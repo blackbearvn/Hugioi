@@ -14,7 +14,7 @@ jobs:
         with:
           node-version: 24
       - name: Check source contracts
-        run: npm run check
+        run: npm ci && npm run check
       - name: Run entire test suite
         run: npm test
       - name: Package worktree for responsive screenshots

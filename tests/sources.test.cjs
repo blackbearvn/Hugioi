@@ -27,8 +27,19 @@ test('engine thuần: không DOM, mạng, timer hay đồng hồ/ngẫu nhiên t
 
 test('index.html chỉ tham chiếu script và stylesheet còn tồn tại', () => {
   const html = read('index.html');
-  for (const [, ref] of html.matchAll(/(?:src|href)="((?:client|css|data|engine)\/[^"?#]+)"/g))
+  for (const [, ref] of html.matchAll(/(?:src|href)="\/?((?:client|css|data|engine)\/[^"?#]+)"/g))
     assert.ok(fs.existsSync(path.join(ROOT, ref)), 'thiếu ' + ref);
+  assert.deepEqual([...html.matchAll(/<script\b[^>]*>/g)].map(m => m[0]),
+    ['<script type="module" src="/client/startup.ts">']);
+  const scripts = JSON.parse(read('client/classic-scripts.json'));
+  assert.equal(new Set(scripts).size, scripts.length);
+  for (const ref of scripts) {
+    assert.match(ref, /^(client|data|engine)\/[\w/-]+\.js$/);
+    assert.ok(fs.existsSync(path.join(ROOT, ref)), 'thiếu ' + ref);
+  }
+  assert.equal(scripts.at(-1), 'client/main.js');
+  assert.ok(scripts.indexOf('engine/game.js') < scripts.indexOf('client/ui/core.js'));
+  assert.ok(scripts.indexOf('client/ui/core.js') < scripts.indexOf('client/ui/boot.js'));
 });
 
 test('README không có liên kết nội bộ hỏng', () => {

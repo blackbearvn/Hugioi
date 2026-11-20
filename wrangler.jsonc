@@ -11,7 +11,7 @@
   },
   "build": {
     // Workers Builds có thể bỏ devDependencies (NODE_ENV=production).
-    // Minify cần esbuild, nên cài từ lockfile với --include=dev ngay trước build.
+    // Cài theo lockfile trước khi dựng frontend bằng Vite.
     "command": "npm ci --include=dev && npm run build:min"
   }
 }

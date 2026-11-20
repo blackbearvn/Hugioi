@@ -57,7 +57,7 @@ jobs:
       - name: Check built static files contain legal pages but no server source
         shell: bash
         run: |
-          node tools/build-dist.cjs
+          npm run build
           test -f dist/client/legal/privacy.html
           test -f dist/client/legal/release.html
           test -f dist/client/auth/supabase.js

@@ -48,6 +48,16 @@
   });
   let creation = freshCreation();
   let rolling = '', entering = false, shopping = false;
+  let accountId = null, rebirth = false;
+
+  const ownsSession = () => !!accountId && UI.session.accountId === accountId;
+  const canCreate = () => ownsSession() && !UI.session.playerId && !!UI.session.ticket?.preview;
+  const hasSave = () => ownsSession() && !!UI.session.playerId && store.load()?.created === true;
+
+  function syncCreationNavigation() {
+    $('backToMenu').disabled = entering || shopping || !!rolling;
+    $('switchAccount').disabled = entering || shopping || !!rolling;
+  }
 
   function nameError() {
     const value = $('nameInput').value;
@@ -61,7 +71,8 @@
     note.textContent = err;
     $('nameInput').setAttribute('aria-invalid', String(!!err));
     const start = $('startNew');
-    start.disabled = !H.READY || entering || creation.points !== 0 || !H.cleanName($('nameInput').value);
+    syncCreationNavigation();
+    start.disabled = !canCreate() || !H.READY || entering || creation.points !== 0 || !H.cleanName($('nameInput').value);
     start.title = creation.points > 0 ? 'Phân bổ hết ' + creation.points + ' điểm thiên phú còn lại để bắt đầu.' : '';
   }
 
@@ -281,6 +292,7 @@
       renderCreation(); return;
     }
     rolling = kind;
+    syncCreationNavigation();
     const btnId = { age: 'rollAge', race: 'rollRace', root: 'rollRoot' }[kind];
     const btn = $(btnId);
     btn?.classList.add('rolling');
@@ -298,6 +310,7 @@
         : 'Không thể gieo lại: ' + error.message, { type: error.code === 'RATE_LIMITED' ? 'info' : 'danger' });
     } finally {
       rolling = '';
+      syncCreationNavigation();
       btn?.classList.remove('rolling');
     }
   }
@@ -355,14 +368,9 @@
     UI.tabState = {};
     UI.view = { category: 'Tất cả', query: '', page: 0, quality: 0, selected: '', onlyReady: false };
     UI.current = 'idle'; rolling = '';
-    $('continueGame').hidden = true; $('continueGame').title = '';
-    $('welcomeRebirth').textContent = 'Khởi đầu mới · không giữ lại tài nguyên hoặc sức mạnh.';
-    $('game').hidden = true; $('welcome').hidden = false;
-    document.body.classList.remove('in-game');
-    root.HU_ROUTE?.go('create');
+    rebirth = true;
     try { root.history?.replaceState(null, '', root.location.pathname + root.location.search); } catch {}
-    renderCreation();
-    $('nameInput')?.focus({ preventScroll: true });
+    showCreation();
   };
 
 
@@ -374,8 +382,8 @@
   function start() {
     closeCreationShop();
     const s = UI.s();
+    $('mainMenu').hidden = true;
     $('welcome').hidden = true;
-    $('continueGame').hidden = true;
     $('game').hidden = false;
     document.body.classList.add('in-game');
     root.HU_ROUTE?.go('game');
@@ -429,7 +437,7 @@
       const upgrade = button.dataset.upgrade !== undefined;
       const key = upgrade ? button.dataset.upgrade : button.dataset.starter;
       if (!Object.hasOwn(upgrade ? H.PAVILION.stats : H.PAVILION.starter, key)) return;
-      shopping = true; renderShop();
+      shopping = true; syncCreationNavigation(); renderShop();
       try {
         await UI.session.pavilionPurchase(upgrade ? 'upgrade' : 'starter', key);
         renderCreation();
@@ -447,7 +455,7 @@
     });
     $('createForm').addEventListener('submit', async e => {
       e.preventDefault();
-      if (!H.READY || entering || shopping || store.ready) return;
+      if ($('welcome').hidden || !canCreate() || !H.READY || entering || shopping || rolling || store.ready) return;
       if (store.locked) { UI.toast('Game đang mở ở tab khác. Đóng tab kia rồi tải lại trang.'); return; }
       const name = H.cleanName($('nameInput').value);
       if (!name) { syncName(); return; }
@@ -488,6 +496,7 @@
         UI.intro.focus();
         await introDone;
         if (store.locked) throw Error('Game đang mở ở tab khác. Đóng tab kia rồi tải lại trang.');
+        if (!canCreate()) throw Error('Không thể tạo đạo thân cho phiên hiện tại.');
         await UI.session.create(profile);
         start();
         await UI.intro.close();
@@ -504,15 +513,6 @@
         syncName();
       }
     });
-
-    $('continueGame').addEventListener('click', () => UI.safe(async () => {
-      if (entering) return;
-      if (store.locked) throw Error('Game đang mở ở tab khác. Đóng tab kia rồi tải lại trang.');
-      await store.synchronize();
-      const saved = store.load();
-      if (!saved) throw Error('Không tìm thấy nhân vật trên máy chủ.');
-      start();
-    }));
 
     $('nameInput').addEventListener('input', e => {
       const clean = H.sanitizeText(e.target.value);
@@ -634,28 +634,101 @@
     }
   }
 
+  function showCreation() {
+    if (!canCreate()) return;
+    $('welcomeRebirth').textContent = rebirth
+      ? 'Khởi đầu mới · không giữ lại tài nguyên hoặc sức mạnh.'
+      : 'Khai mở một đạo thân · đổi Thiên Tinh tại Thiên Mệnh Các trước khi nhập thế.';
+    renderCreation();
+    $('mainMenu').hidden = true;
+    $('game').hidden = true;
+    document.body.classList.remove('in-game');
+    $('welcome').hidden = false;
+    root.HU_ROUTE?.go('create');
+    $('nameInput').focus({ preventScroll: true });
+  }
+
+  function showMenu() {
+    closeCreationShop();
+    $('menuStart').disabled = !hasSave() && !canCreate();
+    $('menuStatus').textContent = '';
+    $('welcome').hidden = true;
+    $('game').hidden = true;
+    $('authGate').hidden = true;
+    $('mainMenu').hidden = false;
+    root.HU_ROUTE?.go('menu');
+    $('menuTitle').focus({ preventScroll: true });
+  }
+
+  function bindMenu() {
+    const dialog = $('menuSettingsDialog');
+    const motion = $('menuReduceMotion');
+    const settings = $('menuSettings');
+    const motionKey = 'hu-device-reduce-motion';
+    try { motion.checked = root.localStorage.getItem(motionKey) === '1'; } catch { /* storage unavailable */ }
+    const applyMotion = () => document.body.classList.toggle('device-reduced-motion', motion.checked);
+    applyMotion();
+    motion.addEventListener('change', () => {
+      applyMotion();
+      try { root.localStorage.setItem(motionKey, motion.checked ? '1' : '0'); } catch { /* applies for this page */ }
+    });
+    settings.addEventListener('click', () => {
+      if (!$('mainMenu').hidden && !entering && !dialog.open) dialog.showModal();
+    });
+    $('menuSettingsBack').addEventListener('click', () => dialog.close());
+    dialog.addEventListener('close', () => {
+      if (!$('mainMenu').hidden) settings.focus();
+    });
+    $('backToMenu').addEventListener('click', () => {
+      if (!$('welcome').hidden && ownsSession() && !entering && !shopping && !rolling) showMenu();
+    });
+    $('menuExit').addEventListener('click', () => root.HU_AUTH.logout());
+    $('menuStart').addEventListener('click', async () => {
+      if ($('mainMenu').hidden || entering || dialog.open) return;
+      if (!hasSave()) return showCreation();
+      const button = $('menuStart');
+      entering = true;
+      button.disabled = true;
+      $('menuExit').disabled = true;
+      settings.disabled = true;
+      $('menuStatus').textContent = 'Đang tải tiến trình…';
+      try {
+        if (store.locked) throw Error('Game đang mở ở tab khác. Đóng tab kia rồi tải lại trang.');
+        await store.synchronize();
+        if (!hasSave()) throw Error('Không tìm thấy tiến trình hợp lệ.');
+        start();
+        $('stage')?.focus({ preventScroll: true });
+      } catch (error) {
+        $('menuStatus').textContent = error.message;
+      } finally {
+        entering = false;
+        button.disabled = !hasSave() && !canCreate();
+        $('menuExit').disabled = false;
+        settings.disabled = false;
+        if (!$('mainMenu').hidden) (button.disabled ? $('menuExit') : button).focus();
+      }
+    });
+  }
+
   async function showForAccount(account) {
     if (!account?.id) throw Error('Vui lòng đăng nhập để tiếp tục hành trình.');
     creation = freshCreation();
+    rebirth = false;
+    rolling = '';
     await store.setAccount(account.id, account);
-    if (UI.session.ticket?.preview) Object.assign(creation, UI.session.ticket.preview);
+    accountId = account.id;
+    if (!hasSave() && !canCreate()) throw Error('Chưa thể tải tiến trình. Vui lòng thử lại.');
+    if (canCreate()) Object.assign(creation, UI.session.ticket.preview);
     $('accountLabel').textContent = account.email || 'Tài khoản';
     $('accountExit').textContent = 'Đăng xuất';
-    const saved = store.load();
-    if (saved?.created) {
-      // Nhân vật đã có trên máy chủ: bỏ qua màn tạo và màn "Tiếp tục".
-      // Vẫn giữ quy trình kiểm tra phiên và chính sách trước showForAccount().
-      start();
-      return;
-    }
-    $('continueGame').hidden = true;
-    $('continueGame').title = '';
-    $('welcomeRebirth').textContent = 'Khai mở một đạo thân · đổi Thiên Tinh tại Thiên Mệnh Các trước khi nhập thế.';
-    $('welcome').hidden = false;
-    root.HU_ROUTE?.go('create');
-    renderCreation();
+    $('backToMenu').hidden = false;
+    showMenu();
   }
   async function leaveAccount() {
+    accountId = null;
+    deathOpen = false;
+    $('mainMenu').hidden = true;
+    if ($('menuSettingsDialog').open) $('menuSettingsDialog').close();
     if (store.ready && !store.locked) {
       try { await UI.session.pause(); } catch { /* server tự đóng băng sau heartbeat timeout */ }
     }
@@ -665,6 +738,8 @@
     UI.windows?.closeAll();
     if (!$('modalLayer').hidden) UI.closeModal(true);
     UI.session.disconnect();
+    $('accountLabel').textContent = 'Tài khoản';
+    $('nameInput').value = '';
     $('game').hidden = true;
     $('welcome').hidden = true;
     document.body.classList.remove('in-game');
@@ -672,6 +747,7 @@
   function boot() {
     buildStats();
     bindCreation();
+    bindMenu();
     bindSettings();
     bindLifecycle();
     UI.booted = true;
@@ -686,7 +762,7 @@
     bindCreation();
     renderCreation();
     UI.mainPreview?.bind();
-    root.HU_AUTH?.boot({ onEnter: () => { $('welcome').hidden = false; }, onExit: () => { $('welcome').hidden = true; $('game').hidden = true; } });
+    root.HU_AUTH?.boot({ onEnter: () => { $('authGate').hidden = true; $('welcome').hidden = false; }, onExit: () => { $('welcome').hidden = true; $('game').hidden = true; } });
     if (!root.HU_AUTH) $('welcome').hidden = false;
   };
   UI.renderCreation = renderCreation;

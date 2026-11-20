@@ -11,7 +11,6 @@
     for (const id of ['authMessage', 'authConsentMessage']) {
       const el = $(id), active = (id === 'authConsentMessage') === consentVisible;
       el.textContent = active ? text || '' : '';
-      el.hidden = !active || !text;
       el.dataset.kind = good ? 'success' : 'error';
     }
   }
@@ -29,17 +28,18 @@
       const chosen = b.dataset.authView === mode;
       b.classList.toggle('active', chosen);
       b.setAttribute('aria-selected', String(chosen));
+      b.tabIndex = chosen ? 0 : -1;
+      if (chosen) $('authTabPanel').setAttribute('aria-labelledby', b.id);
     });
     $('authPassword').setAttribute('autocomplete', mode === 'signup' ? 'new-password' : 'current-password');
     notice('');
   }
   function showForm() {
     pending = null;
-    $('authForm').hidden = false;
-    $('authGoogle').hidden = false;
-    $('authRememberWrap').hidden = false;
+    $('authTabPanel').hidden = false;
     $('authConsentGate').hidden = true;
     $('authTabs').hidden = false;
+    $('authStatus').textContent = '';
     selectMode('login');
   }
   /* Có phiên (tab hiện tại hoặc đã ghi nhớ 30 ngày): đang xác minh, đừng chớp trang đăng nhập. */
@@ -73,16 +73,14 @@
       else if (!$('game').hidden) $('stage')?.focus?.({ preventScroll: true });
     } catch (error) {
       account = null;
-      exitGame();
+      try { await exitGame(); } catch { /* lease server tự đóng khi mất kết nối */ }
       present();
       throw error;
     }
   }
   function requireConsent(next) {
     pending = next;
-    $('authForm').hidden = true;
-    $('authGoogle').hidden = true;
-    $('authRememberWrap').hidden = true;
+    $('authTabPanel').hidden = true;
     $('authTabs').hidden = true;
     $('authConsentGate').hidden = false;
     $('authConsentPrivacy').checked = false;
@@ -115,8 +113,8 @@
     if (captcha?.enabled && !captchaToken) { notice('Vui lòng hoàn tất xác minh CAPTCHA.'); return; }
     busy = true;
     $('authSubmit').disabled = true;
-    $('authForm').setAttribute('aria-busy', 'true');
     notice('');
+    $('authStatus').textContent = 'Đang gửi thông tin…';
     try {
       SB.rememberOnThisDevice?.($('authRemember').checked);
       if (mode === 'signup') {
@@ -136,13 +134,15 @@
       root.HU_CAPTCHA?.reset?.();
       busy = false;
       $('authSubmit').disabled = false;
-      $('authForm').removeAttribute('aria-busy');
+      $('authStatus').textContent = '';
     }
   }
   async function loginGoogle() {
     if (busy) return;
     busy = true;
     $('authGoogle').disabled = true;
+    notice('');
+    $('authStatus').textContent = 'Đang mở đăng nhập Google…';
     try {
       SB.rememberOnThisDevice?.($('authRemember').checked);
       await SB.loginGoogle();
@@ -150,6 +150,7 @@
     catch (error) {
       busy = false;
       $('authGoogle').disabled = false;
+      $('authStatus').textContent = '';
       notice(error.message || 'Không thể bắt đầu đăng nhập Google.');
     }
   }
@@ -160,11 +161,17 @@
     }
     busy = true;
     $('authConsentContinue').disabled = true;
+    notice('');
+    $('authStatus').textContent = 'Đang lưu xác nhận…';
     try {
       await SB.accept(pending);
       await enter(pending);
     } catch (error) { notice(error.message); }
-    finally { busy = false; $('authConsentContinue').disabled = false; }
+    finally {
+      busy = false;
+      $('authConsentContinue').disabled = false;
+      $('authStatus').textContent = '';
+    }
   }
   async function logout() {
     if (busy) return;
@@ -188,7 +195,25 @@
     $('authForm').addEventListener('submit', submit);
     if (root.HU_CAPTCHA?.enabled) root.HU_CAPTCHA.mount($('authCaptcha')).catch(() => notice('Không tải được CAPTCHA. Hãy tải lại trang.'));
     $('authGoogle').addEventListener('click', loginGoogle);
-    document.querySelectorAll('[data-auth-view]').forEach(b => b.addEventListener('click', () => selectMode(b.dataset.authView)));
+    const tabs = [...$('authTabs').querySelectorAll('[data-auth-view]')];
+    for (const tab of tabs) tab.addEventListener('click', () => {
+      if (!busy) selectMode(tab.dataset.authView);
+    });
+    $('authTabs').addEventListener('keydown', event => {
+      const current = tabs.indexOf(event.target);
+      if (current === -1) return;
+      const next = {
+        ArrowLeft: tabs[(current + tabs.length - 1) % tabs.length],
+        ArrowRight: tabs[(current + 1) % tabs.length],
+        Home: tabs[0],
+        End: tabs[tabs.length - 1]
+      }[event.key];
+      if (!next) return;
+      event.preventDefault();
+      if (busy) return;
+      selectMode(next.dataset.authView);
+      next.focus();
+    });
     $('switchAccount').addEventListener('click', logout);
     $('accountExit').addEventListener('click', logout);
     $('authConsentContinue').addEventListener('click', acceptPending);

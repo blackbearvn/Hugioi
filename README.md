@@ -46,10 +46,31 @@ Dashboard quản trị là repo riêng, chỉ gọi RPC `public.hu_admin_*`; quy
 ## Lệnh
 ```sh
 npm ci
+npm run dev         # Vite tại http://127.0.0.1:5173
+npm run typecheck   # kiểm tra TypeScript, không sinh file
 npm test            # toàn bộ test
-npm run check       # kiểm tra cú pháp và ranh giới engine
+npm run check       # kiểm tra dữ liệu, mã nguồn và TypeScript
 npm run balance     # in báo cáo cân bằng (thêm --json để lấy dữ liệu máy đọc)
+npm run build       # build dist dễ đọc
 npm run build:min   # build dist, gộp và xác thực CSS
+npm run preview     # xem thử dist sau khi build
 npm run build:edge  # bundle Edge Function
 ```
 Cần Node.js 24+. Merge mã không đồng nghĩa deploy hay migrate database.
+
+Frontend lấy cấu hình lúc chạy Vite hoặc build: `VITE_SUPABASE_URL`,
+`VITE_SUPABASE_PUBLISHABLE_KEY` và `VITE_HCAPTCHA_SITEKEY` (tùy chọn).
+
+Sau khi đăng nhập và xác nhận chính sách, người chơi vào menu chính. Menu
+hiện **Tạo đạo thân** cho tài khoản mới hoặc **Tiếp tục hành trình** khi đã
+tải được bản lưu. Từ màn tạo có thể quay lại menu. Để chạy bài kiểm tra
+giao diện với API và tài khoản giả lập, dùng bản build Vite ở mode `ci`
+theo workflow `ui-verification.yml`.
+Pipeline cũ có thể dùng các tên tương ứng không có tiền tố `VITE_`;
+nếu đặt cả hai, tên có tiền tố được ưu tiên. Chỉ đặt khóa công khai cho client.
+Build sinh CSP với đúng origin Supabase đã cấu hình.
+
+Vite đóng gói entry TypeScript, cấu hình công khai và CSS trang game.
+Entry chạy các classic script theo thứ tự trong `client/classic-scripts.json`.
+Gameplay, engine và backend vẫn dùng JavaScript hiện có. Chế độ `ci` dùng
+API cục bộ và chỉ dành cho kiểm thử; bản phát hành dùng `npm run build:min`.

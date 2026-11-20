@@ -16,7 +16,8 @@
   const motionQuery = typeof root.matchMedia === 'function' ? root.matchMedia('(prefers-reduced-motion: reduce)') : null;
   const isReduced = () => {
     const m = UI.s().settings.motionMode;
-    return m === 'reduced' || (m === 'auto' && !!motionQuery?.matches);
+    return document.body.classList.contains('device-reduced-motion') ||
+      m === 'reduced' || (m === 'auto' && !!motionQuery?.matches);
   };
 
   /* ======================================================================

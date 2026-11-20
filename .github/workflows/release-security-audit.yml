@@ -15,6 +15,9 @@ permissions:
 jobs:
   release-security-audit:
     runs-on: ubuntu-latest
+    env:
+      VITE_SUPABASE_URL: https://ci-fixture.supabase.co
+      VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_fixture_only_0000
     timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
@@ -27,4 +30,4 @@ jobs:
       - name: Production dependency audit (not merely npm install output)
         run: npm audit --omit=dev
       - name: Verify CSP and scan tracked source plus recent Git patch history
-        run: node tools/release-security-audit.cjs
+        run: npm run build && node tools/release-security-audit.cjs

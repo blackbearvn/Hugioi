@@ -18,13 +18,16 @@ permissions:
 jobs:
   release-browser-smoke:
     runs-on: ubuntu-latest
+    env:
+      VITE_SUPABASE_URL: https://ci-fixture.supabase.co
+      VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_fixture_only_0000
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - run: npm ci && npm run check && npm run build:min
+      - run: npm ci && npm run check && npx vite build --mode ci && node tools/check-css-bundle.cjs
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -36,11 +39,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          PORT=8001 node tools/online-ci-server.cjs > /tmp/hu-release-api.log 2>&1 &
+          HU_CI_DIST=1 PORT=8001 node tools/online-ci-server.cjs > /tmp/hu-release-api.log 2>&1 &
           pid=$!
           trap 'kill "$pid" || true' EXIT
           sleep 3
-          curl --fail --silent --show-error --output /dev/null http://127.0.0.1:8001/client/config.js
+          curl --fail --silent --show-error --output /dev/null http://127.0.0.1:8001/index.html
           python tools/release-browser-smoke.py --url http://127.0.0.1:8001 --output release-browser-smoke
       - name: Upload screenshots and browser/network evidence
         if: always()
