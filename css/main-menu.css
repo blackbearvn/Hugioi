@@ -28,6 +28,9 @@
   border: 1px solid #887855;
   font: 600 16px var(--font);
 }
+#mainMenu nav > button {
+  font: 400 24px/1.5 var(--display);
+}
 #mainMenu button:hover:not(:disabled) { background: #26362e; border-color: #e2c88e; }
 #mainMenu button:disabled { opacity: .75; cursor: wait; }
 #menuStart { border-color: #dac18a; }
