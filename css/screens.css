@@ -469,6 +469,8 @@ body.in-tribulation{overflow:hidden}
 .battle-sprite.foe{animation-duration:5.6s;animation-delay:-1.4s}
 .battle-sprite.hero{height:196px;width:auto}
 .battle-sprite.foe{height:150px;width:auto}
+/* Khung vuông cố định: các khung hình có kích thước khác nhau không làm nhân vật/quái nhảy */
+.battle-sprite.hero,.battle-sprite.foe{aspect-ratio:1/1;object-fit:contain;object-position:50% 100%}
 .battle-stage.boss .battle-sprite.foe{height:188px;filter:drop-shadow(0 0 20px #d5914a55) drop-shadow(0 12px 16px #000b)}
 
 .battle-cry{position:absolute;left:50%;top:48%;z-index:6;transform:translate(-50%,-50%) scale(.9);opacity:0;pointer-events:none;max-width:92%;padding:4px 20px;border-radius:16px;background:radial-gradient(62% 128% at 50% 50%,#05070bc9,#05070b00 78%);font:900 clamp(21px,5.4vw,36px)/1.05 var(--serif);letter-spacing:.08em;text-align:center;color:#ffe6b3;text-shadow:0 2px 0 #3a2008,0 6px 24px #000,0 0 18px #e6bd5c66}
@@ -516,21 +518,21 @@ body.in-tribulation{overflow:hidden}
 .stage-note{margin:0;padding:6px 14px 10px;color:#8b96ab;font-size:11px}
 @media(prefers-reduced-motion:reduce){.auto-toggle.on i{animation:none}}
 
-.battle-figure.is-attacking{animation:battleLunge .46s ease-in-out;will-change:transform}
+.battle-figure.is-attacking{animation:battleLunge .78s ease-in-out;will-change:transform}
 .battle-unit.hero .battle-figure.is-attacking{animation-name:battleLungeRight}
 .battle-unit.foe .battle-figure.is-attacking{animation-name:battleLungeLeft}
-.battle-figure.is-hurt .battle-sprite{animation:battleShake .34s ease-in-out;filter:brightness(1.55) drop-shadow(0 0 14px #ff8f7a)}
+.battle-figure.is-hurt .battle-sprite{animation:battleShake .55s ease-in-out;filter:brightness(1.55) drop-shadow(0 0 14px #ff8f7a)}
 .battle-figure.is-guarding::after{content:'';position:absolute;left:6%;right:6%;bottom:0;height:76%;border-radius:50% 50% 0 0;pointer-events:none;background:radial-gradient(ellipse at 50% 100%,#e6bd5c44,transparent 66%);box-shadow:0 0 26px #e6bd5c55;animation:battleAura .95s ease-out}
 .battle-figure.is-attacking.is-guarding::after{display:none}
 /* Vận công / thi triển pháp bảo: quầng sáng ngọc thay vì tư thế thủ, đủ khác biệt
    với đòn đánh để người chơi nhận ra lệnh đã có hiệu lực. */
 .battle-figure.is-casting::after{content:'';position:absolute;inset:6% 4% 2%;border-radius:50%;pointer-events:none;background:radial-gradient(circle at 50% 62%,#8fd6ff33,transparent 70%);box-shadow:0 0 22px #7fc4e055,inset 0 0 22px #7fc4e044;animation:battleCast .7s ease-out}
 .battle-figure.is-casting .battle-sprite{filter:drop-shadow(0 0 16px #8fd6ff88) drop-shadow(0 12px 14px #000b)}
-.battle-stage.is-shake{animation:battleShake .34s ease-in-out}
+.battle-stage.is-shake{animation:battleShake .55s ease-in-out}
 .battle-unit.is-beaten .battle-sprite,.battle-figure.is-defeated .battle-sprite,.battle-figure.is-fallen .battle-sprite{animation:none}
 .battle-unit.is-beaten .battle-sprite,.battle-figure.is-defeated .battle-sprite{filter:grayscale(.7) brightness(.5);opacity:.72;transform:rotate(-4deg) translateY(4px)}
 .battle-figure.is-fallen .battle-sprite{filter:grayscale(.8) brightness(.45);opacity:.7;transform:rotate(9deg) translateY(10px)}
-.battle-figure.is-leaving{animation:battleLeave .58s ease-in forwards}
+.battle-figure.is-leaving{animation:battleLeave .9s ease-in forwards}
 
 /* --- Kết quả trận: dải ngay dưới sân để đòn cuối còn nhìn thấy trọn vẹn --- */
 .battle-verdict{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:2px 12px;padding:12px 16px;border-top:1px solid #ffffff14;background:linear-gradient(180deg,#121a26,#0b1018)}

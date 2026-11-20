@@ -88,11 +88,13 @@
        foeIdle(step)      → src        ảnh đối thủ khi đứng thở
        active()           → bool       còn trận để thở không
      } */
+  /* Hệ số nhịp: 1 = nhịp cũ. Tăng để mọi đòn đánh, hiệu ứng và quãng nghỉ chậm lại. */
+  const PACE = 1.7;
   function create(ctx) {
     const fx = { pending: null, busyUntil: 0, seq: 0, timers: [], idle: 0, before: null };
     const reduced = () => !!UI.isReduced?.() || UI.s()?.settings?.combatEffects === false;
     const clearTimers = () => { fx.timers.forEach(t => root.clearTimeout(t)); fx.timers = []; };
-    const later = (ms, fn) => fx.timers.push(root.setTimeout(fn, ms));
+    const later = (ms, fn) => fx.timers.push(root.setTimeout(fn, ms * PACE));
 
     /* Bảng trận được dựng lại sau mỗi lượt, nhưng ảnh nhân vật/yêu thú thì không đổi.
        Giữ lại chính phần tử ảnh của lượt trước để khung đã vẽ không bị trống một nhịp
@@ -315,7 +317,7 @@
         fx.pending = { seq: ++fx.seq, ...p, before: p.before || fx.before };
         fx.before = null;
         /* Trận thua có thêm chuỗi gục ngã sau đòn cuối nên giữ khóa hoạt ảnh lâu hơn. */
-        fx.busyUntil = Date.now() + (reduced() ? 120 : holdMs || (p.state === 'lost' ? 2150 : 1600));
+        fx.busyUntil = Date.now() + (reduced() ? 120 : holdMs || (p.state === 'lost' ? 2150 : 1600) * PACE);
       },
       busy: () => Date.now() < fx.busyUntil,
       mount() {
@@ -338,7 +340,7 @@
         img.decode?.().then(start).catch(start);
       },
       /* Phát ngay một sự kiện lên sân đang có (dùng cho phát lại, không dựng lại DOM). */
-      play(p) { clearTimers(); fx.busyUntil = Date.now() + (reduced() ? 120 : p.state === 'lost' ? 2150 : 1600); playSequence(p); },
+      play(p) { clearTimers(); fx.busyUntil = Date.now() + (reduced() ? 120 : (p.state === 'lost' ? 2150 : 1600) * PACE); playSequence(p); },
       stop() { clearTimers(); stopIdle(); },
       reduced
     };
@@ -455,8 +457,8 @@
       ticker(roundText(r));
       stage.play({ action: r.action === 'manual' ? 'manual' : r.action, kind: '', effect: '', cry: r.cry, dealt: r.dealt, healed: r.healed,
         taken: r.taken, crit: r.crit, takenCrit: r.takenCrit, counter: r.counter, won: r.won, fled: false, state: r.state });
-      if (index >= rounds.length) { timer = root.setTimeout(finish, (r.state === 'lost' ? 2300 : 1500) / speed); return; }
-      if (auto) timer = root.setTimeout(step, 1750 / speed);
+      if (index >= rounds.length) { timer = root.setTimeout(finish, (r.state === 'lost' ? 2300 : 1500) * PACE / speed); return; }
+      if (auto) timer = root.setTimeout(step, 1750 * PACE / speed);
       else q('[data-stage="next"]').disabled = false;
     }
 

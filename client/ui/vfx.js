@@ -103,13 +103,13 @@
   }
 
   const stage = opts => at('#stageVfx', {
-    fps: 16,
+    fps: 11,
     ...opts,
     className: 'stage-vfx-sprite ' + (opts.className || '')
   });
 
   const trib = opts => at('#tribVfxLayer', {
-    fps: 14,
+    fps: 10,
     ...opts,
     className: 'trib-vfx-sprite ' + (opts.className || '')
   });
@@ -156,7 +156,7 @@
     const p = position(target);
     if (!p) return null;
     const { style = {}, ground = true, ...rest } = opts;
-    return at(p.host, { fps: 14, size: Math.max(100, p.height * 1.5) + 'px', ...rest,
+    return at(p.host, { fps: 10, size: Math.max(100, p.height * 1.5) + 'px', ...rest,
       style: { ...style, left: p.x + 'px', top: (ground ? p.y + 4 : p.y - p.height * .45) + 'px',
         bottom: 'auto', transform: ground ? 'translate(-50%,-100%)' : 'translate(-50%,-50%)' } });
   }
@@ -164,7 +164,7 @@
   const tribStage = opts => onActor({ ...opts, className: 'trib-stage-vfx-sprite ' + (opts.className || '') }, 'trib');
 
   function effect(name, target = 'hero', opts = {}) {
-    return onActor({ kind: 'hu_gioi', variant: name, ground: ['bolt', 'break', 'heal'].includes(name), fps: 15, ...opts }, target);
+    return onActor({ kind: 'hu_gioi', variant: name, ground: ['bolt', 'break', 'heal'].includes(name), fps: 10, ...opts }, target);
   }
 
   function ring(target = 'hero', color = '#e6c164') {

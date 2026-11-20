@@ -165,7 +165,7 @@
     /* Tự động đi qua đúng nút người chơi bấm, nên mọi kiểm tra và hiệu ứng đều giống nhau. */
     if (el && !el.disabled) el.click();
     else if (pick.action !== 'attack') { const atk = document.querySelector('.battle-panel [data-action="attack"]'); if (atk && !atk.disabled) atk.click(); }
-    auto.timer = root.setTimeout(autoTick, 900);
+    auto.timer = root.setTimeout(autoTick, 1400);
   }
 
   UI.battleFx = {

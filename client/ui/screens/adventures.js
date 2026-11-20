@@ -81,7 +81,7 @@
     const el = pick && document.querySelector(`.run-panel [data-act="dungeonAct"][data-move="${pick.action}"]`);
     if (el && !el.disabled) el.click();
     else { const guard = document.querySelector('.run-panel [data-move="guard"]'); if (guard && !guard.disabled) guard.click(); else { runAutoStop(); return; } }
-    runAuto.timer = root.setTimeout(runAutoTick, 900);
+    runAuto.timer = root.setTimeout(runAutoTick, 1400);
   }
   /* Gọi sau mỗi lần vẽ lại màn có bảng chiến đấu bí cảnh. */
   function mountRun() {
