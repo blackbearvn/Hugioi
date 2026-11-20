@@ -651,6 +651,9 @@
   function showMenu() {
     closeCreationShop();
     $('menuStart').disabled = !hasSave() && !canCreate();
+    $('menuStart').textContent = hasSave() ? 'Tiếp tục hành trình' : 'Bước vào Hư giới';
+    const saved = hasSave() ? store.load() : null;
+    $('menuAccount').textContent = saved?.name ? `Đạo hữu ${saved.name}` : '';
     $('menuStatus').textContent = '';
     $('welcome').hidden = true;
     $('game').hidden = true;
