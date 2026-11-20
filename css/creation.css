@@ -134,3 +134,9 @@ body.reduced-motion .scene-motes{display:none}
 .creation-shop-item button{min-height:44px;min-width:102px;flex-shrink:0;font-size:12px;padding:8px}
 @media(max-width:900px){.creation-shop-grid{grid-template-columns:1fr}}
 @media(max-width:420px){.creation-shop-item{flex-wrap:wrap}.creation-shop-item button{width:100%}}
+.welcome {
+  padding-top: max(16px, env(safe-area-inset-top));
+  padding-right: max(16px, env(safe-area-inset-right));
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+  padding-left: max(16px, env(safe-area-inset-left));
+}

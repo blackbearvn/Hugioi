@@ -3,8 +3,20 @@
    the refresh token in browser storage (not an HttpOnly cookie). */
 (function (root) {
   'use strict';
-  const SUPABASE_URL = 'https://rvrwfeblishqadkpzspb.supabase.co';
-  const KEY = 'sb_publishable_QM_k0s1fa71PVbhvhBOgSw_IRScC83P';
+  const SUPABASE_URL = root.HU_PUBLIC_CONFIG?.supabaseUrl || '';
+  const KEY = root.HU_PUBLIC_CONFIG?.supabasePublishableKey || '';
+  function requireConfig() {
+    if (!SUPABASE_URL || !KEY)
+      throw Error('Thiếu cấu hình đăng nhập. Quản trị viên cần đặt VITE_SUPABASE_URL và VITE_SUPABASE_PUBLISHABLE_KEY khi build.');
+    if (!/^https:\/\/[a-z0-9-]+\.supabase\.co$/.test(SUPABASE_URL))
+      throw Error('VITE_SUPABASE_URL không hợp lệ. Hãy dùng địa chỉ HTTPS của dự án Supabase.');
+    if (/^sb_publishable_[A-Za-z0-9_-]{16,}$/.test(KEY)) return;
+    try {
+      if (/^[\w-]+\.[\w-]+\.[\w-]+$/.test(KEY) &&
+          JSON.parse(root.atob(KEY.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))).role === 'anon') return;
+    } catch { /* Invalid legacy key. */ }
+    throw Error('VITE_SUPABASE_PUBLISHABLE_KEY không hợp lệ. Hãy dùng khóa publishable hoặc anon của dự án.');
+  }
   const VERSION = '2026-11-11-v7';
   const STORAGE = 'huGioiSupabaseSessionV1';
   const REMEMBER_STORAGE = 'huGioiRememberSessionV1';
@@ -80,6 +92,7 @@
   }
 
   async function request(path, { method = 'GET', body, token, prefer } = {}) {
+    requireConfig();
     const response = await root.fetch(SUPABASE_URL + path, {
       method,
       headers: {
@@ -173,6 +186,7 @@
   }
 
   async function loginGoogle() {
+    requireConfig();
     if (root.HU_AUTH_MODE !== 'direct') throw Error('Đăng nhập bằng Google hiện chưa khả dụng.');
     const redirect = redirectUrl();
     const verifier = randomVerifier();
@@ -235,6 +249,7 @@
   async function user() {
     await oauthCallback();
     await callback();
+    requireConfig();
     let access = await token();
     if (!access) return null;
     try {
@@ -266,6 +281,7 @@
     return data;
   }
   async function login(email, password, options) {
+    requireConfig();
     if (!validEmail(email)) throw Error('Email không hợp lệ. Vui lòng nhập địa chỉ email đúng định dạng.');
     let data;
     // Cloudflare static + Supabase Edge: chỉ gửi mật khẩu tới Supabase Auth cùng publishable key công khai.

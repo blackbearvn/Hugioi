@@ -4,7 +4,8 @@
 const fs = require('node:fs');
 const path = require('node:path');
 
-const ROOT = fs.realpathSync(path.resolve(__dirname, '..', '..'));
+const useDist = process.env.HU_CI_DIST === '1';
+const ROOT = fs.realpathSync(path.resolve(__dirname, '..', '..', useDist ? 'dist' : '.'));
 const MIME = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8',
   '.json': 'application/json; charset=utf-8', '.gif': 'image/gif', '.webp': 'image/webp', '.png': 'image/png', '.jpg': 'image/jpeg',
@@ -25,8 +26,13 @@ const SECURITY_HEADERS = {
   'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=(), usb=()',
   'Cross-Origin-Opener-Policy': 'same-origin',
   'Cross-Origin-Resource-Policy': 'same-origin',
-  'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://rvrwfeblishqadkpzspb.supabase.co; media-src 'self'; object-src 'none'; frame-src 'none'; worker-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+  'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; media-src 'self'; object-src 'none'; frame-src 'none'; worker-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
 };
+
+if (useDist) {
+  const headers = fs.readFileSync(path.join(ROOT, '_headers'), 'utf8');
+  SECURITY_HEADERS['Content-Security-Policy'] = headers.match(/^  Content-Security-Policy: (.+)$/m)[1];
+}
 
 function notFound(res) {
   res.writeHead(404, { ...SECURITY_HEADERS, 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' }).end('Not found');
@@ -37,9 +43,10 @@ function resolveAllowed(rawUrl) {
   let pathname;
   try { pathname = decodeURIComponent(new URL(rawUrl, 'http://x').pathname); } catch { return { status: 400 }; }
   if (pathname.includes('\0') || pathname.includes('\\')) return { status: 404 };
-  if (pathname === '/' || pathname.endsWith('/') || ['/login', '/create', '/game'].includes(pathname)) pathname = '/index.html';
+  if (pathname === '/' || pathname.endsWith('/') || ['/login', '/menu', '/create', '/game'].includes(pathname)) pathname = '/index.html';
   if (pathname.split('/').includes('..')) return { status: 404 };
-  if (!ALLOWED.test(pathname) || DENIED_PART.test(pathname) || DENIED_PATH.test(pathname)) return { status: 404 };
+  if (!(ALLOWED.test(pathname) || (useDist && pathname.startsWith('/assets/'))) ||
+      DENIED_PART.test(pathname) || DENIED_PATH.test(pathname)) return { status: 404 };
   let file;
   try { file = fs.realpathSync(path.join(ROOT, pathname)); } catch { return { status: 404 }; }
   if (!file.startsWith(ROOT + path.sep)) return { status: 404 };

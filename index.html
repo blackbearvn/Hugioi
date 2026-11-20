@@ -5,13 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#070b14">
 <meta name="referrer" content="no-referrer">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; script-src 'self' https://js.hcaptcha.com https://*.hcaptcha.com; style-src 'self' 'unsafe-inline' https://*.hcaptcha.com; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://rvrwfeblishqadkpzspb.supabase.co https://hcaptcha.com https://*.hcaptcha.com; media-src 'self'; object-src 'none'; frame-src https://hcaptcha.com https://*.hcaptcha.com; worker-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; script-src 'self' https://js.hcaptcha.com https://*.hcaptcha.com; style-src 'self' 'unsafe-inline' https://*.hcaptcha.com; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' %HU_SUPABASE_CSP% https://hcaptcha.com https://*.hcaptcha.com; media-src 'self'; object-src 'none'; frame-src https://hcaptcha.com https://*.hcaptcha.com; worker-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="description" content="Hư Giới — game idle tu tiên online, bảo vệ tài khoản và tiến trình trên máy chủ.">
 <title>Hư Giới · Tiên Lộ Vô Tận</title>
 <link rel="icon" href="data:,">
 <link rel="stylesheet" href="css/loading.css">
 <link rel="stylesheet" href="css/base.css">
 <link rel="stylesheet" href="css/welcome.css">
+<link rel="stylesheet" href="css/main-menu.css">
 <link rel="stylesheet" href="css/auth.css">
 <link rel="stylesheet" href="css/creation.css">
 <link rel="stylesheet" href="css/shell.css">
@@ -31,7 +32,6 @@
 <link rel="stylesheet" href="css/scene-ui.css">
 <link rel="stylesheet" href="css/sect-hub.css">
 <link rel="stylesheet" href="css/character-ui.css">
-<script src="client/platform/content-guard.js"></script>
 </head>
 <body>
 <div id="loading" aria-busy="true" aria-label="Đang tải tài nguyên">
@@ -65,44 +65,57 @@
       <p id="authResume" class="auth-resume" role="status" hidden>Đang tiếp tục hành trình…</p>
       <p id="authSubtitle" class="auth-subtitle">Đăng nhập để tiếp tục hành trình.</p>
       <div id="authTabs" class="auth-tabs" role="tablist" aria-label="Đăng nhập hoặc đăng ký">
-        <button type="button" role="tab" data-auth-view="login" class="active" aria-selected="true">Đăng nhập</button>
-        <button type="button" role="tab" data-auth-view="signup" aria-selected="false">Đăng ký</button>
+        <button type="button" role="tab" id="authLoginTab" aria-controls="authTabPanel" data-auth-view="login" class="active" aria-selected="true">Đăng nhập</button>
+        <button type="button" role="tab" id="authSignupTab" aria-controls="authTabPanel" tabindex="-1" data-auth-view="signup" aria-selected="false">Đăng ký</button>
       </div>
-      <form id="authForm" class="auth-form">
-        <label for="authEmail">Email
-          <input id="authEmail" name="email" type="email" placeholder="daohuu@example.com" maxlength="254" autocomplete="email" required>
+      <p id="authStatus" class="auth-status" role="status"></p>
+      <div id="authTabPanel" role="tabpanel" aria-labelledby="authLoginTab">
+        <form id="authForm" class="auth-form">
+          <label for="authEmail">Email
+            <input id="authEmail" name="email" type="email" placeholder="daohuu@example.com" maxlength="254" autocomplete="email" required>
+          </label>
+          <label for="authPassword">Mật khẩu
+            <input id="authPassword" name="password" type="password" minlength="10" maxlength="128" placeholder="Ít nhất 10 ký tự" autocomplete="current-password" required>
+          </label>
+          <label id="authConfirmWrap" for="authConfirm" hidden>Nhập lại mật khẩu
+            <input id="authConfirm" name="confirm" type="password" minlength="10" maxlength="128" placeholder="Xác nhận mật khẩu" autocomplete="new-password">
+          </label>
+          <div id="authLegalWrap" class="auth-legal" hidden>
+            <label class="auth-check" for="authPrivacy"><input id="authPrivacy" type="checkbox" required><span>Tôi đã đọc và đồng ý với <a href="client/legal/privacy.html" target="_blank" rel="noopener noreferrer">Chính sách quyền riêng tư</a> (10/11/2026).</span></label>
+            <label class="auth-check" for="authRelease"><input id="authRelease" type="checkbox" required><span>Tôi đồng ý với <a href="client/legal/release.html" target="_blank" rel="noopener noreferrer">Điều khoản sử dụng Hư Giới</a> (10/11/2026).</span></label>
+            <p class="auth-legal-note">Không tích sẵn. Hư Giới miễn phí, phi lợi nhuận và không có thanh toán trực tuyến.</p>
+          </div>
+          <div id="authCaptcha" class="auth-captcha" hidden></div>
+          <p id="authMessage" class="auth-message" role="alert"></p>
+          <button id="authSubmit" class="auth-submit" type="submit">Bước vào Hư Giới</button>
+        </form>
+        <label class="auth-remember" id="authRememberWrap" for="authRemember">
+          <input id="authRemember" type="checkbox">
+          <span>Ghi nhớ đăng nhập 30 ngày <small>Chỉ chọn trên thiết bị cá nhân. Bạn có thể đăng xuất bất cứ lúc nào.</small></span>
         </label>
-        <label for="authPassword">Mật khẩu
-          <input id="authPassword" name="password" type="password" minlength="10" maxlength="128" placeholder="Ít nhất 10 ký tự" autocomplete="current-password" required>
-        </label>
-        <label id="authConfirmWrap" for="authConfirm" hidden>Nhập lại mật khẩu
-          <input id="authConfirm" name="confirm" type="password" minlength="10" maxlength="128" placeholder="Xác nhận mật khẩu" autocomplete="new-password">
-        </label>
-        <div id="authLegalWrap" class="auth-legal" hidden>
-          <label class="auth-check" for="authPrivacy"><input id="authPrivacy" type="checkbox" required><span>Tôi đã đọc và đồng ý với <a href="client/legal/privacy.html" target="_blank" rel="noopener noreferrer">Chính sách quyền riêng tư</a> (10/11/2026).</span></label>
-          <label class="auth-check" for="authRelease"><input id="authRelease" type="checkbox" required><span>Tôi đồng ý với <a href="client/legal/release.html" target="_blank" rel="noopener noreferrer">Điều khoản sử dụng Hư Giới</a> (10/11/2026).</span></label>
-          <p class="auth-legal-note">Không tích sẵn. Hư Giới miễn phí, phi lợi nhuận và không có thanh toán trực tuyến.</p>
-        </div>
-        <div id="authCaptcha" class="auth-captcha" hidden></div>
-        <p id="authMessage" class="auth-message" role="alert" hidden></p>
-        <button id="authSubmit" class="auth-submit" type="submit">Bước vào Hư Giới</button>
-      </form>
-      <label class="auth-remember" id="authRememberWrap" for="authRemember">
-        <input id="authRemember" type="checkbox">
-        <span>Ghi nhớ đăng nhập 30 ngày <small>Chỉ chọn trên thiết bị cá nhân. Bạn có thể đăng xuất bất cứ lúc nào.</small></span>
-      </label>
-      <button id="authGoogle" type="button" class="auth-guest">Tiếp tục với Google</button>
+        <button id="authGoogle" type="button" class="auth-guest">Tiếp tục với Google</button>
+      </div>
       <div id="authConsentGate" class="auth-consent-gate" hidden>
         <p>Để tiếp tục hành trình, vui lòng đọc và xác nhận riêng từng văn bản dưới đây. Nếu không đồng ý, bạn có thể đăng xuất.</p>
         <label class="auth-check" for="authConsentPrivacy"><input id="authConsentPrivacy" type="checkbox"><span>Tôi đã đọc và đồng ý với <a href="client/legal/privacy.html" target="_blank" rel="noopener noreferrer">Chính sách quyền riêng tư</a>.</span></label>
         <label class="auth-check" for="authConsentRelease"><input id="authConsentRelease" type="checkbox"><span>Tôi đã đọc và đồng ý với <a href="client/legal/release.html" target="_blank" rel="noopener noreferrer">Điều khoản sử dụng</a>.</span></label>
-        <p id="authConsentMessage" class="auth-message" role="alert" hidden></p>
+        <p id="authConsentMessage" class="auth-message" role="alert"></p>
         <button id="authConsentContinue" type="button" class="auth-guest">Xác nhận và tiếp tục</button>
         <button id="authConsentLogout" type="button" class="auth-guest">Không đồng ý · Đăng xuất</button>
       </div>
       
       <p class="auth-caption">Bạn cần đăng nhập để lưu và tiếp tục hành trình. Nhân vật được lưu an toàn trên máy chủ trò chơi. <a href="client/legal/privacy.html" target="_blank" rel="noopener noreferrer">Quyền riêng tư</a> · <a href="client/legal/release.html" target="_blank" rel="noopener noreferrer">Điều khoản sử dụng</a></p>
     </div>
+  </div>
+</section>
+
+<section id="mainMenu" aria-labelledby="menuTitle" hidden>
+  <div class="main-menu-card">
+    <h1 id="menuTitle" tabindex="-1">Hư Giới</h1>
+    <p id="menuStatus" role="status"></p>
+    <button type="button" class="btn btn-gold" id="menuCreate" hidden>Tạo đạo thân</button>
+    <button type="button" class="btn btn-gold" id="continueGame" hidden disabled>Tiếp tục hành trình</button>
+    <button type="button" class="btn btn-outline" id="menuExit">Đăng xuất / Đổi tài khoản</button>
   </div>
 </section>
 
@@ -174,7 +187,7 @@
        <div class="create-actions">
         <button type="button" id="previewGame" class="btn btn-gold btn-wide" hidden>Vào giao diện chính · Xem trước</button>
         <button id="startNew" class="btn btn-gold btn-wide" type="submit" aria-describedby="pointsValue" disabled>Bắt đầu tu tiên</button>
-        <button type="button" class="btn btn-outline btn-wide" id="continueGame" hidden>Tiếp tục hành trình đã lưu</button>
+        <button type="button" class="btn btn-outline btn-wide" id="backToMenu" hidden>Quay lại menu chính</button>
         <p id="engineNotice" class="engine-notice" role="status" hidden><b>Bản xem trước giao diện</b> · Luật chơi đang được hoàn thiện. Bạn có thể thử tạo đạo thân và xem giao diện chính, nhưng chưa thể chơi hay lưu tiến trình.</p>
       </div>
     </form>
@@ -430,83 +443,6 @@
 <div id="itemTip" class="item-tip" role="tooltip" aria-hidden="true" hidden></div>
 <input id="importFile" type="file" accept=".json,application/json" hidden>
 
-<!-- Classic scripts theo thứ tự để Node/browser dùng chung luật; gameplay bắt buộc API online + đăng nhập. -->
-<script src="client/assets/preload-manifest.js"></script>
-<script src="client/assets/player-preload.js"></script>
-<script src="client/platform/loader.js"></script>
-<script src="data/balance.js"></script>
-<script src="data/schema.js"></script>
-<script src="data/items.js"></script>
-<script src="data/design-raw.js"></script>
-<script src="data/design-fill.js"></script>
-<script src="data/design.js"></script>
-<script src="data/formulas.js"></script>
-<script src="data/catalog.js"></script>
-<script src="data/manuals.js"></script>
-<script src="data/roots.js"></script>
-<script src="data/meridians.js"></script>
-<script src="data/character.js"></script>
-<script src="data/social.js"></script>
-<script src="data/adventures.js"></script>
-<script src="data/story.js"></script>
-<script src="engine/state/player.js"></script>
-<script src="engine/rules/progression.js"></script>
-<script src="engine/rules/inventory.js"></script>
-<script src="engine/rules/crafting.js"></script>
-<script src="engine/rules/combat.js"></script>
-<script src="engine/rules/world.js"></script>
-<script src="engine/rules/adventures.js"></script>
-<script src="engine/rules/social.js"></script>
-<script src="engine/rules/time.js"></script>
-<script src="engine/rules/creation.js"></script>
-<script src="engine/protocol/commands.js"></script>
-<script src="engine/game.js"></script>
-<script src="client/assets/asset-index.js"></script>
-<script src="client/assets/item-index.js"></script>
-<script src="client/assets/packs.js"></script>
-<script src="client/assets/assets.js"></script>
-<script src="client/assets/custom-media.js"></script>
-<script src="client/config.js"></script>
-<script src="client/session/remote-session.js"></script>
-<script src="client/route.js"></script>
-<script src="client/auth/supabase.js"></script>
-<script src="client/auth/captcha.js"></script>
-<script src="client/auth/auth.js"></script>
-<script src="client/session/chat-session.js"></script>
-<script src="client/persistence/remote-store.js"></script>
-<script src="client/ui/core.js"></script>
-<script src="client/ui/labels.js"></script>
-<script src="client/ui/vfx.js"></script>
-<script src="client/ui/auto-battle.js"></script>
-<script src="client/ui/bout-script.js"></script>
-<script src="client/ui/battle-stage.js"></script>
-<script src="client/ui/shell.js"></script>
-<script src="client/ui/environment.js"></script>
-<script src="client/platform/audio.js"></script>
-<script src="client/ui/dialogue.js"></script>
-<script src="client/ui/screens/idle.js"></script>
-<script src="client/ui/screens/combat.js"></script>
-<script src="client/ui/screens/craft.js"></script>
-<script src="client/ui/screens/tribulation.js"></script>
-<script src="client/ui/screens/adventures.js"></script>
-<script src="client/ui/battle-page.js"></script>
-<script src="client/ui/craft-page.js"></script>
-<script src="client/ui/forge-page.js"></script>
-<script src="client/ui/screens/character.js"></script>
-<script src="client/ui/screens/world.js"></script>
-<script src="client/ui/screens/settings.js"></script>
-<script src="client/ui/screens/more.js"></script>
-<script src="client/ui/screens/chat.js"></script>
-<script src="client/ui/screens/meta.js"></script>
-<script src="client/ui/idle-hud.js"></script>
-<script src="client/ui/companion-brain.js"></script>
-<script src="client/ui/companion.js"></script>
-<script src="client/ui/onboarding.js"></script>
-<script src="client/ui/boot.js"></script>
-<script src="client/ui/player-pack.js"></script>
-<script src="client/ui/preview.js"></script>
-<script src="client/ui/tien-khi.js"></script>
-<script src="client/ui/van-chu.js"></script>
-<script src="client/main.js"></script>
+<script type="module" src="/client/startup.ts"></script>
 </body>
 </html>

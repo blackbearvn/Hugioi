@@ -1,9 +1,10 @@
-/* Ba trang của Hư Giới: login → create → game. Chỉ là điều hướng hiển thị (đường dẫn /login, /create, /game + tiêu đề + data-page);
+/* Điều hướng Hư Giới: login → menu → create/game. Chỉ là điều hướng hiển thị (đường dẫn /login, /create, /game + tiêu đề + data-page);
    quyền vào trang vẫn do máy chủ và phiên đăng nhập quyết định, gõ tay đường dẫn không mở được trang chưa đủ điều kiện. */
 (function (root) {
   'use strict';
   const PAGES = Object.freeze({
     login: { path: '/login', title: 'Đăng nhập · Hư Giới' },
+    menu: { path: '/menu', title: 'Menu chính · Hư Giới' },
     create: { path: '/create', title: 'Tạo nhân vật · Hư Giới' },
     game: { path: '/game', title: 'Hư Giới · Tiên Lộ Vô Tận' }
   });

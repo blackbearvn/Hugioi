@@ -1,9 +1,9 @@
 /* hCaptcha cho đăng nhập/đăng ký (Supabase Auth CAPTCHA protection).
-   Sitekey công khai lấy từ client/config.js (HU_HCAPTCHA_SITEKEY); secret CHỈ nằm trong Supabase Auth.
+   Sitekey công khai lấy từ HU_PUBLIC_CONFIG; secret CHỈ nằm trong Supabase Auth.
    Sitekey rỗng/không hợp lệ => enabled=false và không tải script bên thứ ba nào. */
 (function (root) {
   'use strict';
-  const SITEKEY = String(root.HU_HCAPTCHA_SITEKEY || '');
+  const SITEKEY = root.HU_PUBLIC_CONFIG?.hcaptchaSitekey || '';
   const enabled = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(SITEKEY);
   const SRC = 'https://js.hcaptcha.com/1/api.js?render=explicit&onload=__huGioiHcaptchaReady';
   let widget = null, token = '', loading = null;

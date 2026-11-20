@@ -91,6 +91,7 @@ def mock_supabase(page, name):
         body='{"message":"Unexpected Supabase host in browser-proof"}'
     ))
     page.route('https://rvrwfeblishqadkpzspb.supabase.co/**', respond)
+    page.route("https://ci-fixture.supabase.co/**", respond)
 
 
 
@@ -155,6 +156,9 @@ def enter_game(page, url, folder=None, name=None, outcome=None):
             page.locator("#authEmail").fill("ci@example.invalid")
             page.locator("#authPassword").fill("ci-test-password-1234")
             activate(page.locator("#authSubmit"))
+            if page.locator("#mainMenu").count():
+                page.locator("#mainMenu").wait_for(state="visible", timeout=20000)
+                activate(page.locator("#menuCreate"))
             page.locator("#welcome").wait_for(state="visible", timeout=20000)
     # Every viewport creates a different character in the shared in-memory CI server.
     # Avoid NAME_TAKEN (409) without changing gameplay name uniqueness.
@@ -525,18 +529,18 @@ def main():
                 report.append(run_set(browser, folder, f"{label}_{width}x{height}", url, width, height, width < 900))
         # Kiểm thử WebKit riêng để bắt lỗi thao tác chạm/iPhone ngoài Chromium.
         report.append(run_webkit_mobile(p, args.after, folder))
-        # Smoke test file:// không dùng mạng, chỉ kiểm tra nạp script/DOM.
+        # Smoke phiên chưa xác thực trên bản build, không gọi Supabase thật.
         file_ctx = browser.new_context()
         file_page = file_ctx.new_page()
-        mock_supabase(file_page, 'file_smoke')  # forbid real Supabase even in file:// smoke
+        mock_supabase(file_page, 'guest_smoke')
         file_errors = []
         file_page.on("pageerror", lambda e: file_errors.append(str(e)))
         try:
-            uri = Path("index.html").resolve().as_uri()
+            uri = args.after
             file_page.goto(uri, wait_until="domcontentloaded", timeout=45000)
             file_page.locator('#loading').wait_for(state='hidden', timeout=45000)
             report.append({"file_url": uri, "errors": file_errors, "welcome": file_page.locator("#welcome").count() > 0})
-            file_page.screenshot(path=str(folder / "file-smoke.png"))
+            file_page.screenshot(path=str(folder / "guest-smoke.png"))
         except Exception as e:
             report.append({"file_error": str(e), "errors": file_errors})
         file_ctx.close()
