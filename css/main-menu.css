@@ -53,6 +53,7 @@
 #menuSettingsDialog p { margin: 4px 0 18px; color: var(--mm-dim); font-size: 14px; }
 #menuSettingsBack { min-height: 44px; padding: 8px 20px; border: 1px solid #c9a24e88; border-radius: 3px; background: none; color: var(--mm-paper); font: 400 22px var(--display); cursor: pointer; }
 #menuSettingsBack:hover { border-color: var(--mm-bronze); color: #f3dca2; }
+#mainMenu #menuTitle:focus, #mainMenu #menuTitle:focus-visible { outline: none; }
 #mainMenu :focus-visible, #backToMenu:focus-visible { outline: 2px solid #ffe3a3; outline-offset: 3px; }
 
 @media (max-width: 600px) {
