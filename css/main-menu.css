@@ -13,10 +13,7 @@
   padding-right: max(clamp(20px, 5vw, 72px), env(safe-area-inset-right));
   padding-bottom: max(clamp(20px, 5vw, 72px), env(safe-area-inset-bottom));
   padding-left: max(clamp(20px, 7vw, 120px), env(safe-area-inset-left));
-  background:
-    linear-gradient(90deg, #050507f2 0, #050507cc 34%, #07090b4d 68%, #07090b1a 100%),
-    linear-gradient(0deg, #07090bb3, transparent 38%),
-    url('../media/assets/world/bg/background.webp') 62% center / cover #101719;
+  overflow: hidden; isolation: isolate;
 }
 .main-menu-content { width: min(100%, 420px); color: var(--mm-paper); text-align: left; }
 #menuTitle { margin: 0 0 clamp(18px, 5dvh, 44px); }
@@ -60,10 +57,33 @@
 
 @media (max-width: 600px) {
   #mainMenu { justify-items: center; align-items: end; padding: 24px 20px calc(28px + env(safe-area-inset-bottom));
-    background: linear-gradient(0deg, #050507f5 0, #050507cc 52%, #07090b40 100%), url('../media/assets/world/bg/background.webp') 66% center / cover #101719; }
+ }
+  #mainMenu::before { background: linear-gradient(0deg, #050507f5 0, #050507cc 52%, #07090b40 100%), url('../media/assets/world/bg/background.webp') 66% center / cover #101719; }
   .main-menu-content { width: 100%; }
   #menuTitle img { height: min(26dvh, 190px); margin-inline: auto; object-position: center; }
 }
 @media (max-height: 500px) { #menuTitle img { height: 32dvh; } #mainMenu nav > button { min-height: 52px; padding-block: 8px; } }
 @media (prefers-reduced-motion: reduce) { #mainMenu nav > button, #mainMenu nav > button::before { transition: none; } }
 body.device-reduced-motion #mainMenu nav > button, body.device-reduced-motion #mainMenu nav > button::before { transition: none; }
+
+/* Nền trôi chậm, các mục hiện lần lượt, câu chữ dọc ở mép phải */
+#mainMenu::before { content: ""; position: absolute; inset: -3%; z-index: -1; will-change: transform;
+  background:
+    linear-gradient(90deg, #050507f2 0, #050507cc 34%, #07090b4d 68%, #07090b1a 100%),
+    linear-gradient(0deg, #07090bb3, transparent 38%),
+    url('../media/assets/world/bg/background.webp') 62% center / cover #101719;
+  animation: mm-drift 40s ease-in-out infinite alternate; }
+@keyframes mm-drift { from { transform: scale(1.03) translateX(0); } to { transform: scale(1.1) translateX(-1.6%); } }
+@keyframes mm-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+#mainMenu:not([hidden]) #menuTitle { animation: mm-rise .9s ease both; }
+#mainMenu:not([hidden]) nav > button { animation: mm-rise .7s ease both; }
+#mainMenu:not([hidden]) nav > button:nth-child(1) { animation-delay: .45s; }
+#mainMenu:not([hidden]) nav > button:nth-child(2) { animation-delay: .6s; }
+#mainMenu:not([hidden]) nav > button:nth-child(3) { animation-delay: .75s; }
+.mm-motto { position: absolute; right: clamp(20px, 5vw, 80px); top: 50%; transform: translateY(-50%); margin: 0;
+  writing-mode: vertical-lr; height: min(64dvh, 480px); font: 400 clamp(20px, 2.2vw, 28px)/1.5 var(--display); color: #ebe2cdd9; text-shadow: 0 2px 14px #000, 0 0 3px #000; pointer-events: none; }
+.mm-motto span { display: inline-block; writing-mode: horizontal-tb; width: 3em; text-align: center; }
+@media (max-width: 760px) { .mm-motto { display: none; } }
+@media (prefers-reduced-motion: reduce) { #mainMenu::before, #mainMenu:not([hidden]) #menuTitle, #mainMenu:not([hidden]) nav > button { animation: none; } }
+body.device-reduced-motion #mainMenu::before, body.device-reduced-motion #mainMenu:not([hidden]) #menuTitle, body.device-reduced-motion #mainMenu:not([hidden]) nav > button { animation: none; }
+@media (max-width: 600px) { #mainMenu::before { background: linear-gradient(0deg, #050507f5 0, #050507cc 52%, #07090b40 100%), url('../media/assets/world/bg/background.webp') 66% center / cover #101719; } }
