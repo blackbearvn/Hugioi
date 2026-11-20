@@ -1,55 +1,69 @@
+/* HƯ GIỚI · MENU BẮT ĐẦU
+ * Cảnh phủ cả màn hình, logo ở trên, danh mục chữ thư pháp xếp dọc bên trái (cùng ngôn ngữ với màn mở đầu).
+ * Mục hiện hành có vạch son bên trái và chữ vàng đồng; không khung hộp. */
 #mainMenu {
+  --mm-paper: #ebe2cd; --mm-dim: #a5a99f; --mm-bronze: #c9a24e; --mm-cinnabar: #d0553d;
+  position: relative;
   min-height: 100dvh;
   display: grid;
   align-items: center;
-  justify-items: center;
-  padding: clamp(12px, 4vw, 40px);
-  padding-top: max(clamp(12px, 4vw, 40px), env(safe-area-inset-top));
-  padding-right: max(clamp(12px, 4vw, 40px), env(safe-area-inset-right));
-  padding-bottom: max(clamp(12px, 4vw, 40px), env(safe-area-inset-bottom));
-  padding-left: max(clamp(12px, 4vw, 40px), env(safe-area-inset-left));
-  background: url('../media/assets/world/bg/background.webp') center / cover #101719;
+  justify-items: start;
+  padding: clamp(20px, 5vw, 72px);
+  padding-top: max(clamp(20px, 5vw, 72px), env(safe-area-inset-top));
+  padding-right: max(clamp(20px, 5vw, 72px), env(safe-area-inset-right));
+  padding-bottom: max(clamp(20px, 5vw, 72px), env(safe-area-inset-bottom));
+  padding-left: max(clamp(20px, 7vw, 120px), env(safe-area-inset-left));
+  background:
+    linear-gradient(90deg, #050507f2 0, #050507cc 34%, #07090b4d 68%, #07090b1a 100%),
+    linear-gradient(0deg, #07090bb3, transparent 38%),
+    url('../media/assets/world/bg/background.webp') 62% center / cover #101719;
 }
-
-.main-menu-content {
-  width: min(100%, 320px);
-  color: #f1e6c8;
-  text-align: center;
-}
-
-#menuTitle { margin: 0 0 12px; }
-#menuTitle img { display: block; width: 100%; height: min(30dvh, 240px); object-fit: contain; }
-#mainMenu nav { display: grid; gap: 6px; }
-#mainMenu button {
-  min-height: 46px;
-  padding: 8px 16px;
-  background: #161e1c;
-  color: #f5e9cf;
-  border: 1px solid #887855;
-  font: 600 16px var(--font);
-}
+.main-menu-content { width: min(100%, 420px); color: var(--mm-paper); text-align: left; }
+#menuTitle { margin: 0 0 clamp(18px, 5dvh, 44px); }
+#menuTitle img { display: block; width: auto; max-width: 100%; height: min(24dvh, 190px); object-fit: contain; object-position: left center; filter: invert(.93) hue-rotate(180deg) drop-shadow(0 4px 18px #000); }
+#mainMenu nav { display: grid; gap: 0; }
 #mainMenu nav > button {
-  font: 400 24px/1.5 var(--display);
+  position: relative; display: block; width: 100%; min-height: 60px; font: 400 clamp(27px, 3.4vw, 36px)/1.25 var(--display);
+  padding: 12px 8px 12px 22px; border: 0; border-bottom: 1px solid #ffffff1f; border-radius: 0;
+  background: none; color: var(--mm-paper); text-align: left; cursor: pointer;
+  text-shadow: 0 2px 12px #000, 0 0 3px #000;
+  transition: color .2s, background-color .2s, padding-left .2s;
 }
-#mainMenu button:hover:not(:disabled) { background: #26362e; border-color: #e2c88e; }
-#mainMenu button:disabled { opacity: .75; cursor: wait; }
-#menuStart { border-color: #dac18a; }
-#menuStatus { margin: 8px 0 0; padding: 6px; background: #161e1c; overflow-wrap: anywhere; }
+#mainMenu nav > button::before {
+  content: ""; position: absolute; left: 0; top: 14px; bottom: 14px; width: 3px;
+  background: var(--mm-cinnabar); transform: scaleY(0); transform-origin: top; transition: transform .22s ease;
+}
+#mainMenu nav > button:hover:not(:disabled), #mainMenu nav > button:focus-visible {
+  background: linear-gradient(90deg, #c9a24e2e, #c9a24e00 85%); color: #f3dca2; padding-left: 28px; outline: none;
+}
+#mainMenu nav > button:hover:not(:disabled)::before, #mainMenu nav > button:focus-visible::before { transform: scaleY(1); }
+#mainMenu #menuStart { color: var(--mm-bronze); }
+#mainMenu #menuStart:hover:not(:disabled), #mainMenu #menuStart:focus-visible { color: #f3dca2; }
+#mainMenu nav > button:disabled { opacity: .55; cursor: wait; }
+#menuStatus { margin: 14px 0 0; padding: 0 0 0 22px; color: var(--mm-paper); font: 500 14px/1.45 var(--font); text-shadow: 0 1px 8px #000; overflow-wrap: anywhere; }
 #menuStatus:empty { display: none; }
+
 #menuSettingsDialog {
-  width: min(360px, calc(100% - 32px - env(safe-area-inset-left) - env(safe-area-inset-right)));
+  width: min(380px, calc(100% - 32px - env(safe-area-inset-left) - env(safe-area-inset-right)));
   max-height: calc(100dvh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-  overflow: auto;
-  padding: 20px;
-  background: #161e1c;
-  color: #f5e9cf;
-  border: 1px solid #887855;
+  overflow: auto; padding: 24px; background: #0f1417f2; color: var(--mm-paper);
+  border: 1px solid #c9a24e66; border-radius: 3px; box-shadow: 0 24px 60px #000c;
 }
-#menuSettingsDialog::backdrop { background: #090e0dd9; }
-#menuSettingsTitle { margin: 0 0 12px; font: 28px var(--display); }
+#menuSettingsDialog::backdrop { background: #050507d9; }
+#menuSettingsTitle { margin: 0 0 14px; font: 400 32px/1.15 var(--display); color: var(--mm-bronze); }
 #menuSettingsDialog label { display: flex; gap: 10px; align-items: center; min-height: 44px; }
-#menuSettingsDialog input { width: 20px; height: 20px; }
-#mainMenu :focus-visible, #backToMenu:focus-visible {
-  outline: 2px solid #ffe3a3;
-  outline-offset: 3px;
+#menuSettingsDialog input { width: 20px; height: 20px; accent-color: var(--mm-bronze); }
+#menuSettingsDialog p { margin: 4px 0 18px; color: var(--mm-dim); font-size: 14px; }
+#menuSettingsBack { min-height: 44px; padding: 8px 20px; border: 1px solid #c9a24e88; border-radius: 3px; background: none; color: var(--mm-paper); font: 400 22px var(--display); cursor: pointer; }
+#menuSettingsBack:hover { border-color: var(--mm-bronze); color: #f3dca2; }
+#mainMenu :focus-visible, #backToMenu:focus-visible { outline: 2px solid #ffe3a3; outline-offset: 3px; }
+
+@media (max-width: 600px) {
+  #mainMenu { justify-items: center; align-items: end; padding: 24px 20px calc(28px + env(safe-area-inset-bottom));
+    background: linear-gradient(0deg, #050507f5 0, #050507cc 52%, #07090b40 100%), url('../media/assets/world/bg/background.webp') 66% center / cover #101719; }
+  .main-menu-content { width: 100%; }
+  #menuTitle img { height: min(26dvh, 190px); margin-inline: auto; object-position: center; }
 }
+@media (max-height: 500px) { #menuTitle img { height: 32dvh; } #mainMenu nav > button { min-height: 52px; padding-block: 8px; } }
+@media (prefers-reduced-motion: reduce) { #mainMenu nav > button, #mainMenu nav > button::before { transition: none; } }
+body.device-reduced-motion #mainMenu nav > button, body.device-reduced-motion #mainMenu nav > button::before { transition: none; }
