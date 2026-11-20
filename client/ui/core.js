@@ -239,6 +239,7 @@
         <div class="item-sheet-head">
           <div class="item-sheet-badges">${rankHtml}${qualityHtml}</div>
           <p class="item-sheet-sub">${esc(x.category || 'Vật phẩm')}</p>
+          ${x.nameZh ? `<p class="item-sheet-sub" lang="zh-Hans">${esc(x.nameZh)}</p>` : ''}
           <p class="item-sheet-desc">${esc(x.description || 'Không có mô tả.')}</p>
         </div>
       </header>

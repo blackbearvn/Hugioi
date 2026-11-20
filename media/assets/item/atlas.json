@@ -47,7 +47,8 @@
       "columns": 4,
       "rows": 8,
       "count": 25
-    }
+    },
+    "PB_1.png": {"columns":5,"rows":5,"count":25}
   },
   "items": {
     "HERB-001": {"name": "Thanh Linh Thảo", "group": "Linh thảo", "image": "item/HG.png", "slot": 1, "row": 1, "column": 1},
@@ -541,6 +542,31 @@
     "QITEM-HD-03": {"name": "Mảnh Ổn Mạch", "group": "Vật phẩm nhiệm vụ", "image": "item/vat_pham_dac_biet/SSSITEM03.png", "slot": null, "row": null, "column": null},
     "QITEM-HD-04": {"name": "Mảnh Hộ Hồn", "group": "Vật phẩm nhiệm vụ", "image": "item/vat_pham_dac_biet/SSSITEM04.png", "slot": null, "row": null, "column": null},
     "QITEM-HD-05": {"name": "Mảnh Hồi Nguyên", "group": "Vật phẩm nhiệm vụ", "image": "item/vat_pham_dac_biet/SSSITEM05.png", "slot": null, "row": null, "column": null},
-    "QITEM-HD-06": {"name": "Mảnh Hợp Ấn", "group": "Vật phẩm nhiệm vụ", "image": "item/vat_pham_dac_biet/SSSITEM06.png", "slot": null, "row": null, "column": null}
+    "QITEM-HD-06": {"name": "Mảnh Hợp Ấn", "group": "Vật phẩm nhiệm vụ", "image": "item/vat_pham_dac_biet/SSSITEM06.png", "slot": null, "row": null, "column": null},
+    "EQ-083": {"name":"Thanh Long Ngọc Bội","nameZh":"青龙玉佩","group":"Trang bị và pháp bảo","image":"item/PB_1.png","slot":1,"row":1,"column":1,"rect":[0,0,128,131]},
+    "EQ-084": {"name":"Càn Khôn Ngọc Hoàn","nameZh":"乾坤玉环","group":"Trang bị và pháp bảo","image":"item/PB_1.png","slot":2,"row":1,"column":2,"rect":[128,0,128,128]},
+    "EQ-085": {"name":"Tử Kim Hồ Lô","nameZh":"紫金葫芦","group":"Trang bị và pháp bảo","image":"item/PB_1.png","slot":3,"row":1,"column":3,"rect":[256,0,128,126]},
+    "EQ-086": {"name":"Thất Bảo Linh Lung Tháp","nameZh":"七宝玲珑塔","group":"Trang bị và pháp bảo","image":"item/PB_1.png","slot":4,"row":1,"column":4,"rect":[384,0,128,132]},
+    "EQ-087": {"name":"Trấn Thiên Thần Ấn","nameZh":"镇天神印","group":"Trang bị và pháp bảo","image":"item/PB_1.png","slot":5,"row":1,"column":5,"rect":[512,0,128,124]},
+    "EQ-088": {"name":"Bích Ngọc Giản","nameZh":"碧玉简","group":"Trang bị và pháp bảo","image":"item/PB_1.png","slot":6,"row":2,"column":1,"rect":[0,131,128,119]},
+    "EQ-089": {"name":"Thái Cực Thiên Phù","nameZh":"太极天符","group":"Trang bị và pháp bảo","image":"item/PB_1.png","slot":7,"row":2,"column":2,"rect":[128,128,128,125]},
+    "EQ-090": {"name":"Cửu Long Luyện Đan Lô","nameZh":"九龙炼丹炉","group":"Trang bị và pháp bảo","image":"item/PB_1.png","slot":8,"row":2,"column":3,"rect":[256,126,128,130]},
+    "EQ-091": {"name":"Hỗn Nguyên Linh Châu","nameZh":"混元灵珠","group":"Trang bị và pháp bảo","image":"item/PB_1.png","slot":9,"row":2,"column":4,"rect":[384,132,128,117]},
+    "EQ-092": {"name":"Phượng Hoàng Hương Lô","nameZh":"凤凰香炉","group":"Trang bị và pháp bảo","image":"item/PB_1.png","slot":10,"row":2,"column":5,"rect":[512,124,128,132]},
+    "EQ-093": {"name":"Niết Bàn Liên Đăng","nameZh":"涅槃莲灯","group":"Trang bị và pháp bảo","image":"item/PB_1.png","slot":11,"row":3,"column":1,"rect":[0,250,128,125]},
+    "EQ-094": {"name":"Bích Hải Linh Bình","nameZh":"碧海灵瓶","group":"Trang bị và pháp bảo","image":"item/PB_1.png","slot":12,"row":3,"column":2,"rect":[128,253,128,124]},
+    "EQ-095": {"name":"Bàn Đào Tiên Quả","nameZh":"蟠桃仙果","group":"Trang bị và pháp bảo","image":"item/PB_1.png","slot":13,"row":3,"column":3,"rect":[256,256,128,116]},
+    "EQ-096": {"name":"Cửu U Băng Liên","nameZh":"九幽冰莲","group":"Trang bị và pháp bảo","image":"item/PB_1.png","slot":14,"row":3,"column":4,"rect":[384,249,128,121]},
+    "EQ-097": {"name":"Tụ Linh Bảo Nang","nameZh":"聚灵宝囊","group":"Trang bị và pháp bảo","image":"item/PB_1.png","slot":15,"row":3,"column":5,"rect":[512,256,128,127]},
+    "EQ-098": {"name":"Thiên Cơ Tinh Bàn","nameZh":"天机星盘","group":"Trang bị và pháp bảo","image":"item/PB_1.png","slot":16,"row":4,"column":1,"rect":[0,375,128,115]},
+    "EQ-099": {"name":"Chu Thiên Tinh Đồ","nameZh":"周天星图","group":"Trang bị và pháp bảo","image":"item/PB_1.png","slot":17,"row":4,"column":2,"rect":[128,377,128,109]},
+    "EQ-100": {"name":"Kim Cương Phật Châu","nameZh":"金刚佛珠","group":"Trang bị và pháp bảo","image":"item/PB_1.png","slot":18,"row":4,"column":3,"rect":[256,372,128,119]},
+    "EQ-101": {"name":"Nhiếp Hồn Linh Chung","nameZh":"摄魂灵钟","group":"Trang bị và pháp bảo","image":"item/PB_1.png","slot":19,"row":4,"column":4,"rect":[384,370,128,122]},
+    "EQ-102": {"name":"Thiên Thư Ngọc Quyển","nameZh":"天书玉卷","group":"Trang bị và pháp bảo","image":"item/PB_1.png","slot":20,"row":4,"column":5,"rect":[512,383,128,110]},
+    "EQ-103": {"name":"Tử Tinh Tiên Tủy","nameZh":"紫晶仙髓","group":"Trang bị và pháp bảo","image":"item/PB_1.png","slot":21,"row":5,"column":1,"rect":[0,490,128,150]},
+    "EQ-104": {"name":"Cửu Chuyển Đan Lô","nameZh":"九转丹炉","group":"Trang bị và pháp bảo","image":"item/PB_1.png","slot":22,"row":5,"column":2,"rect":[128,486,128,154]},
+    "EQ-105": {"name":"Thanh Loan Ngọc Trâm","nameZh":"青鸾玉簪","group":"Trang bị và pháp bảo","image":"item/PB_1.png","slot":23,"row":5,"column":3,"rect":[256,491,128,149]},
+    "EQ-106": {"name":"Huyền Quang Bảo Kính","nameZh":"玄光宝镜","group":"Trang bị và pháp bảo","image":"item/PB_1.png","slot":24,"row":5,"column":4,"rect":[384,492,128,148]},
+    "EQ-107": {"name":"Vạn Linh Tiên Bình","nameZh":"万灵仙瓶","group":"Trang bị và pháp bảo","image":"item/PB_1.png","slot":25,"row":5,"column":5,"rect":[512,493,128,147]}
   }
 }

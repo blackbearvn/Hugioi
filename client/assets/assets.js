@@ -361,12 +361,23 @@
     const [columns, rows] = grid;
     if (offset < 0 || offset >= columns * rows) return null;
     const column = offset % columns, row = Math.floor(offset / columns);
-    return {
+    const tile = {
       sheet, id, column: column + 1, row: row + 1,
       x: column * ITEM_CELL_SIZE, y: row * ITEM_CELL_SIZE,
       width: ITEM_CELL_SIZE, height: ITEM_CELL_SIZE,
       columns, rows
     };
+    // Một số atlas có khoảng cách giữa các hàng không đều. Vùng cắt riêng
+    // tránh lấy nhầm chi tiết của ô kế bên; số hàng/cột vẫn là thứ tự logic.
+    const rect = ITEM_DB.rects?.[ref];
+    if (rect !== undefined) {
+      const sheetWidth = columns * ITEM_CELL_SIZE, sheetHeight = rows * ITEM_CELL_SIZE;
+      if (!Array.isArray(rect) || rect.length !== 4 || !rect.every(Number.isInteger) ||
+          rect[0] < 0 || rect[1] < 0 || rect[2] <= 0 || rect[3] <= 0 ||
+          rect[0] + rect[2] > sheetWidth || rect[1] + rect[3] > sheetHeight) return null;
+      return { ...tile, x: rect[0], y: rect[1], width: rect[2], height: rect[3], sheetWidth, sheetHeight, custom: true };
+    }
+    return tile;
   }
 
   function itemImg(x) {
@@ -375,6 +386,21 @@
     if (!ref.includes('#')) return { src: BASE + ref, style: '' };
     const tile = itemTile(x);
     if (!tile) return missingItem();
+
+    if (tile.custom) {
+      const side = Math.max(tile.width, tile.height);
+      const padX = (side - tile.width) / 2, padY = (side - tile.height) / 2;
+      const xPercent = tile.sheetWidth > side ? (tile.x - padX) * 100 / (tile.sheetWidth - side) : 50;
+      const yPercent = tile.sheetHeight > side ? (tile.y - padY) * 100 / (tile.sheetHeight - side) : 50;
+      const insetX = (padX * 100 / side).toFixed(6) + '%', insetY = (padY * 100 / side).toFixed(6) + '%';
+      return {
+        src: BLANK,
+        style: 'background-image:url("' + BASE + 'item/' + String(tile.sheet).replace(/\.png$/, '.webp') + '");' +
+          'background-position:' + xPercent.toFixed(6) + '% ' + yPercent.toFixed(6) + '%;' +
+          'background-size:' + (tile.sheetWidth * 100 / side).toFixed(6) + '% ' + (tile.sheetHeight * 100 / side).toFixed(6) + '%;' +
+          'background-repeat:no-repeat;clip-path:inset(' + insetY + ' ' + insetX + ' ' + insetY + ' ' + insetX + ')'
+      };
+    }
 
     // Mỗi ô là 128×128 pixel trong file atlas. Khi icon thu nhỏ trên giao diện,
     // phần trăm tương đương phép cắt (x,y,128,128) mà không làm giãn toàn bộ atlas.

@@ -33,7 +33,7 @@ const EFFECT = {
 };
 const eqs = H.ITEMS.filter(x => x.kind === 'EQ');
 eqs.forEach((x, i) => {
-  const old = H.DESIGN.byLegacy[x.code] || {}, kind = kindOf(x.name), p = PROFILE[kind], t = x.tier;
+  const old = H.DESIGN.byLegacy[x.code] || {}, kind = x.equipmentType || kindOf(x.name), p = PROFILE[kind], t = x.tier;
   const budget = scale(t) * .05 * 2 ** x.sub, early = t === 0 ? 1.5 : 1; // bậc đầu giữ cảm giác cũ
   const row = {
     ...old,
