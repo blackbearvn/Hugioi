@@ -29,11 +29,7 @@ async function smoke(browser, width, height) {
       const request = route.request();
       const url = new URL(request.url());
       try {
-        if (url.origin === origin) {
-          const response = await route.fetch({ maxRedirects: 0 });
-          if (response.status() >= 300 && response.status() < 400) throw Error('Unexpected redirect');
-          return await route.fulfill({ response });
-        }
+        if (url.origin === origin) return await route.continue();
         if (url.origin !== fixture) throw Error('External request blocked: ' + url.origin);
         if (request.method() === 'OPTIONS') return await route.fulfill({ status: 204, headers: cors });
         if (url.pathname.startsWith('/functions/v1/api/')) {
@@ -63,14 +59,23 @@ async function smoke(browser, width, height) {
 
     const page = await context.newPage();
     page.setDefaultTimeout(15000);
+    let phase = 'initial load';
+    page.on('requestfailed', request => {
+      problems.push(phase + ': ' + request.failure().errorText + ' ' + new URL(request.url()).pathname);
+    });
     page.on('pageerror', error => problems.push('Page error: ' + error.message));
     page.on('console', message => {
       if (message.type() === 'error' || /content.security.policy|violates.*directive/i.test(message.text()))
         problems.push('Console: ' + message.text());
     });
     page.on('response', response => {
-      if (response.status() >= 400) problems.push(response.status() + ' ' + new URL(response.url()).pathname);
+      if (response.status() >= 300 && response.status() !== 304)
+        problems.push(phase + ': HTTP ' + response.status() + ' ' + new URL(response.url()).pathname);
     });
+    async function booted() {
+      await page.waitForFunction(() => window.HU_UI?.booted === true && !!window.HU_AUTH);
+      await page.locator('#loading').waitFor({ state: 'hidden' });
+    }
     const screens = ['#authGate', '#mainMenu', '#welcome', '#game'];
     async function screen(selector) {
       await page.locator(selector).waitFor({ state: 'visible' });
@@ -92,7 +97,7 @@ async function smoke(browser, width, height) {
     const shot = name => page.screenshot({ path: path.join(output, label + '-' + name + '.png') });
 
     await page.goto(origin);
-    await page.locator('#loading').waitFor({ state: 'hidden' });
+    await booted();
     await screen('#authGate');
     await shot('login');
     await reachable('#authSubmit');
@@ -108,22 +113,43 @@ async function smoke(browser, width, height) {
     await screen('#mainMenu');
     assert.ok(gameRequests > 0, 'Production game API was not routed through the fixture');
     await shot('menu');
+    assert.deepEqual(await page.locator('#mainMenu nav button:visible').allTextContents(),
+      ['Bước vào Hư giới', 'Thiết lập thế giới', 'Trở về Lam Tinh']);
     await reachable('#menuExit');
-    await reachable('#menuCreate');
-    await page.locator('#menuCreate').click();
+    await reachable('#menuSettings');
+    await page.locator('#menuSettings').click();
+    await reachable('#menuReduceMotion');
+    await reachable('#menuSettingsBack');
+    await page.locator('#menuReduceMotion').check();
+    await shot('settings');
+    await page.keyboard.press('Escape');
+    await page.locator('#menuSettingsDialog').waitFor({ state: 'hidden' });
+    assert.equal(await page.locator('#menuSettings').evaluate(el => el === document.activeElement), true);
+    await reachable('#menuStart');
+    await page.locator('#menuStart').click();
     await screen('#welcome');
+    assert.equal(await page.locator('.scene-photo').evaluate(el => getComputedStyle(el).animationName), 'none');
     await shot('create');
     await reachable('#startNew');
     await reachable('#backToMenu');
     await page.locator('#backToMenu').click();
     await screen('#mainMenu');
+    phase = 'session restore reload';
     await page.reload();
+    await booted();
     await screen('#mainMenu');
+    await page.locator('#menuSettings').click();
+    assert.equal(await page.locator('#menuReduceMotion').isChecked(), true);
+    await page.locator('#menuSettingsBack').click();
+    assert.equal(await page.locator('#menuSettingsDialog').isVisible(), false);
     await page.locator('#menuExit').click();
     await screen('#authGate');
+    phase = 'signed-out reload';
     await page.reload();
-    await page.locator('#loading').waitFor({ state: 'hidden' });
+    await booted();
     await screen('#authGate');
+    assert.equal(await page.evaluate(() => window.HU_SUPABASE.hasSession()), false);
+    await page.evaluate(() => document.fonts.ready.then(() => undefined));
   } catch (error) {
     problems.push(error.message);
   } finally {

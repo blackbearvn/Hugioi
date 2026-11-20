@@ -650,10 +650,7 @@
 
   function showMenu() {
     closeCreationShop();
-    const saved = hasSave();
-    $('continueGame').hidden = !saved;
-    $('continueGame').disabled = !saved;
-    $('menuCreate').hidden = !canCreate();
+    $('menuStart').disabled = !hasSave() && !canCreate();
     $('menuStatus').textContent = '';
     $('welcome').hidden = true;
     $('game').hidden = true;
@@ -664,19 +661,36 @@
   }
 
   function bindMenu() {
-    $('menuCreate').addEventListener('click', () => {
-      if (!$('mainMenu').hidden && !entering) showCreation();
+    const dialog = $('menuSettingsDialog');
+    const motion = $('menuReduceMotion');
+    const settings = $('menuSettings');
+    const motionKey = 'hu-device-reduce-motion';
+    try { motion.checked = root.localStorage.getItem(motionKey) === '1'; } catch { /* storage unavailable */ }
+    const applyMotion = () => document.body.classList.toggle('device-reduced-motion', motion.checked);
+    applyMotion();
+    motion.addEventListener('change', () => {
+      applyMotion();
+      try { root.localStorage.setItem(motionKey, motion.checked ? '1' : '0'); } catch { /* applies for this page */ }
+    });
+    settings.addEventListener('click', () => {
+      if (!$('mainMenu').hidden && !entering && !dialog.open) dialog.showModal();
+    });
+    $('menuSettingsBack').addEventListener('click', () => dialog.close());
+    dialog.addEventListener('close', () => {
+      if (!$('mainMenu').hidden) settings.focus();
     });
     $('backToMenu').addEventListener('click', () => {
       if (!$('welcome').hidden && ownsSession() && !entering && !shopping && !rolling) showMenu();
     });
     $('menuExit').addEventListener('click', () => root.HU_AUTH.logout());
-    $('continueGame').addEventListener('click', async () => {
-      if ($('mainMenu').hidden || entering || !hasSave()) return;
-      const button = $('continueGame');
+    $('menuStart').addEventListener('click', async () => {
+      if ($('mainMenu').hidden || entering || dialog.open) return;
+      if (!hasSave()) return showCreation();
+      const button = $('menuStart');
       entering = true;
       button.disabled = true;
       $('menuExit').disabled = true;
+      settings.disabled = true;
       $('menuStatus').textContent = 'Đang tải tiến trình…';
       try {
         if (store.locked) throw Error('Game đang mở ở tab khác. Đóng tab kia rồi tải lại trang.');
@@ -688,8 +702,9 @@
         $('menuStatus').textContent = error.message;
       } finally {
         entering = false;
-        button.disabled = !hasSave();
+        button.disabled = !hasSave() && !canCreate();
         $('menuExit').disabled = false;
+        settings.disabled = false;
         if (!$('mainMenu').hidden) (button.disabled ? $('menuExit') : button).focus();
       }
     });
@@ -713,6 +728,7 @@
     accountId = null;
     deathOpen = false;
     $('mainMenu').hidden = true;
+    if ($('menuSettingsDialog').open) $('menuSettingsDialog').close();
     if (store.ready && !store.locked) {
       try { await UI.session.pause(); } catch { /* server tự đóng băng sau heartbeat timeout */ }
     }

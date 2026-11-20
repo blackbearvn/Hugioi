@@ -158,7 +158,7 @@ def enter_game(page, url, folder=None, name=None, outcome=None):
             activate(page.locator("#authSubmit"))
             if page.locator("#mainMenu").count():
                 page.locator("#mainMenu").wait_for(state="visible", timeout=20000)
-                activate(page.locator("#menuCreate"))
+                activate(page.locator("#menuStart"))
             page.locator("#welcome").wait_for(state="visible", timeout=20000)
     # Every viewport creates a different character in the shared in-memory CI server.
     # Avoid NAME_TAKEN (409) without changing gameplay name uniqueness.

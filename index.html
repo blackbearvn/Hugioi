@@ -110,13 +110,21 @@
 </section>
 
 <section id="mainMenu" aria-labelledby="menuTitle" hidden>
-  <div class="main-menu-card">
-    <h1 id="menuTitle" tabindex="-1">Hư Giới</h1>
+  <div class="main-menu-content">
+    <h1 id="menuTitle" tabindex="-1"><img src="media/assets/world/bg/logo.webp" alt="Hư Giới"></h1>
+    <nav aria-label="Menu chính">
+      <button type="button" id="menuStart">Bước vào Hư giới</button>
+      <button type="button" id="menuSettings">Thiết lập thế giới</button>
+      <button type="button" id="menuExit">Trở về Lam Tinh</button>
+    </nav>
     <p id="menuStatus" role="status"></p>
-    <button type="button" class="btn btn-gold" id="menuCreate" hidden>Tạo đạo thân</button>
-    <button type="button" class="btn btn-gold" id="continueGame" hidden disabled>Tiếp tục hành trình</button>
-    <button type="button" class="btn btn-outline" id="menuExit">Đăng xuất / Đổi tài khoản</button>
   </div>
+  <dialog id="menuSettingsDialog" aria-labelledby="menuSettingsTitle">
+    <h2 id="menuSettingsTitle">Thiết lập thế giới</h2>
+    <label><input type="checkbox" id="menuReduceMotion" autofocus> Giảm chuyển động</label>
+    <p>Lưu trên thiết bị này.</p>
+    <button type="button" id="menuSettingsBack">Quay lại menu</button>
+  </dialog>
 </section>
 
 <section id="welcome" class="welcome" aria-labelledby="welcomeTitle" hidden>

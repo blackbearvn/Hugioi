@@ -9,6 +9,7 @@ const saved = { id: 'saved', email: 'saved@example.test' };
 
 function fixture({ restored, failLoad, consent = true } = {}) {
   const elements = new Map();
+  const storage = new Map(), bodyClasses = new Set();
   let focused, login = account, writes = 0, preparations = 0, snapshot, syncError;
   const classList = { add() {}, remove() {}, toggle() {} };
   const $ = id => {
@@ -18,6 +19,8 @@ function fixture({ restored, failLoad, consent = true } = {}) {
         hidden: id !== 'authGate', dataset: {}, classList, value: '',
         focus() { focused = id; }, reset() {}, setAttribute() {}, removeAttribute() {},
         addEventListener(event, fn) { listeners[event] = fn; },
+        showModal() { this.open = true; },
+        close() { this.open = false; this.fire('close'); },
         fire(event = 'click') { return listeners[event]({ preventDefault() {} }); }
       });
     }
@@ -49,7 +52,8 @@ function fixture({ restored, failLoad, consent = true } = {}) {
   };
   const ctx = vm.createContext({
     document: { getElementById: $, querySelectorAll: selector => selector === '[data-auth-view]' ? [signupTab] : [], addEventListener() {},
-      body: { classList, dataset: {}, toggleAttribute() {} } },
+      body: { classList: { ...classList, toggle(key, on) { on ? bodyClasses.add(key) : bodyClasses.delete(key); } }, dataset: {}, toggleAttribute() {} } },
+    localStorage: { getItem: key => storage.get(key), setItem: (key, value) => storage.set(key, value) },
     location: { protocol: 'http:', pathname: '/', search: '', hash: '' },
     history: { replaceState() {} }, fetch() {}, addEventListener() {},
     HU_SUPABASE: {
@@ -73,7 +77,7 @@ function fixture({ restored, failLoad, consent = true } = {}) {
   }
   ctx.HU_UI.boot();
   return {
-    $, session, store, writes: () => writes, preparations: () => preparations, focused: () => focused,
+    $, session, store, storage, bodyClasses, writes: () => writes, preparations: () => preparations, focused: () => focused,
     screen: (id, page) => {
       assert.deepEqual(screens.filter(key => !$(key).hidden), [id]);
       assert.equal(ctx.HU_ROUTE.page, page);
@@ -88,8 +92,8 @@ test('tài khoản mới vào menu, mở tạo đạo thân và quay lại', asy
   await f.login();
   f.screen('mainMenu', 'menu');
   assert.equal(f.focused(), 'menuTitle');
-  assert.equal(f.$('continueGame').disabled, true);
-  f.$('menuCreate').fire();
+  assert.equal(f.$('menuStart').disabled, false);
+  f.$('menuStart').fire();
   f.screen('welcome', 'create');
   assert.equal(f.focused(), 'nameInput');
   f.$('backToMenu').fire();
@@ -100,14 +104,13 @@ test('phiên có save khôi phục vào menu, lỗi đồng bộ giữ menu, th�
   const f = fixture({ restored: saved });
   await new Promise(setImmediate);
   f.screen('mainMenu', 'menu');
-  assert.equal(f.$('continueGame').disabled, false);
-  assert.equal(f.$('menuCreate').hidden, true);
+  assert.equal(f.$('menuStart').disabled, false);
   f.failSync('Lỗi đồng bộ');
-  await f.$('continueGame').fire();
+  await f.$('menuStart').fire();
   f.screen('mainMenu', 'menu');
   assert.match(f.$('menuStatus').textContent, /Lỗi đồng bộ/);
   f.failSync('');
-  await f.$('continueGame').fire();
+  await f.$('menuStart').fire();
   f.screen('game', 'game');
 });
 
@@ -120,12 +123,31 @@ test('đăng xuất rồi đổi tài khoản, chặn gửi form tạo khi đã 
   assert.equal(f.store.load(), null);
   assert.equal(f.focused(), 'authEmail');
   await f.login();
-  assert.equal(f.$('continueGame').disabled, true);
-  f.$('menuCreate').fire();
+  assert.equal(f.$('menuStart').disabled, false);
+  f.$('menuStart').fire();
   f.screen('welcome', 'create');
   f.session.playerId = 'existing-player';
   await f.$('createForm').fire('submit');
   assert.equal(f.preparations(), 0);
+  assert.equal(f.writes(), 0);
+});
+
+test('menu có đúng ba nhãn và thiết lập chuyển động có hiệu lực trước khi tạo', async () => {
+  const menu = source('index.html').match(/<section id="mainMenu"[\s\S]+?<\/nav>/)[0];
+  assert.deepEqual([...menu.matchAll(/<button[^>]*>([^<]+)<\/button>/g)].map(m => m[1]),
+    ['Bước vào Hư giới', 'Thiết lập thế giới', 'Trở về Lam Tinh']);
+  const f = fixture();
+  await f.login();
+  f.$('menuSettings').fire();
+  assert.equal(f.$('menuSettingsDialog').open, true);
+  f.$('menuReduceMotion').checked = true;
+  f.$('menuReduceMotion').fire('change');
+  assert.equal(f.bodyClasses.has('device-reduced-motion'), true);
+  assert.equal(f.storage.get('hu-device-reduce-motion'), '1');
+  f.$('menuSettingsBack').fire();
+  assert.equal(f.$('menuSettingsDialog').open, false);
+  assert.equal(f.focused(), 'menuSettings');
+  f.screen('mainMenu', 'menu');
   assert.equal(f.writes(), 0);
 });
 
