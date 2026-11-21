@@ -26,7 +26,7 @@
   /* ======================================================================
      TOAST / MODAL
      ====================================================================== */
-  const TOAST_MAX = 4;
+  const TOAST_MAX = 3;
   const TOAST_ICON = { info: '✦', success: '✓', danger: '!', gold: '✧', loot: '◈', tribulation: '⚡' };
   const TOAST_TITLE = { info: 'Thiên mệnh', success: 'Thành công', danger: 'Cảnh báo', gold: 'Cơ duyên', loot: 'Thu hoạch', tribulation: 'Thiên kiếp' };
   const toastState = { queue: [], active: 0 };
@@ -70,7 +70,7 @@
       '<i class="toast-life" aria-hidden="true"></i>';
     root.append(item);
     toastState.active++;
-    const life = Math.max(1200, Number(data.duration) || (type === 'danger' ? 5200 : 3800));
+    const life = Math.max(900, Math.min(Number(data.duration) || 0, 3200) || (type === 'danger' ? 3200 : 2200));
     item.style.setProperty('--toast-life', life + 'ms');
     requestAnimationFrame(() => item.classList.add('show'));
     let timer = 0, remaining = life, started = Date.now();

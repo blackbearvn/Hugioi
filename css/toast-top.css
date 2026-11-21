@@ -1,0 +1,20 @@
+/* HƯ GIỚI · THÔNG BÁO GỌN Ở GIỮA TRÊN
+ * Nạp sau mọi tệp khác; dùng #toast.toasts để thắng các luật theo trang (trận đánh, lò rèn, độ kiếp, điện thoại).
+ * Mỗi thông báo một dòng ngắn, không tiêu đề, không nút đóng (chạm vào để tắt), biến mất nhanh. */
+#toast.toasts{
+  top:calc(env(safe-area-inset-top,0px) + 10px);bottom:auto;left:50%;right:auto;transform:translateX(-50%);
+  width:min(440px,calc(100vw - 24px));max-height:none;overflow:visible;align-items:center;gap:5px
+}
+#toast .toast-item{
+  width:auto;max-width:100%;min-width:0;padding:7px 14px 8px 10px;gap:8px;align-items:center;
+  border:1px solid #414d68;border-left-width:3px;border-radius:999px;box-shadow:0 6px 20px #000a;
+  transform:translateY(-10px) scale(.98)
+}
+#toast .toast-item.show{transform:none}
+#toast .toast-item.out{transform:translateY(-8px) scale(.98)}
+#toast .toast-icon{width:20px;height:20px;border-radius:50%;font-size:12px}
+#toast .toast-copy b,#toast .toast-close{display:none}
+#toast .toast-copy p{margin:0;font-size:13.5px;line-height:1.35;max-height:none;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+#toast .toast-life{height:2px;left:14px;right:14px;width:auto;bottom:0;opacity:.7}
+@media(max-width:700px){#toast.toasts{left:50%;right:auto;width:calc(100vw - 20px)}}
+@media(prefers-reduced-motion:reduce){#toast .toast-item{transition:opacity .01s}}
