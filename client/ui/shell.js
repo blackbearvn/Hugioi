@@ -1120,11 +1120,11 @@
     const effect = UI.kit.itemEffectText ? UI.kit.itemEffectText(x) : '';
     const price = moneyHTML(F.shop_sell_price(g.price(key)));
     const v = A.itemImg(x);
-    tip.innerHTML = `<div class="item-tip-head"><img src="${v.src}"${v.style ? ` style="${esc(v.style)}"` : ''} alt="" decoding="async"><div><b>${esc(x.name)}</b><span class="item-tip-badges">${qualityHtml}</span><small>${esc(x.category || '—')}</small></div></div>` +
-      `<p class="item-tip-desc">${esc(x.description || 'Không có mô tả.')}</p>` + (x.lore ? `<p class="item-tip-lore">${esc(x.lore)}</p>` : '') +
-      (effect ? `<p class="item-tip-effect"><span>Thuộc tính / công dụng</span> ${esc(effect)}</p>` : '') +
-      `<div class="item-tip-meta"><span>Cấp bậc <b>${rankHtml}</b></span><span>Cảnh giới yêu cầu <b>${esc(requiredRealm)}</b></span><span>Số lượng <b>×${num(count)}</b></span><span>Giá bán <b>${price}</b></span></div>` +
-      `<p class="item-tip-cond"><span>Điều kiện</span> ${esc(UI.kit.useCondition(x))}</p>`;
+    /* Tooltip chỉ để nhìn lướt: tên, phẩm, công dụng một câu, vài con số. Dẫn truyện và
+       nguồn gốc sẽ nằm ở trang wiki riêng, điều kiện dùng xem trong cửa sổ chi tiết. */
+    tip.innerHTML = `<div class="item-tip-head"><img src="${v.src}"${v.style ? ` style="${esc(v.style)}"` : ''} alt="" decoding="async"><div><b>${esc(x.name)}</b><small>${esc(x.category || '—')}</small></div><span class="item-tip-badges">${rankHtml}${qualityHtml}</span></div>` +
+      `<p class="item-tip-effect">${esc(effect || x.description || 'Không có mô tả.')}</p>` +
+      `<div class="item-tip-meta"><span>${esc(requiredRealm)}</span><span>×${num(count)}</span><span>${price}</span></div>`;
     tip.hidden = false;
     tip.setAttribute('aria-hidden', 'false');
     if (tipCell && tipCell !== cell) tipCell.removeAttribute('aria-describedby');
@@ -1431,7 +1431,8 @@
 
   document.addEventListener('pointerover', e => {
     const cell = e.target.closest('.inventory-cell[data-select]');
-    if (cell) showItemTip(cell);
+    /* Chạm trên điện thoại sẽ mở thẳng cửa sổ chi tiết, không hiện tooltip kẹt trên màn hình. */
+    if (cell && e.pointerType !== 'touch') showItemTip(cell);
   });
   document.addEventListener('pointerout', e => {
     const cell = e.target.closest('.inventory-cell[data-select]');
@@ -1439,7 +1440,7 @@
   });
   document.addEventListener('focusin', e => {
     const cell = e.target.closest('.inventory-cell[data-select]');
-    if (cell) showItemTip(cell);
+    if (cell && e.target.matches?.(':focus-visible')) showItemTip(cell);
   });
   document.addEventListener('focusout', e => {
     const cell = e.target.closest('.inventory-cell[data-select]');

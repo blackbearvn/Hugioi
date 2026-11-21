@@ -1,0 +1,76 @@
+/* HƯ GIỚI · CỬA SỔ NỔI
+ * Hộp thoại chung, cửa sổ chi tiết vật phẩm, Pháp bảo, Công pháp và tooltip dùng cùng một kiểu với trang Nhân vật:
+ * nền mực, một đường đồng cổ ở mép trên, tiêu đề bút lông, chỉ số là dòng có đường chấm, không ô lồng ô.
+ * Dẫn truyện và nguồn gốc vật phẩm không còn ở đây, sẽ nằm trong wiki riêng. Nạp sau mọi tệp khác. */
+.game-modal{--pu-rule:#2c363d;--pu-paper:#ebe2cd;--pu-dim:#a5a99f;--pu-bronze:#c9a24e;--pu-cinnabar:#d0553d;--pu-jade:#62b49d;
+  border:0;border-top:2px solid var(--pu-bronze);border-radius:2px;background:#0c1013f5;box-shadow:0 24px 64px #000d;padding:30px 26px 24px}
+.game-modal[data-type]{box-shadow:0 24px 64px #000d}
+.game-modal[data-type="success"]{border-top-color:var(--pu-jade)}
+.game-modal[data-type="danger"]{border-top-color:var(--pu-cinnabar)}
+.game-modal .eyebrow{color:var(--pu-dim);font-size:12.5px;letter-spacing:0;text-transform:none}
+.game-modal h2{margin:4px 0 12px;font:400 clamp(26px,5vw,34px)/1.15 var(--display,var(--serif));letter-spacing:0;color:var(--pu-paper)}
+.game-modal p{color:#cfcbbd}
+.game-modal .modal-x{top:8px;right:8px;width:32px;height:32px;border:0;border-radius:2px;background:none;color:var(--pu-dim)}
+.game-modal .modal-x:hover{background:#ffffff14;color:var(--pu-paper)}
+.game-modal .modal-buttons .btn{border-radius:2px}
+
+/* Cửa sổ chứa danh sách (Pháp bảo, Công pháp, chi tiết vật phẩm): chữ canh trái */
+.game-modal:has(.pop){padding:24px 22px 18px;text-align:left}
+.game-modal:has(.pop) h2{font-size:clamp(28px,5vw,36px);margin:2px 0 12px}
+.game-modal:has(.item-sheet) h2{font:700 clamp(21px,5vw,25px)/1.25 var(--serif);margin:2px 0 14px;padding-right:34px}
+.pop-title{margin:20px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--pu-rule);font:400 22px/1.2 var(--display,var(--serif));color:var(--pu-paper)}
+.pop-title:first-child{margin-top:0}
+.pop .title-count{font:600 .65em var(--font);color:var(--pu-dim);letter-spacing:0}
+.pop-grid{grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:4px}
+.pop-item,.pop-item.inventory-cell{min-height:112px;border:0;border-radius:2px;background:none;box-shadow:none}
+.pop-item:hover{background:#ffffff12}
+.pop-item:focus-visible{outline:2px solid var(--pu-bronze);outline-offset:-2px}
+.pop-name{font-size:12.5px;color:var(--pu-paper)}
+.pop-note{font-size:11.5px;color:var(--pu-dim)}
+.pop-empty{border:1px dashed #ffffff30;border-radius:2px;color:var(--pu-dim)}
+.pop-unequip{border-radius:2px}
+.pop .empty-note{grid-column:1/-1;margin:0;padding:6px 0;color:var(--pu-dim);font-size:14px;line-height:1.6}
+
+/* Chi tiết vật phẩm: tên (tiêu đề cửa sổ) → loại → công dụng → chỉ số theo dòng → nút */
+.item-sheet{gap:14px}
+.item-sheet-hero{grid-template-columns:76px minmax(0,1fr);gap:14px;padding:0;border:0;border-radius:0;background:none}
+.item-sheet-art{width:76px;height:76px;border:1px solid var(--pu-bronze);border-radius:2px;background:#0c1013}
+.item-sheet-art img{width:62px;height:62px}
+.item-sheet-head{gap:4px}
+.item-sheet-sub{color:var(--pu-dim);font-size:13px}
+.item-sheet-desc{margin:2px 0 0;color:var(--pu-paper);font-size:14.5px;line-height:1.55}
+.item-sheet-effect{padding:2px 0 2px 12px;border:0;border-left:2px solid var(--pu-bronze);border-radius:0;background:none}
+.item-sheet-effect>span{color:var(--pu-bronze);font-size:12.5px;font-weight:600}
+.item-sheet-effect p{margin:2px 0 0;color:var(--pu-paper);font-size:14.5px}
+.item-facts{grid-template-columns:minmax(0,1fr);gap:0}
+.item-fact,.item-sheet-detail .row{display:flex;align-items:baseline;justify-content:space-between;gap:14px;padding:8px 0;border:0;border-bottom:1px dotted #ffffff33;border-radius:0;background:none}
+.item-fact>span,.item-sheet-detail .row>span{display:inline;color:var(--pu-dim);font-size:13.5px}
+.item-fact b,.item-sheet-detail .row>b{display:inline;margin:0;color:var(--pu-paper);font:600 14.5px/1.35 var(--font);text-align:right}
+.item-sheet-detail{padding:0;border:0}
+.item-sheet-detail .row>b{max-width:68%}
+.item-sheet-notes{gap:0}
+.item-sheet-note{padding:2px 0;border:0;color:var(--pu-dim);font-size:13px}
+.item-sheet-note>span{color:var(--pu-bronze);font-size:13px;font-weight:600}
+.item-sheet-actions{position:sticky;bottom:-18px;margin:4px -22px -18px;padding:14px 22px 18px;gap:8px;background:linear-gradient(#0c101300,#0c1013 28%)}
+.item-sheet-actions .btn,.item-sheet .buy-qty .btn{border-radius:2px}
+
+/* Tooltip lướt qua: gọn, một câu công dụng và ba con số */
+.item-tip{width:min(252px,calc(100vw - 16px));padding:10px 12px 11px;border:0;border-top:2px solid var(--pu-bronze,#c9a24e);border-radius:2px;background:#0c1013f7;box-shadow:0 14px 36px #000c;backdrop-filter:none}
+.item-tip-head{flex-wrap:wrap;align-items:flex-start;gap:9px;padding-bottom:6px;border-bottom:1px solid #2c363d}
+.item-tip-head img{width:34px;height:34px}
+.item-tip-head div{flex:1 1 auto}
+.item-tip-head b{font:700 16px/1.25 var(--serif);color:#ebe2cd;white-space:normal}
+.item-tip-head small{margin:0;color:#a5a99f}
+.item-tip-badges{flex:1 0 100%;margin:2px 0 0}
+.item-tip-effect{margin:7px 0 0;font-size:13px;line-height:1.45;color:#ebe2cd}
+.item-tip-meta{display:flex;flex-wrap:wrap;gap:2px 10px;margin-top:7px;font-size:12.5px;color:#a5a99f}
+.item-tip-meta span+span::before{content:"·";margin-right:10px;color:#ffffff40}
+
+@media(max-width:560px){
+  .game-modal{padding:26px 16px 20px}
+  .pop-grid{grid-template-columns:repeat(auto-fill,minmax(74px,1fr))}
+  .game-modal:has(.pop){padding:22px 16px 16px}
+  .item-sheet-hero{grid-template-columns:64px minmax(0,1fr);gap:12px}
+  .item-sheet-art{width:64px;height:64px}.item-sheet-art img{width:52px;height:52px}
+  .item-sheet-actions{margin:4px -16px -16px;padding:12px 16px 16px;bottom:-16px}
+}

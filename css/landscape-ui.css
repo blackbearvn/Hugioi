@@ -1,0 +1,75 @@
+/* HƯ GIỚI · MÀN HÌNH NGANG (điện thoại xoay ngang)
+ * Trước đây màn ngang vẫn dùng bảng trạng thái có khung cũ chiếm cả bề ngang và che mất cảnh.
+ * Nay theo cùng kiểu với màn máy tính: cảnh phủ cả màn hình, ấn đạo thân nhỏ nổi ở góc trái,
+ * thanh biểu tượng mảnh ở mép phải. Chỉ đổi giao diện, không đổi mã. Nạp sau mọi tệp khác. */
+body #game[data-layout="landscape"][data-layout]{
+  --menu-w:64px;padding:0;gap:0;
+  grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr);grid-template-areas:"stage"
+}
+#game[data-layout="landscape"] #stage{grid-area:stage;border:0;border-radius:0;background:var(--sc-ink,#0c1013)}
+#game[data-layout="landscape"] #stage .stage-frame{display:none}
+#game[data-layout="landscape"] #stage .stage-hud{top:8px;left:270px;right:72px;padding-right:0}
+#game[data-layout="landscape"] #stage .stage-tag,#game[data-layout="landscape"] #stage .stage-weather{display:none}
+#game[data-layout="landscape"] #stage .idle-chip{padding:3px 9px 3px 5px;font-size:13px}
+
+/* Ấn đạo thân */
+#game[data-layout="landscape"] #status{
+  grid-area:stage;align-self:start;justify-self:start;position:relative;z-index:6;display:flex;flex-direction:column;align-items:stretch;
+  width:250px;margin:8px 0 0 12px;padding:0;gap:5px;overflow:visible;background:none;border:0;box-shadow:none;pointer-events:none;
+  text-shadow:0 1px 6px #000,0 0 2px #000
+}
+#game[data-layout="landscape"] #status>*{pointer-events:auto}
+#game[data-layout="landscape"] #status::before{content:"";position:absolute;z-index:-1;inset:-12px -60px -24px -18px;pointer-events:none;
+  background:radial-gradient(ellipse 100% 100% at 0 0,#0c1013f2 0,#0c1013d0 50%,#0c101370 78%,#0c101300 100%)}
+#game[data-layout="landscape"] #status::after{display:none}
+#game[data-layout="landscape"] #status>*{grid-column:auto;grid-row:auto}
+#game[data-layout="landscape"] .status-kicker,
+#game[data-layout="landscape"] .status-talents,
+#game[data-layout="landscape"] #status .info,
+#game[data-layout="landscape"] .status-place,
+#game[data-layout="landscape"] .status-foot,
+#game[data-layout="landscape"] .status-title .eyebrow{display:none}
+#game[data-layout="landscape"] .status-head{gap:9px}
+#game[data-layout="landscape"] .status-avatar{width:38px;height:42px;border:1px solid var(--sc-bronze,#c9a24e);border-radius:2px;background:#0c1013}
+#game[data-layout="landscape"] .status-title h2{margin:0;font:400 20px/1.15 var(--display,var(--serif));white-space:normal;overflow:visible;text-overflow:clip;color:var(--sc-paper,#ebe2cd)}
+#game[data-layout="landscape"] .status-name{margin:0;font-size:12px;color:var(--sc-dim,#a5a99f)}
+#game[data-layout="landscape"] .status-settings-mobile{position:absolute;top:0;right:-4px;width:30px;height:30px;padding:0;border:0;border-radius:2px;background:none;color:#cfcbbd;font-size:18px}
+
+/* Tu vi, sinh lực, linh khí, thọ nguyên: nhãn trái, số phải, vạch mảnh bên dưới */
+#game[data-layout="landscape"] .status-progress{margin:0}
+#game[data-layout="landscape"] .status-progress-head{display:flex;justify-content:space-between;margin:0 0 3px;font-size:11.5px;color:var(--sc-dim,#a5a99f)}
+#game[data-layout="landscape"] .status-progress-head b{font-size:11.5px;color:var(--sc-bronze,#c9a24e)}
+#game[data-layout="landscape"] .status-progress .bar,
+#game[data-layout="landscape"] .vital-row .meter{position:relative;display:block;height:3px;border:0;border-radius:1px;background:#ffffff3d;overflow:visible}
+#game[data-layout="landscape"] .status-progress .bar i{border-radius:1px;background:linear-gradient(90deg,#8a6d2c,var(--sc-bronze,#c9a24e),#efd88f)}
+#game[data-layout="landscape"] .vital-row .meter i{border-radius:1px}
+#game[data-layout="landscape"] .status-progress .bar .bar-text{display:flex;position:absolute;right:0;top:-17px;margin:0;font-size:11.5px;color:var(--sc-paper,#ebe2cd)}
+#game[data-layout="landscape"] .status-vitals{gap:6px}
+#game[data-layout="landscape"] .vital-row{display:block;position:relative;padding:0;font-size:11.5px}
+#game[data-layout="landscape"] .vital-row .vital-label{display:inline;margin:0;font-size:11.5px;font-weight:600;color:var(--sc-dim,#a5a99f)}
+#game[data-layout="landscape"] .vital-row .meter small{position:absolute;left:auto;right:0;top:-15px;font-size:11.5px;color:var(--sc-paper,#ebe2cd)}
+#game[data-layout="landscape"] .status-progress-head b{display:none}
+
+/* Nút đột phá: nhãn nhỏ, sáng lên khi đủ điều kiện */
+#game[data-layout="landscape"] .btn-break{width:auto;align-self:flex-start;flex-direction:row;gap:7px;min-height:28px;padding:3px 10px;border:1px solid var(--sc-rule,#2c363d);border-radius:2px;background:#0c1013d9;box-shadow:none;font-size:13px;color:var(--sc-paper,#ebe2cd);animation:none;white-space:nowrap}
+#game[data-layout="landscape"] .btn-break small{font-size:11.5px;letter-spacing:0;color:var(--sc-dim,#a5a99f)}
+#game[data-layout="landscape"] .btn-break.ready{border-color:var(--sc-bronze,#c9a24e);color:#fff2c2}
+
+/* Thanh biểu tượng ở mép phải */
+#game[data-layout="landscape"] #menu{
+  grid-area:stage;align-self:stretch;justify-self:end;width:64px;height:auto;margin:0;padding:6px 4px;z-index:40;gap:2px;overflow:visible;
+  background:linear-gradient(270deg,#0c1013dd 0,#0c101388 60%,#0c101300);border:0;box-shadow:none
+}
+#game[data-layout="landscape"] #menu button{border:0;border-radius:2px;background:none;color:#d6d2c6;text-shadow:0 1px 4px #000}
+#game[data-layout="landscape"] #menu button:hover{background:#ffffff14;color:var(--sc-paper,#ebe2cd)}
+#game[data-layout="landscape"] #menu button.on{background:none;color:#f3dca2;box-shadow:inset -3px 0 0 var(--sc-bronze,#c9a24e)}
+#game[data-layout="landscape"] #menu .menu-toggle{border:0;background:none;color:var(--sc-dim,#a5a99f)}
+#game[data-layout="landscape"][data-menu="collapsed"] #menu{width:0;padding:0;background:none}
+#game[data-layout="landscape"][data-menu="collapsed"] .stage-hud{right:16px}
+
+@media(max-height:300px){
+  #game[data-layout="landscape"] #status{width:220px}
+  #game[data-layout="landscape"] .status-title h2{font-size:17px}
+  #game[data-layout="landscape"] .status-vitals{gap:4px}
+  #game[data-layout="landscape"] #stage .stage-hud{left:240px}
+}

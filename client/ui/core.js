@@ -225,7 +225,7 @@
   /* Khung thông tin vật phẩm dùng chung cho Hành trang và Tàng bảo các.
      `facts`: mảng [nhãn, giá trị, làHtml]; `notes`: [nhãn, giá trị] một dòng;
      `detail`: HTML các dòng chỉ số riêng; `footer` chen trước hành động. */
-  const itemSheet = (x, { effect = '', facts = [], notes = [], detail = '', footer = '', actions = '', source = '', lore = true } = {}) => {
+  const itemSheet = (x, { effect = '', facts = [], notes = [], detail = '', footer = '', actions = '', hideDesc = false } = {}) => {
     if (!x) return '';
     const L = root.HU_LABELS;
     const quality = qualityLabelOf(x), rank = rankLabelOf(x);
@@ -238,17 +238,14 @@
         <div class="item-sheet-art">${img(x.key)}</div>
         <div class="item-sheet-head">
           <div class="item-sheet-badges">${rankHtml}${qualityHtml}</div>
-          <p class="item-sheet-sub">${esc(x.category || 'Vật phẩm')}</p>
-          ${x.nameZh ? `<p class="item-sheet-sub" lang="zh-Hans">${esc(x.nameZh)}</p>` : ''}
-          <p class="item-sheet-desc">${esc(x.description || 'Không có mô tả.')}</p>
+          <p class="item-sheet-sub">${esc(x.category || 'Vật phẩm')}${x.nameZh ? ` · <span lang="zh-Hans">${esc(x.nameZh)}</span>` : ''}</p>
+          ${hideDesc ? '' : `<p class="item-sheet-desc">${esc(x.description || 'Không có mô tả.')}</p>`}
         </div>
       </header>
-      ${effect ? `<div class="item-sheet-effect"><span>Thuộc tính / công dụng</span><p>${esc(effect)}</p></div>` : ''}
-      ${lore && x.lore && x.lore !== x.description ? `<p class="item-sheet-lore">${esc(x.lore)}</p>` : ''}
+      ${effect ? `<div class="item-sheet-effect"><span>Công dụng</span><p>${esc(effect)}</p></div>` : ''}
       ${facts.length ? `<div class="item-facts">${facts.map(fact).join('')}</div>` : ''}
       ${notes.length ? `<div class="item-sheet-notes">${notes.map(note).join('')}</div>` : ''}
       ${detail ? `<div class="item-sheet-detail">${detail}</div>` : ''}
-      ${source ? `<p class="item-sheet-source">${source}</p>` : ''}
       ${footer}
       ${actions ? `<div class="item-sheet-actions">${actions}</div>` : ''}
     </div>`;

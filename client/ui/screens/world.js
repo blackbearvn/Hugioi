@@ -274,7 +274,6 @@
         ['Giá mua', moneyHTML(price), true]
       ],
       notes: [['Điều kiện', UI.kit.useCondition(x)]],
-      lore: false,
       footer: `<div class="buy-qty" ${codeAttr(key)} data-unit="${price}">
         <div class="buy-qty-row">
           <button type="button" class="btn btn-outline buy-qty-step" data-act="buyQtyStep" data-step="-1" aria-label="Giảm số lượng">−</button>

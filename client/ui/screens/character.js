@@ -192,17 +192,6 @@
     return `<button type="button" class="pop-item inventory-cell${qClass}" data-select="${esc(key)}" data-popup="1" data-from="${from}" data-sub="${x.sub}" aria-label="${esc(x.name)} · ${q} phẩm${note ? ' · ' + esc(note) : ''}">${img(key)}<span class="pop-name">${UI.kit.itemName(x)}</span>${note ? `<span class="pop-note">${esc(note)}</span>` : ''}</button>`;
   };
 
-  /* Nguồn nhận gợi ý theo loại vật phẩm; không bịa dữ liệu riêng cho từng món. */
-  const itemSource = x => ({
-    PILL: 'Luyện đan hoặc mua tại Tàng bảo các.',
-    TAL: 'Chế phù hoặc mua tại Tàng bảo các.',
-    EQ: 'Lịch luyện, bí cảnh, đấu giá hoặc chế tác.',
-    BT: 'Lịch luyện, bí cảnh hoặc Tàng Kinh Các.',
-    HERB: 'Hái ở Linh Điền hoặc rơi khi lịch luyện.',
-    SEED: 'Mua tại Tàng bảo các hoặc nhận từ thưởng.',
-    QITEM: 'Nhận từ nhiệm vụ.'
-  }[x.kind] || 'Lịch luyện, bí cảnh, chế tác hoặc Tàng bảo các.');
-
   function itemDetail(key, back) {
     const s = UI.s(), g = UI.g(), x = H.item(key);
     if (!x) return empty('Vật phẩm không còn tồn tại.');
@@ -244,8 +233,7 @@
     const notes = [['Điều kiện', condition]];
     if (x.kind === 'PILL' && x.effect === 'TU_VI') notes.push(['Lưu ý', 'Đan tăng tu vi giảm dần theo số viên đã dùng trong tầng hiện tại; tổng tu vi từ đan mỗi cảnh giới có trần.']);
     return UI.kit.itemSheet(x, {
-      effect, facts, notes, detail,
-      source: 'Nguồn gốc: ' + itemSource(x),
+      effect, facts, notes, detail, hideDesc: !!detail,
       actions: back_ + primary + sell
     });
   }
@@ -259,7 +247,7 @@
     const spare = Object.keys(s.bag).map(H.item).filter(x => x && x.kind === 'EQ' && g.count(x.key) > (s.equipment.includes(x.key) ? 1 : 0))
       .sort((a, b) => a.tier - b.tier || a.code.localeCompare(b.code) || a.sub - b.sub)
       .map(x => popCell(x.key, 'gearOpen', '×' + (g.count(x.key) - (s.equipment.includes(x.key) ? 1 : 0)))).join('');
-    popup('Pháp bảo', 'Đạo thân', `<h4 class="pop-title">Đang trang bị · ${s.equipment.length}/4</h4><div class="pop-grid">${worn}</div>
+    popup('Pháp bảo', 'Đạo thân', `<h4 class="pop-title">Đang trang bị <span class="title-count">${s.equipment.length}/4</span></h4><div class="pop-grid">${worn}</div>
       <h4 class="pop-title">Trong túi trữ vật</h4><div class="pop-grid">${spare || empty('Không còn pháp bảo nào trong túi.')}</div>`);
   }
 
@@ -271,7 +259,7 @@
       const used = s.activeManuals.filter(k => H.MANUALS.school(H.item(k)) === sc).length;
       const count = sc === 'nghe' ? mine.length + ' sách' : `đang vận ${used}/${room[sc]}`;
       const cells = mine.map(k => popCell(k, 'manualOpen', (s.activeManuals.includes(k) ? 'Đang vận · ' : '') + pct(s.learned[k]))).join('');
-      return `<h4 class="pop-title">${title} · ${count}</h4><div class="pop-grid">${cells || empty('Chưa có.')}</div>`;
+      return `<h4 class="pop-title">${title} <span class="title-count">${count}</span></h4><div class="pop-grid">${cells || empty('Chưa có.')}</div>`;
     };
     popup('Công pháp', 'Truyền thừa', keys.length ? part('ngoai', 'Ngoại tu') + part('noi', 'Nội tu') + part('nghe', 'Bí tịch nghề')
       : `<div class="pop-grid">${empty('Chưa lĩnh ngộ công pháp nào. Mở một bí tịch trong Hành trang để lĩnh ngộ.')}</div>`);
