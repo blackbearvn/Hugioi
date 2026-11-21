@@ -8,7 +8,7 @@
     const H = API, F = H.F, { item, ITEMS } = H;
     const at = (game, now) => Number.isFinite(now) ? now : game.s.lastUpdate;
 
-    Object.assign(H.Game.prototype, {
+    Object.assign(H.Game.prototype, /** @type {ThisType<GameHost>} */ ({
       price(key) {
         const x = item(key);
         if (!x) throw Error('Không có vật phẩm này.');
@@ -170,7 +170,7 @@
         }
         this.s.auction = { cycle, offers: {}, pausedMs: this.s.auction.pausedMs || 0 };
       }
-    });
+    }));
   }
 
   const mod = Object.freeze({ domain, commands, install });

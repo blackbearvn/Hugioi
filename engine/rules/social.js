@@ -14,7 +14,7 @@
     };
     const at = (game, now) => Number.isFinite(now) ? now : game.s.lastUpdate;
 
-    Object.assign(H.Game.prototype, {
+    Object.assign(H.Game.prototype, /** @type {ThisType<GameHost>} */ ({
       friend(id) {
         find([...FRIENDS, ...DAO], id);
         return this.s.social.friends[id] || (this.s.social.friends[id] = { affinity: 0, metAt: 0, giftAt: 0, discussAt: 0, claimed: [] });
@@ -249,7 +249,7 @@
         this.log(win ? 'Thắng luận kiếm: danh vọng +' + delta + '.' : 'Thua luận kiếm: đạo thân tọa hóa, toàn bộ kiếp này chấm dứt.');
         return { win, died: !win, delta, rating: pvp.rating, best: pvp.best, reward, exp, my, power };
       }
-    });
+    }));
   }
 
   const mod = Object.freeze({ domain, commands, install });

@@ -245,7 +245,7 @@
       x[k] = integer(raw[k], 0, k === 'pity' ? 15 : k.startsWith('offline') ? 8 : 1e9);
 
     x.starterTalentPoints = integer(raw.starterTalentPoints, 0, C.PAVILION.starterTalentMax);
-    x.talent = {};
+    x.talent = /** @type {any} */ ({});
     let talentTotal = 0;
     const allowedTalent = TALENT_MAX + x.starterTalentPoints;
     for (const t of TALENT_INFO) {
@@ -309,7 +309,7 @@
     x.zone = old ? Math.min(x.realm, [0, 0, 1, 2, 3, 5, 9][integer(raw.zone, 0, 6)]) : integer(raw.zone, 0, x.realm);
     x.enemyKind = ['thường', 'tinh anh', 'boss', 'boss kiếp'].includes(raw.enemyKind) ? raw.enemyKind : 'thường';
 
-    x.bag = {};
+    x.bag = /** @type {any} */ ({});
     if (object(raw.bag)) for (const [key, value] of Object.entries(raw.bag)) {
       if (!item(key)) continue;
       const q = integer(value, 0, 1e9);
@@ -416,7 +416,7 @@
     if (object(raw.story?.flags)) for (const [id, option] of Object.entries(raw.story.flags))
       if (storyById[id]?.choices?.some(choice => choice.id === option)) x.story.flags[id] = option;
 
-    x.pavilion = Object.fromEntries(Object.keys(C.PAVILION.stats).map(k => [k, integer(raw.pavilion?.[k], 0, 20)]));
+    x.pavilion = /** @type {any} */ (Object.fromEntries(Object.keys(C.PAVILION.stats).map(k => [k, integer(raw.pavilion?.[k], 0, 20)])));
     x.meta = normalizeMeta(raw.meta, now);
     // V9 không có nâng cấp trả phí hoặc điểm mang qua kiếp. Khi nâng V4-V8,
     // hủy các bonus vĩnh viễn không có nguồn gốc chọn Thiên mệnh ở Khởi Nguyên.

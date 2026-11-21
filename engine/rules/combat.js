@@ -27,7 +27,7 @@
     const BATTLE_LABELS = Object.freeze({ 'thường': 'Yêu thú', 'tinh anh': 'Tinh anh', boss: 'Thủ lĩnh', 'boss kiếp': 'Kiếp chủ' });
     H.BATTLE_LABELS = BATTLE_LABELS;
 
-    Object.assign(H.Game.prototype, {
+    Object.assign(H.Game.prototype, /** @type {ThisType<GameHost>} */ ({
       startExploration(payload, now) {
         now = at(this, now);
         // Kết toán tu hành trước khi bước vào bí cảnh để không làm mất thời gian
@@ -754,7 +754,7 @@
         this.log('Đến ' + H.ZONES[zone].name + '.');
         return zone;
       }
-    });
+    }));
   }
 
   const mod = Object.freeze({ domain, commands, install });

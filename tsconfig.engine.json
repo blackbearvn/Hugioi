@@ -1,0 +1,5 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": { "allowJs": true, "checkJs": true, "strict": false, "skipLibCheck": true, "types": [] },
+  "include": ["engine/**/*.js", "engine/host.d.ts"]
+}

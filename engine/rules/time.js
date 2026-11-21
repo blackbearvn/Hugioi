@@ -16,7 +16,7 @@
       return s.retreat.report;
     };
 
-    Object.assign(H.Game.prototype, {
+    Object.assign(H.Game.prototype, /** @type {ThisType<GameHost>} */ ({
       startRetreat(payload, now) {
         const s = this.s;
         if (![1800, 7200, 28800].includes(payload.duration)) throw Error('Thời lượng bế quan không hợp lệ.');
@@ -258,7 +258,7 @@
           dungeon, encounters, sect, sectReady: !!s.sect.mission && s.sect.mission.end <= now, died
         };
       }
-    });
+    }));
 
     // Bế quan chỉ theo dõi tiến trình online hiện có. Máy chủ vẫn chạy cùng luật
     // tu luyện; báo cáo dừng ở thời điểm hết phiên, không tạo thêm phần thưởng.

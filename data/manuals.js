@@ -1,3 +1,4 @@
+// @ts-nocheck - bảng dữ liệu: kiểu hợp nhất do suy luận, không phải lỗi thật
 /* Công pháp và bí tịch: phân hệ, số ô, chiêu thức ngoại tu, đan hiếm.
    Thuần dữ liệu và hàm tính, không đọc trạng thái người chơi. Engine và giao diện cùng dùng file này.
    Ba hệ:

@@ -9,7 +9,7 @@
     const TERRAINS = ['đất thường', 'linh điền', 'hỏa địa', 'hàn đàm', 'linh điền có trận pháp'];
     const at = (game, now) => Number.isFinite(now) ? now : game.s.lastUpdate;
 
-    Object.assign(H.Game.prototype, {
+    Object.assign(H.Game.prototype, /** @type {ThisType<GameHost>} */ ({
       hasCraftRecipe(code) {
         const x = item(code), book = H.SECT_BOOKS.find(b => b.id === this.s.borrowedBook);
         return !!x && !!book && book.kind === x.kind && x.tier >= book.minRealm && x.tier <= book.maxRealm;
@@ -226,7 +226,7 @@
         this.add(code);
         return 'Đã chế tạo ' + x.name;
       }
-    });
+    }));
   }
 
   const mod = Object.freeze({ domain, commands, install });

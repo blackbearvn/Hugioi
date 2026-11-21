@@ -26,7 +26,7 @@
         }]))
     ]);
 
-    Object.assign(H.Game.prototype, {
+    Object.assign(H.Game.prototype, /** @type {ThisType<GameHost>} */ ({
       featureOpen(id) {
         const f = H.FEATURES[id];
         return !!f && this.s.realm >= f.realm;
@@ -281,7 +281,7 @@
         const tier = Math.max(...pool.map(x => x.tier));
         return pick(pool.filter(x => x.tier === tier), rng);
       }
-    });
+    }));
   }
 
   const mod = Object.freeze({ domain, commands, install });

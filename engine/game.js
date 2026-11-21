@@ -21,7 +21,7 @@
   const REQUIRED_METHODS = Object.freeze(['advance', 'isDead', 'checkMeta']);
 
   function notImplemented(name) {
-    const fn = function () { const e = Error('Chưa cài đặt: ' + name); e.code = 'NOT_IMPLEMENTED'; throw e; };
+    const fn = function () { throw Object.assign(Error('Chưa cài đặt: ' + name), { code: 'NOT_IMPLEMENTED' }); };
     fn.notImplemented = true;
     return fn;
   }

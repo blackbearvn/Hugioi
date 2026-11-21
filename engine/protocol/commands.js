@@ -102,9 +102,7 @@
   }
 
   function invalid() {
-    const e = Error('Lệnh game không hợp lệ.');
-    e.code = 'INVALID_COMMAND';
-    throw e;
+    throw Object.assign(Error('Lệnh game không hợp lệ.'), { code: 'INVALID_COMMAND' });
   }
 
   /* Trả về { type, payload } đã làm sạch hoặc ném INVALID_COMMAND. Không chấp nhận trường thừa. */

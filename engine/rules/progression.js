@@ -9,7 +9,7 @@
     const H = API, F = H.F, { item, raceBonus, META_ACHIEVEMENTS, metaDefault, CHAOS } = H;
     const at = (game, now) => Number.isFinite(now) ? now : game.s.lastUpdate;
 
-    Object.assign(H.Game.prototype, {
+    Object.assign(H.Game.prototype, /** @type {ThisType<GameHost>} */ ({
       need() { return F.exp_need(this.s.realm, this.s.stage - 1); },
       /* Cộng tu vi khi online. Tiểu cảnh giới tự động đột phá khi đầy tu vi;
          tu vi chỉ dừng lại ở tầng cuối của đại cảnh giới, chờ người chơi bấm Đột phá thủ công. */
@@ -254,7 +254,7 @@
         return this.gainExp(F.absorb_exp(this.s.realm, coin, count));
       },
       setAuto(payload) { this.s.auto = payload.enabled; return payload.enabled; }
-    });
+    }));
   }
 
   const mod = Object.freeze({ domain, commands, install });

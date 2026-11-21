@@ -1,3 +1,4 @@
+// @ts-nocheck - bảng dữ liệu: kiểu hợp nhất do suy luận, không phải lỗi thật
 /* Tra cứu vật phẩm và bản đồ; không giữ trạng thái người chơi. */
 (function(root){
 'use strict';

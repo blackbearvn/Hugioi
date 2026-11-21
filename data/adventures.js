@@ -1,3 +1,4 @@
+// @ts-nocheck - bảng dữ liệu: kiểu hợp nhất do suy luận, không phải lỗi thật
 /* Nội dung chuyển từ Hu-gioi; nhịp chơi và phần thưởng dùng mô hình workspace. */
 (function (root) {
   'use strict';

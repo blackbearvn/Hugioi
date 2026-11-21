@@ -1,3 +1,4 @@
+// @ts-nocheck - bảng dữ liệu: kiểu hợp nhất do suy luận, không phải lỗi thật
 /* Hồ sơ khởi nguyên và Thiên mệnh. Các lần gieo nhận RNG từ bên gọi. */
 (function(root){
 'use strict';

@@ -16,7 +16,7 @@
     "edge:budget": "node tools/simulate-edge-calls.cjs",
     "dev": "vite --host 127.0.0.1",
     "preview": "vite preview --host 127.0.0.1",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.engine.json"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.5.4"

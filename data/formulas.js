@@ -1,3 +1,4 @@
+// @ts-nocheck - bảng dữ liệu: kiểu hợp nhất do suy luận, không phải lỗi thật
 /* Pure numerical model. Mô hình số học thuần; các stage đánh số từ 0. */
 (function(root){
 'use strict';

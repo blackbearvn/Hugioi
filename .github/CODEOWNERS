@@ -1,0 +1,8 @@
+# Chủ dự án duyệt mọi thay đổi. Các vùng rủi ro cao được liệt kê riêng để không bị bỏ sót khi có nhiều bên cùng sửa.
+*                               @blackbearvn
+/engine/                        @blackbearvn
+/server/                        @blackbearvn
+/supabase/                      @blackbearvn
+/.github/                       @blackbearvn
+/client/classic-scripts.json    @blackbearvn
+/_headers                       @blackbearvn

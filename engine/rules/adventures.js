@@ -20,7 +20,7 @@
       return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
     };
 
-    Object.assign(H.Game.prototype, {
+    Object.assign(H.Game.prototype, /** @type {ThisType<GameHost>} */ ({
       dungeonEnemy(d, floor) {
         /* Bí cảnh dùng cùng thang sức mạnh với quái theo cảnh giới; thủ lĩnh chỉ
            nhận thêm hệ số tầng cuối thay vì HP tuyệt đối từ design-raw. */
@@ -282,7 +282,7 @@
         }
         return found;
       }
-    });
+    }));
   }
 
   const mod = Object.freeze({ domain, commands, install });
